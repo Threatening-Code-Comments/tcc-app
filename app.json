@@ -2,6 +2,7 @@
   "expo": {
     "name": "tcc_app_rn",
     "slug": "tcc_app_rn",
+    "scheme": "tcc-app-scheme",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,6 +26,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

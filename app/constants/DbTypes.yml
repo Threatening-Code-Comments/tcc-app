@@ -1,0 +1,33 @@
+pages:
+  - id
+  - name
+
+pageRoutines:
+  - pageId
+  - routineId
+  - posX
+  - posY
+  - spanX
+  - spanY
+
+routines:
+  - id
+  - name
+
+routineTiles:
+  - tileId
+  - routineId
+  - posX
+  - posY
+  - spanX
+  - spanY
+
+tiles:
+  - id
+  - name
+  - mode
+
+tileEvents:
+  - tileId
+  - timestamp
+  - data (str)
