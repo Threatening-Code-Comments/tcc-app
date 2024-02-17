@@ -15,6 +15,7 @@ export type Tile = {
     name: string
     mode: number
     rootRoutineId: number
+    counter?: number
 }
 
 export type RoutinePages = {

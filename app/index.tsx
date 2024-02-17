@@ -4,7 +4,7 @@ import { FlatList, LogBox, Text, View } from 'react-native'
 import { IconButton } from './components/IconButton'
 import { PageTileComponent } from './components/Tiles'
 import { Page } from './constants/DbTypes'
-import { initDb } from './db/database'
+import { dropDb, initDb } from './db/database'
 import { getPages, insertPages } from './db/pages'
 
 
@@ -43,6 +43,7 @@ const HomePage = () => {
             <View style={{ margin: 10, display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5 }}>
                 <IconButton iconName='plus' text='Add' onPress={addPage} />
                 <IconButton iconName='refresh' text='Refresh' onPress={query} />
+                <IconButton iconName='trash' text='Drop DB' onPress={dropDb} />
             </View>
 
             <View style={{margin: 10, display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5}}>

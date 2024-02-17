@@ -57,7 +57,8 @@ export const routineTilesStatements = {
 
 export const tileEventsStatements = {
     create: `CREATE TABLE IF NOT EXISTS tile_events (
-        tileId INTEGER NOT NULL PRIMARY KEY,
+        eventId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        tileId INTEGER NOT NULL,
         timestamp DATETIME NOT NULL,
         data TEXT NOT NULL,
         FOREIGN KEY (tileId) REFERENCES tiles(id)

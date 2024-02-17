@@ -15,11 +15,15 @@ const RoutineDisplayPage = () => {
   const [routine, setRoutine] = useState<RoutineWithTiles>()
   const [tiles, setTiles] = useState<Array<TileOfRoutine>>()
 
+  const reloadScreen = () => {
+    router.replace(`/routines/${routineId}`)
+  }
+
   const updateRoutine = () => {
     // console.log("updating routines")
 
     getRoutinesWithTiles([routineId], (err, res) => {
-      console.log("Routines: ", res[0])
+      // console.log("Routines: ", res[0])
 
       setRoutine(res[0])
       setTiles(res[0].tiles)
@@ -31,7 +35,14 @@ const RoutineDisplayPage = () => {
 
     const tile = generateRandomTile(routineId)
 
-    insertTileIntoRoutine([tile])
+    insertTileIntoRoutine([tile], (err, res) => {
+      if (err) {
+        console.log("Error inserting tile: ", err)
+      } else {
+        console.log("Inserted tile: ", res)
+        reloadScreen()
+      }
+    })
   }
 
 
@@ -46,21 +57,23 @@ const RoutineDisplayPage = () => {
       <View style={{ display: 'flex', flexDirection: 'row', gap: 5 }}>
         <IconButton iconName='refresh' text='Refresh' onPress={updateRoutine} />
         <IconButton iconName='plus' text='Add Tile' onPress={addTile} />
-        {/* <IconButton iconName='facebook' text='Query all' onPress={queryAll} /> */}
       </View>
-
-      <Text>Tiles: {JSON.stringify(tiles, null, 3)}</Text>
 
 
       {/*display tiles*/}
-      <FlatList
-        style={{ height: 500 }}
-        data={tiles}
-        contentContainerStyle={{ gap: 10 }}
-        columnWrapperStyle={{ gap: 10 }}
-        numColumns={4}
-        renderItem={(test) => <TileComponent tile={test.item} />}
-      />
+      <View style={{ height: 600, padding: 10 }}>
+        <FlatList
+          style={{ height: 500 }}
+          data={tiles}
+          contentContainerStyle={{ gap: 10 }}
+          columnWrapperStyle={{ gap: 10 }}
+          numColumns={2}
+          renderItem={(test) =>
+            <TileComponent
+              tile={test.item}
+              reload={reloadScreen} />}
+        />
+      </View>
     </>
   )
 }

@@ -1,20 +1,37 @@
-import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { Page, Routine, RoutineOnPage, RoutineWithTiles, Tile } from '../constants/DbTypes'
-import { flattenDiagnosticMessageText } from 'typescript'
-import { Link } from 'expo-router'
+import React, { useState } from 'react'
+import { Pressable, StyleSheet, Text } from 'react-native'
+import { Page, RoutineOnPage, Tile } from '../constants/DbTypes'
+import { insertTileEvent } from '../db/tileEvents'
 import JLink from './JLink'
 
 
 type TileComponentProps = {
-    tile: Tile
+    tile: Tile,
+    reload: () => void
 }
-const TileComponent = (props: TileComponentProps) => {
+const TileComponent = ({tile, reload}: TileComponentProps) => {
+    const [counter, setCounter] = useState(tile.counter)
+
+    const addToCounter = () => {
+        console.log("Adding to counter")
+
+        insertTileEvent(tile.id, new Date(), "", (err, res) => {
+            if (err) {
+                console.log("Error inserting tile event: ", err)
+            } else {
+                console.log("Inserted tile event: ", res)
+            }
+        })
+
+        tile.counter += 1
+        setCounter(tile.counter)
+    }
+
     return (
-        <View style={styles.card}>
-            <Text style={styles.name}>{props.tile.name}</Text>
-            <Text style={styles.info}>{props.tile.mode}</Text>
-        </View>
+        <Pressable style={{...styles.card, flex: 1/2}} onPress={addToCounter}>
+            <Text style={styles.name}>{tile.name}</Text>
+            <Text style={styles.info}>{counter}</Text>
+        </Pressable>
     )
 }
 
@@ -38,7 +55,7 @@ type PageTileComponentProps = {
 export const PageTileComponent = (props: PageTileComponentProps) => {
     return (
         <JLink style={{...styles.card, flex: 1/2}} link={`/pages/${props.page.id}`} >
-            <Text style={styles.name}>{props.page.name.substring(0, 5)}</Text>
+            <Text style={styles.name}>{props.page.name}</Text>
             <Text style={styles.info}>Has {props.page.id} Tiles</Text>
         </JLink>
     )
@@ -71,6 +88,7 @@ const styles = StyleSheet.create({
     },
     name: {
         fontSize: 20,
+        marginHorizontal: 10,
         fontWeight: '500',
         color: 'white',
         textAlign: 'center'

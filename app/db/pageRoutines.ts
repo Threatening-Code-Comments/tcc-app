@@ -3,7 +3,7 @@ import { InsertRoutine, InsertRoutineOnPage, Routine, RoutineOnPage } from "../c
 import { ResultCallback, db } from "./database";
 
 export const getRoutinesForPage = (pageId: number, callback: ResultCallback<RoutineOnPage>) => {
-    db.exec(
+    db().exec(
         [{
             sql: `SELECT *
                     FROM routines 
@@ -21,7 +21,7 @@ export const insertRoutineOnPage = (routines: Array<InsertRoutineOnPage>) => {
         queries.push({ sql: `INSERT INTO routines (name) VALUES (?)`, args: [routine.name] })
     )
 
-    db.exec(
+    db().exec(
         queries,
         false,
         (err, res) => {
@@ -40,7 +40,7 @@ export const insertRoutineOnPage = (routines: Array<InsertRoutineOnPage>) => {
             }
             )
 
-            db.exec(
+            db().exec(
                 queries,
                 false,
                 (err, res) => {

@@ -1,4 +1,4 @@
-import { Query } from "expo-sqlite"
+import { Query, ResultSet, ResultSetError } from "expo-sqlite"
 import { InsertTileOfRoutine, Routine, RoutineWithTiles, TileOfRoutine } from "../constants/DbTypes"
 import { ResultCallback, db } from "./database"
 
@@ -13,17 +13,19 @@ export const getRoutinesWithTiles = (routineIds: Array<number | string>, callbac
                     routines.id as routineId,
                     routines.name as routineName,
                     tiles.*,
-                    routine_tiles.*
+                    routine_tiles.*,
+                    COUNT(tile_events.tileId) as counter
                 FROM routines
                 LEFT JOIN tiles ON routines.id = tiles.rootRoutineId
                 LEFT JOIN routine_tiles ON routines.id = routine_tiles.routineId
+                LEFT JOIN tile_events ON tiles.id = tile_events.tileId
                 WHERE routines.id = ?
                 GROUP BY tiles.id;`, args: [routineId]
         }))
 
     // console.log("Queries: ", queries)
 
-    db.exec(
+    db().exec(
         queries,
         true,
         (err, res) => {
@@ -46,7 +48,8 @@ export const getRoutinesWithTiles = (routineIds: Array<number | string>, callbac
                     spanY: entry['spanY'],
                     rootRoutineId: entry['routineId'],
                     routineId: entry['routineId'],
-                    tileId: entry['id']
+                    tileId: entry['id'],
+                    counter: entry['counter']
                 };
 
                 const routineInList = routines.find(rout => rout.id == routine.id)
@@ -70,7 +73,8 @@ export const getRoutinesWithTiles = (routineIds: Array<number | string>, callbac
     )
 }
 
-export const insertTileIntoRoutine = (tiles: Array<InsertTileOfRoutine>) => {
+export type InsertTileCallback = (err: Error, res: (ResultSetError | ResultSet)[]) => void
+export const insertTileIntoRoutine = (tiles: Array<InsertTileOfRoutine>, doOnFinish: InsertTileCallback) => {
     const queries: Array<Query> = []
     tiles.map(tile =>
         queries.push({
@@ -80,12 +84,12 @@ export const insertTileIntoRoutine = (tiles: Array<InsertTileOfRoutine>) => {
         })
     )
 
-    db.exec(
+    db().exec(
         queries,
         false,
         (err, res) => {
-            (err) ? console.log("ERROR INSERTING TILE!") : ""
-            console.log('error on insert: ', err)
+            if (err) console.log("ERROR INSERTING TILE!")
+            if (err) console.log('error on insert is: ', err)
             // console.log("res for insert: ", JSON.stringify(res), ", queries: ", queries)
 
             const tileIds: Array<string> = res.flatMap(entry => entry['insertId'])
@@ -101,10 +105,12 @@ export const insertTileIntoRoutine = (tiles: Array<InsertTileOfRoutine>) => {
             }
             )
 
-            db.exec(
+            db().exec(
                 queries,
                 false,
-                (err, res) => { }
+                (err, res) => {
+                    doOnFinish(err, res)
+                }
             )
         }
     )

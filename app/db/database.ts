@@ -10,10 +10,11 @@ const tiles = tilesStatements
 const routineTiles = routineTilesStatements
 const tileEvents = tileEventsStatements
 
-export const db = SQLite.openDatabase(dbName, '1.1')
+let _db = SQLite.openDatabase(dbName, '1.1')
+export const db = ()=> _db
 
 export const initDb = () => {
-    db.transaction(t => {
+    db().transaction(t => {
         t.executeSql(pages.create)
         t.executeSql(routines.create)
         t.executeSql(pageRoutines.create)
@@ -21,6 +22,13 @@ export const initDb = () => {
         t.executeSql(routineTiles.create)
         t.executeSql(tileEvents.create)
     }, (err) => { console.log('error creating tables: ', err) }, () => console.log('success creating tables'))
+}
+
+export const dropDb = async () => {
+    await _db.closeAsync()
+    _db.deleteAsync()
+    console.log('db dropped')
+    _db = SQLite.openDatabase(dbName, '1.1')
 }
 
 export type ResultCallback<T> = (error: Error, result: Array<T>) => void
