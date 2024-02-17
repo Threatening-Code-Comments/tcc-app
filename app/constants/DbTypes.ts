@@ -82,6 +82,6 @@ export type TilesOfRoutine = {
     tiles: Array<TileOfRoutine>
 }
 
-export type RoutineOnPage = Routine & RoutinePages
+export type RoutineOnPage = Routine & RoutinePages & RoutineWithTiles
 export type InsertRoutineOnPage = InsertRoutine & InsertRoutinePages
 export type RoutineWithTiles = Routine & TilesOfRoutine

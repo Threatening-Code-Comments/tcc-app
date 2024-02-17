@@ -10,7 +10,6 @@ import { getPages, insertPages } from './db/pages'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
-    initDb()
     const router = useRouter()
 
     const [pages, setPages] = useState<Page[]>([])
@@ -18,9 +17,18 @@ const HomePage = () => {
 
     const addPage = () => {
         const randomNumber = Math.random()
-        insertPages([{ name: `Page |${randomNumber}|` }])
-        setQueried(false)
-        router.replace('/')
+        const name = `Page |${randomNumber}|`
+
+        insertPages(
+            [{ name: name }],
+            (err, res) => {
+                if (err) {
+                    console.log("Error inserting page: ", err)
+                } else {
+                    console.log("Inserted page: ", res)
+                    setPages([...pages, { id: res.insertId, name: name }])
+                }
+            })
     }
 
     const query = () => {
@@ -46,9 +54,9 @@ const HomePage = () => {
                 <IconButton iconName='trash' text='Drop DB' onPress={dropDb} />
             </View>
 
-            <View style={{margin: 10, display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5}}>
+            <View style={{ margin: 10, display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5 }}>
                 <FlatList
-                    style={{width: '100%', padding: padding, paddingTop: 0, paddingBottom: 0,}}
+                    style={{ width: '100%', padding: padding, paddingTop: 0, paddingBottom: 0, }}
                     data={pages}
                     contentContainerStyle={{ gap: 10 }}
                     columnWrapperStyle={{ gap: 10 }}

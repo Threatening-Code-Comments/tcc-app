@@ -4,8 +4,6 @@ import { ResultCallback, db } from "./database"
 
 
 export const getRoutinesWithTiles = (routineIds: Array<number | string>, callback: ResultCallback<RoutineWithTiles>) => {
-    // console.log("routine id: ", routineIds)
-
     const queries: Array<Query> = []
     routineIds.map(routineId => queries.push(
         {
@@ -14,16 +12,14 @@ export const getRoutinesWithTiles = (routineIds: Array<number | string>, callbac
                     routines.name as routineName,
                     tiles.*,
                     routine_tiles.*,
-                    COUNT(tile_events.tileId) as counter
+                    COUNT(tile_events.tileId) AS counter
                 FROM routines
                 LEFT JOIN tiles ON routines.id = tiles.rootRoutineId
                 LEFT JOIN routine_tiles ON routines.id = routine_tiles.routineId
                 LEFT JOIN tile_events ON tiles.id = tile_events.tileId
-                WHERE routines.id = ?
-                GROUP BY tiles.id;`, args: [routineId]
+                WHERE routines.id = ? AND tiles.id IS NOT NULL
+                GROUP BY routines.id, tiles.id;`, args: [routineId]
         }))
-
-    // console.log("Queries: ", queries)
 
     db().exec(
         queries,

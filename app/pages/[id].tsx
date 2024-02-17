@@ -4,9 +4,10 @@ import { Text, View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { IconButton } from '../components/IconButton'
 import { RoutineTileComponent } from '../components/Tiles'
-import { InsertRoutineOnPage, Page, RoutineOnPage } from '../constants/DbTypes'
+import { InsertRoutineOnPage, Page, RoutineOnPage, RoutineWithTiles } from '../constants/DbTypes'
 import { getRoutinesForPage, insertRoutineOnPage as insertRoutinesOnPage } from '../db/pageRoutines'
 import { getPageById } from '../db/pages'
+import { getRoutinesWithTiles } from '../db/routineTiles'
 
 let addedRoutine = false
 const PageDisplayPage = () => {
@@ -29,18 +30,36 @@ const PageDisplayPage = () => {
 
         insertRoutinesOnPage([routine])
         setQueried(false)
-        router.replace(`/pages/${id}`)
+        // router.replace(`/pages/${id}`)
         addedRoutine = true
+        updateRoutines()
     }
 
     const [routines, setRoutines] = useState<Array<RoutineOnPage>>([])
     const updateRoutines = () => {
+        const routinesOfPage: RoutineOnPage[] = []
+        const routinesWithTiles: RoutineWithTiles[] = []
         getRoutinesForPage(
             id,
-            (error, routines) =>
+            (error, res) => {
                 (error)
                     ? console.log("error getting routines")
-                    : setRoutines(routines))
+                    : ""
+
+                routinesOfPage.push(...res)
+
+                getRoutinesWithTiles(routinesOfPage.map(routine => routine.id),
+                    (err, res) => {
+                        routinesWithTiles.push(...res)
+
+                        //iterate over routinesOfPage and insert tiles of corresponding routineWithTiles into the routineOnPage
+                        routinesOfPage.map(routine => {
+                            const tiles = routinesWithTiles.find(r => r.id === routine.id)?.tiles
+                            routine.tiles = (tiles) ? tiles : []
+                        })
+                        setRoutines(routinesOfPage)
+                    })
+            })
     }
 
     if (!queried) {

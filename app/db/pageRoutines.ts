@@ -8,7 +8,7 @@ export const getRoutinesForPage = (pageId: number, callback: ResultCallback<Rout
             sql: `SELECT *
                     FROM routines 
                     LEFT JOIN page_routines ON routines.id = page_routines.routineId 
-                    WHERE page_routines.pageId = ?`,
+                    WHERE page_routines.pageId = ? AND routines.id IS NOT NULL`,
             args: [pageId]
         }], true,
         (err, res) => callback(err, res.flatMap(entry => entry['rows']))

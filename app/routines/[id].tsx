@@ -1,12 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
-import { FlatList, ScrollView } from 'react-native-gesture-handler'
+import { FlatList } from 'react-native-gesture-handler'
 import { IconButton } from '../components/IconButton'
-import { InsertTileOfRoutine, Routine, RoutineWithTiles, TileOfRoutine } from '../constants/DbTypes'
-import { db } from '../db/database'
-import { getRoutinesWithTiles, insertTileIntoRoutine } from '../db/routineTiles'
 import TileComponent from '../components/Tiles'
+import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from '../constants/DbTypes'
+import { getRoutinesWithTiles, insertTileIntoRoutine } from '../db/routineTiles'
 
 const RoutineDisplayPage = () => {
   const routineId = +useLocalSearchParams()['id']
@@ -20,13 +19,11 @@ const RoutineDisplayPage = () => {
   }
 
   const updateRoutine = () => {
-    // console.log("updating routines")
-
     getRoutinesWithTiles([routineId], (err, res) => {
-      // console.log("Routines: ", res[0])
-
       setRoutine(res[0])
-      setTiles(res[0].tiles)
+      const tilesOfRoutine = (res[0].tiles.length > 0) ? res[0].tiles : []
+      setTiles(tilesOfRoutine)
+      console.log(JSON.stringify(tilesOfRoutine, null, 2))
     })
   }
 

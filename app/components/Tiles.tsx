@@ -9,7 +9,7 @@ type TileComponentProps = {
     tile: Tile,
     reload: () => void
 }
-const TileComponent = ({tile, reload}: TileComponentProps) => {
+const TileComponent = ({ tile, reload }: TileComponentProps) => {
     const [counter, setCounter] = useState(tile.counter)
 
     const addToCounter = () => {
@@ -20,15 +20,15 @@ const TileComponent = ({tile, reload}: TileComponentProps) => {
                 console.log("Error inserting tile event: ", err)
             } else {
                 console.log("Inserted tile event: ", res)
+
+                tile.counter += 1
+                setCounter(tile.counter)
             }
         })
-
-        tile.counter += 1
-        setCounter(tile.counter)
     }
 
     return (
-        <Pressable style={{...styles.card, flex: 1/2}} onPress={addToCounter}>
+        <Pressable style={{ ...styles.card, flex: 1 / 2 }} onPress={addToCounter}>
             <Text style={styles.name}>{tile.name}</Text>
             <Text style={styles.info}>{counter}</Text>
         </Pressable>
@@ -40,11 +40,13 @@ export default TileComponent
 type RoutineTileComponentProps = {
     routine: RoutineOnPage
 }
-export const RoutineTileComponent = (props: RoutineTileComponentProps) => {
+export const RoutineTileComponent = ({routine}: RoutineTileComponentProps) => {
+    const length = (routine.tiles) ? routine.tiles.length : 0
+
     return (
-        <JLink style={{...styles.card, flex: 1/4}} link={`/routines/${props.routine.id}`} >
-            <Text style={styles.name}>{props.routine.name}</Text>
-            <Text style={styles.info}>Has {props.routine.routineId} Tiles</Text>
+        <JLink style={{ ...styles.card, flex: 1 / 4 }} link={`/routines/${routine.id}`} >
+            <Text style={styles.name}>{routine.name}</Text>
+            <Text style={styles.info}>Has {length} Tiles</Text>
         </JLink>
     )
 }
@@ -54,7 +56,7 @@ type PageTileComponentProps = {
 }
 export const PageTileComponent = (props: PageTileComponentProps) => {
     return (
-        <JLink style={{...styles.card, flex: 1/2}} link={`/pages/${props.page.id}`} >
+        <JLink style={{ ...styles.card, flex: 1 / 2 }} link={`/pages/${props.page.id}`} >
             <Text style={styles.name}>{props.page.name}</Text>
             <Text style={styles.info}>Has {props.page.id} Tiles</Text>
         </JLink>
