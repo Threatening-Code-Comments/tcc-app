@@ -1,7 +1,3 @@
-import { ColumnMapping, IStatement, Repository, columnTypes, sql } from "expo-sqlite-orm"
-import { dbName } from "./global"
-
-
 export type Page = {
     id: number
     name: string
@@ -42,7 +38,7 @@ export type TileEvent = {
     data: string
 }
 
-//insert types
+//---------------- insert types ----------------
 export type InsertPage = {
     id?: number,
     name: string
@@ -77,7 +73,7 @@ export type InsertTileOfRoutine = InsertTile & {
     spanY: number
 }
 
-//compound types
+//---------------- compound types ----------------
 export type TilesOfRoutine = {
     tiles: Array<TileOfRoutine>
 }

@@ -1,6 +1,6 @@
 import { Query, ResultSet, ResultSetError } from "expo-sqlite"
-import { InsertTileOfRoutine, Routine, RoutineWithTiles, TileOfRoutine } from "../constants/DbTypes"
-import { ResultCallback, db } from "./database"
+import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from "../constants/DbTypes"
+import { InsertCallback, ResultCallback, db } from "./database"
 
 
 export const getRoutinesWithTiles = (routineIds: Array<number | string>, callback: ResultCallback<RoutineWithTiles>) => {
@@ -64,18 +64,15 @@ export const getRoutinesWithTiles = (routineIds: Array<number | string>, callbac
             })
 
             callback(err, routines)
-            // console.log(JSON.stringify(res, null, 2))
         }
     )
 }
 
-export type InsertTileCallback = (err: Error, res: (ResultSetError | ResultSet)[]) => void
-export const insertTileIntoRoutine = (tiles: Array<InsertTileOfRoutine>, doOnFinish: InsertTileCallback) => {
+export const insertTileIntoRoutine = (tiles: Array<InsertTileOfRoutine>, doOnFinish: InsertCallback) => {
     const queries: Array<Query> = []
     tiles.map(tile =>
         queries.push({
             sql: `INSERT INTO tiles (name, mode, rootRoutineId) VALUES (?, ?, ?);`,
-            // sql: `UPDATE tiles (name, mode, rootRoutineId) VALUES (?, ?, ?);`,
             args: [tile.name, tile.mode, tile.rootRoutineId]
         })
     )
@@ -84,9 +81,7 @@ export const insertTileIntoRoutine = (tiles: Array<InsertTileOfRoutine>, doOnFin
         queries,
         false,
         (err, res) => {
-            if (err) console.log("ERROR INSERTING TILE!")
-            if (err) console.log('error on insert is: ', err)
-            // console.log("res for insert: ", JSON.stringify(res), ", queries: ", queries)
+            if (err) console.error('error on tile insert is: ', err)
 
             const tileIds: Array<string> = res.flatMap(entry => entry['insertId'])
             queries.length = 0 //clear array 

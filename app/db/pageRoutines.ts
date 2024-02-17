@@ -1,5 +1,5 @@
 import { Query } from "expo-sqlite";
-import { InsertRoutine, InsertRoutineOnPage, Routine, RoutineOnPage } from "../constants/DbTypes";
+import { InsertRoutineOnPage, RoutineOnPage } from "../constants/DbTypes";
 import { ResultCallback, db } from "./database";
 
 export const getRoutinesForPage = (pageId: number, callback: ResultCallback<RoutineOnPage>) => {
@@ -25,7 +25,7 @@ export const insertRoutineOnPage = (routines: Array<InsertRoutineOnPage>) => {
         queries,
         false,
         (err, res) => {
-            (err) ? console.log("ERROR INSERTING ROUTINE!") : ""
+            (err) ? console.error("ERROR INSERTING ROUTINE!") : ""
 
             const routineIds: Array<string> = res.flatMap(entry => entry['insertId'])
             queries.length = 0 //clear array 
@@ -43,7 +43,7 @@ export const insertRoutineOnPage = (routines: Array<InsertRoutineOnPage>) => {
             db().exec(
                 queries,
                 false,
-                (err, res) => {
+                (_err, _res) => {
 
                 }
             )

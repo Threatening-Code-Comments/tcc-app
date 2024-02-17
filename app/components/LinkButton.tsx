@@ -1,7 +1,6 @@
-import React from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { Page } from '../constants/DbTypes'
 import { Link } from 'expo-router'
+import React from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 
 type LinkButtonProps = {
     link: string,
@@ -27,7 +26,6 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
         padding: 10,
-        // borderColor: 'black',
         borderStyle: 'solid',
         borderWidth: 2,
         gap: 2,

@@ -1,8 +1,9 @@
-import { db } from "./database"
+import { TileEvent } from "../constants/DbTypes"
+import { InsertCallback, ResultCallback, db } from "./database"
 
-export const insertTileEvent = (tileId: number, timestamp: Date, data: string, callback: (error: Error, result: Array<any>) => void) => {
+export const insertTileEvent = (tileId: number, timestamp: Date, data: string, callback: InsertCallback) => {
     const date = timestamp.toISOString().slice(0, 19).replace('T', ' ')
-    
+
     db().exec(
         [{ sql: 'INSERT INTO tile_events (tileId, timestamp, data) VALUES (?, ?, ?)', args: [tileId, date, data] }],
         false,
@@ -10,7 +11,7 @@ export const insertTileEvent = (tileId: number, timestamp: Date, data: string, c
     )
 }
 
-export const getEventsForTiles = (tileIds: Array<number>, callback: (error: Error, result: Array<any>) => void) => {
+export const getEventsForTiles = (tileIds: Array<number>, callback: ResultCallback<TileEvent>) => {
     db().exec(
         [{
             sql: `SELECT * 

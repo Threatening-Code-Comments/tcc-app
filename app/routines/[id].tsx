@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { IconButton } from '../components/IconButton'
-import TileComponent from '../components/Tiles'
+import { TileComponent } from '../components/Tiles'
 import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from '../constants/DbTypes'
 import { getRoutinesWithTiles, insertTileIntoRoutine } from '../db/routineTiles'
 
@@ -19,24 +19,21 @@ const RoutineDisplayPage = () => {
   }
 
   const updateRoutine = () => {
-    getRoutinesWithTiles([routineId], (err, res) => {
+    getRoutinesWithTiles([routineId], (_err, res) => {
       setRoutine(res[0])
       const tilesOfRoutine = (res[0].tiles.length > 0) ? res[0].tiles : []
       setTiles(tilesOfRoutine)
-      console.log(JSON.stringify(tilesOfRoutine, null, 2))
     })
   }
 
   const addTile = () => {
-    console.log("adding tile")
-
     const tile = generateRandomTile(routineId)
 
     insertTileIntoRoutine([tile], (err, res) => {
       if (err) {
-        console.log("Error inserting tile: ", err)
+        console.error("Error inserting tile: ", err)
       } else {
-        console.log("Inserted tile: ", res)
+        console.info("Inserted tile: ", res)
         reloadScreen()
       }
     })
@@ -56,7 +53,6 @@ const RoutineDisplayPage = () => {
         <IconButton iconName='plus' text='Add Tile' onPress={addTile} />
       </View>
 
-
       {/*display tiles*/}
       <View style={{ height: 600, padding: 10 }}>
         <FlatList
@@ -67,8 +63,7 @@ const RoutineDisplayPage = () => {
           numColumns={2}
           renderItem={(test) =>
             <TileComponent
-              tile={test.item}
-              reload={reloadScreen} />}
+              tile={test.item} />}
         />
       </View>
     </>

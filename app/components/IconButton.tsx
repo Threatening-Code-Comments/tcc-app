@@ -1,7 +1,8 @@
+import React from 'react'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 
-type IconButtonProps = {    
-    iconName: string,
+type IconButtonProps = {
+    iconName: keyof typeof FontAwesome.glyphMap,
     text?: string,
     onPress?: ()=>void
 }
@@ -12,7 +13,6 @@ export const IconButton = (props: IconButtonProps) => {
     const text = props.text
 
     return (
-        // <View style={{  width: wH, height: wH}}>
         <FontAwesome.Button
             style={{ alignSelf: 'center', margin: 5, }}
             color='white'

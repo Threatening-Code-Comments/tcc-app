@@ -1,5 +1,3 @@
-import { TileOfRoutine } from "./DbTypes"
-
 export const pagesStatements = {
     create: `CREATE TABLE IF NOT EXISTS pages (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

@@ -30,7 +30,6 @@ const PageDisplayPage = () => {
 
         insertRoutinesOnPage([routine])
         setQueried(false)
-        // router.replace(`/pages/${id}`)
         addedRoutine = true
         updateRoutines()
     }
@@ -42,9 +41,7 @@ const PageDisplayPage = () => {
         getRoutinesForPage(
             id,
             (error, res) => {
-                (error)
-                    ? console.log("error getting routines")
-                    : ""
+                (error) ? console.error("error getting routines") : ""
 
                 routinesOfPage.push(...res)
 

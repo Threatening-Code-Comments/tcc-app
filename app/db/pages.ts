@@ -1,6 +1,6 @@
 import { Query } from "expo-sqlite"
 import { InsertPage, Page } from "../constants/DbTypes"
-import { ResultCallback, db } from "./database"
+import { InsertCallback, ResultCallback, db } from "./database"
 
 export const getPages = (callback: ResultCallback<Page>) => {
     db().exec(
@@ -14,13 +14,11 @@ export const getPageById = (id: number, callback: ResultCallback<Page>) => {
     db().exec(
         [{ sql: 'SELECT * FROM pages WHERE id = ?', args: [id] }],
         true,
-        (err, res) => //callback(err, res.flatMap(entry=>entry['rows']))
-
-            callback(err, res.map(entry => entry['rows']).flat())
+        (err, res) => callback(err, res.map(entry => entry['rows']).flat())
     )
 }
 
-export const insertPages = (pages: Array<InsertPage>, callback: (err, res) => void) => {
+export const insertPages = (pages: Array<InsertPage>, callback: InsertCallback) => {
     const statements: Query[] = []
     pages.map(page =>
         statements.push({ sql: 'INSERT INTO pages (name) VALUES (?)', args: [page.name] })

@@ -4,13 +4,13 @@ import { FlatList, LogBox, Text, View } from 'react-native'
 import { IconButton } from './components/IconButton'
 import { PageTileComponent } from './components/Tiles'
 import { Page } from './constants/DbTypes'
-import { dropDb, initDb } from './db/database'
+import { dropDb } from './db/database'
 import { getPages, insertPages } from './db/pages'
+import { ResultSet } from 'expo-sqlite'
 
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
-    const router = useRouter()
 
     const [pages, setPages] = useState<Page[]>([])
     const [queried, setQueried] = useState(false)
@@ -23,16 +23,16 @@ const HomePage = () => {
             [{ name: name }],
             (err, res) => {
                 if (err) {
-                    console.log("Error inserting page: ", err)
+                    console.error("Error inserting page: ", err)
                 } else {
-                    console.log("Inserted page: ", res)
-                    setPages([...pages, { id: res.insertId, name: name }])
+                    console.info("Inserted page: ", res)
+                    setPages([...pages, { id: (res[0] as ResultSet).insertId, name: name }])
                 }
             })
     }
 
     const query = () => {
-        getPages((err, res) => {
+        getPages((_err, res) => {
             if (res[0] != undefined)
                 setPages(res)
         })

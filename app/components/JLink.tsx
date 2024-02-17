@@ -1,4 +1,4 @@
-import { router } from 'expo-router'
+import { useRouter } from 'expo-router'
 import React from 'react'
 import { Pressable, StyleProp, ViewStyle } from 'react-native'
 
@@ -20,9 +20,9 @@ const JLink = ({ link, style, children, replace }: JLinkProps) => {
 
 const navigateToLink = (link: string, replace: boolean) => {
     if (!replace)
-        router.push(link)
+        useRouter().push(link)
     else
-        router.replace(link)
+        useRouter().replace(link)
 }
 
 export default JLink
