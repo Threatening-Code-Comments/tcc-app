@@ -24,20 +24,6 @@ const HomePage = () => {
         } as const
     });
 
-    type TestType<TType extends readonly UseModalInputType[], TTType = TType[number]> = {
-        readonly [key in TType[number]["label"]]: TTType extends "number" ? number : string
-    }
-
-    const inputTypes = [{
-        label: "Page Name",
-        type: "string"
-    }, {
-        type: "number",
-        label: "lksdflsjdf"
-    }] as const
-
-    type Test = TestType<typeof inputTypes>
-
     const addPage = () => {
         setVisible(true)
         // const randomNumber = Math.random()
