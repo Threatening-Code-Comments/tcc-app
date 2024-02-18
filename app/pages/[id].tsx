@@ -9,15 +9,19 @@ import { getRoutinesForPage, insertRoutineOnPage as insertRoutinesOnPage } from 
 import { getPageById } from '../db/pages'
 import { getRoutinesWithTiles } from '../db/routineTiles'
 
-let addedRoutine = false
 const PageDisplayPage = () => {
     const [page, setPage] = useState<Page>()
+    const [queried, setQueried] = useState(false)
+    const [routines, setRoutines] = useState<Array<RoutineOnPage>>([])
+    useEffect(() => {
+        updateRoutines()
+        setQueried(true)
+    }, [])
+
     const id = Number(useLocalSearchParams()['id'])
     const next = (id) ? id + 1 : 0
     const prev = (id) ? id - 1 : 0
     const router = useRouter()
-
-    const [queried, setQueried] = useState(false)
 
     if (!page) {
         getPageById(id, (err, res) =>
@@ -30,11 +34,9 @@ const PageDisplayPage = () => {
 
         insertRoutinesOnPage([routine])
         setQueried(false)
-        addedRoutine = true
         updateRoutines()
     }
 
-    const [routines, setRoutines] = useState<Array<RoutineOnPage>>([])
     const updateRoutines = () => {
         const routinesOfPage: RoutineOnPage[] = []
         const routinesWithTiles: RoutineWithTiles[] = []
@@ -58,16 +60,6 @@ const PageDisplayPage = () => {
                     })
             })
     }
-
-    if (!queried) {
-        updateRoutines()
-        setQueried(true)
-    }
-
-    useEffect(() => {
-        updateRoutines()
-        addedRoutine = false
-    }, [addedRoutine])
 
     return (<>
         <Text>Hello world</Text>

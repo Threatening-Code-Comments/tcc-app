@@ -10,19 +10,20 @@ type JLinkProps = {
 }
 const JLink = ({ link, style, children, replace }: JLinkProps) => {
     replace = (replace) ? replace : false
+    const router = useRouter()
+
+    const navigateToLink = (link: string, replace: boolean) => {
+        if (!replace)
+            router.push(link)
+        else
+            router.replace(link)
+    }
 
     return (
         <Pressable onPress={() => navigateToLink(link, replace)} style={style}>
             {children}
         </Pressable>
     )
-}
-
-const navigateToLink = (link: string, replace: boolean) => {
-    if (!replace)
-        useRouter().push(link)
-    else
-        useRouter().replace(link)
 }
 
 export default JLink

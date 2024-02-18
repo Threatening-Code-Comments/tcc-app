@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router'
+import { ResultSet } from 'expo-sqlite'
 import React, { useState } from 'react'
 import { FlatList, LogBox, Text, View } from 'react-native'
 import { IconButton } from './components/IconButton'
@@ -6,7 +6,6 @@ import { PageTileComponent } from './components/Tiles'
 import { Page } from './constants/DbTypes'
 import { dropDb } from './db/database'
 import { getPages, insertPages } from './db/pages'
-import { ResultSet } from 'expo-sqlite'
 
 
 const HomePage = () => {
@@ -39,6 +38,7 @@ const HomePage = () => {
         setQueried(true)
     }
 
+    // TODO zu useEffect machen
     if (!queried) {
         query()
     }

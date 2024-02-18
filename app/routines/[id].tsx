@@ -13,6 +13,9 @@ const RoutineDisplayPage = () => {
 
   const [routine, setRoutine] = useState<RoutineWithTiles>()
   const [tiles, setTiles] = useState<Array<TileOfRoutine>>()
+  useEffect(() => {
+    updateRoutine()
+  }, [])
 
   const reloadScreen = () => {
     router.replace(`/routines/${routineId}`)
@@ -38,11 +41,6 @@ const RoutineDisplayPage = () => {
       }
     })
   }
-
-
-  useEffect(() => {
-    updateRoutine()
-  }, [])
 
   return (
     <>
