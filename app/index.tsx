@@ -8,6 +8,7 @@ import { dropDb } from './db/database'
 import { getPages, insertPages } from './db/pages'
 import { Link } from 'expo-router'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { Picker } from '@react-native-picker/picker'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -15,14 +16,39 @@ const HomePage = () => {
     const [pages, setPages] = useState<Page[]>([])
     const [queried, setQueried] = useState(false)
 
-    const { setVisible, component: AddPageModal, inputStates } = useModal({
+    const { setVisible, component: AddPageModal, inputStates, inputTypes: outputTypes } = useModal({
         title: "Add Page",
         inputTypes: {
             "Page Name": {
                 type: "string"
+            },
+            "Page Number": {
+                type: "number"
+            },
+            "Page Type": {
+                type: "select",
+                options: ["Text", "Image", "Video"]
             }
-        } as const
-    });
+        }
+    } as const);
+
+    const f = {
+        "Page Name": {
+            type: "string"
+        },
+        "Page Number": {
+            type: "number"
+        },
+        "Page Type": {
+            type: "select",
+            options: ["Text", "Image", "Video"]
+        }
+    } as const
+
+    type test = InputStateType<typeof f>
+    type test3 = typeof outputTypes
+
+    type test2 = typeof inputStates
 
     const addPage = () => {
         setVisible(true)
@@ -86,7 +112,7 @@ type UseModalInputType = {
     type: "number"
 } | {
     type: "select"
-    options: string[]
+    options: readonly string[]
 }
 
 type UseModalProps = {
@@ -98,37 +124,49 @@ type InputStateType<TProps extends Record<string, UseModalInputType>> = {
     [key in keyof TProps]: TProps[key]["type"] extends "number" ? number : string
 }
 
-type UseModalReturn<TProps extends Record<string, UseModalInputType>> = {
-    visible: boolean
-    setVisible: (visible: boolean) => void
-    component: ReactNode
-    inputStates: InputStateType<TProps>
-}
-
-function useModal<TProps extends UseModalProps>({
+function useModal<const TProps extends UseModalProps>({
     title,
     inputTypes
 }: TProps) {
 
-    const defaultState: InputStateType<typeof inputTypes> = Object.keys(inputTypes).reduce((prev, key) => {
-        const result = { ...prev };
-        result[key] = inputTypes[key].type === "number" ? 0 : "";
-        return result;
+    const defaultState = Object.keys(inputTypes).reduce((prev, key) => {
+        const addToInputStates = <
+            const TKey extends keyof typeof inputTypes,
+            const TType extends (typeof inputTypes)[TKey] & { key: TKey },
+            const TValue extends TType["type"] extends "number" ? number : string
+        >(currentInputStates: InputStateType<typeof inputTypes>, key: TType, value: TValue) => {
+            // @ts-ignore
+            const newInputStates: InputStateType<typeof inputTypes> = {
+                ...currentInputStates,
+                [key.key]: value
+            }
+            return newInputStates
+        }
+
+        const input = inputTypes[key]
+        if (input.type === "number")
+            return addToInputStates(prev, { ...input, key: key }, 0)
+        else
+            return addToInputStates(prev, { ...input, key: key }, "")
     }, {} as InputStateType<typeof inputTypes>)
 
     const [visible, setVisible] = useState(false)
-    const [inputStates, setInputStates] = useState(defaultState)
+    const [inputStates, setInputStates] = useState<InputStateType<typeof inputTypes>>(defaultState)
 
     const onClose = () => {
         setVisible(false)
     }
 
     const onInputChange = <
-        TKey extends UseModalInputType,
-        TValue extends (TKey["type"] extends "number" ? number : string)
-    >(key: TKey, value: TValue) => {
-        const newInputStates = { ...inputStates }
-        newInputStates[key.label] = value
+        const TKey extends keyof typeof inputTypes,
+        const TType extends (typeof inputTypes)[TKey] & { key: TKey },
+        const TValue extends TType["type"] extends "number" ? number : string
+    >(key: TType, value: TValue) => {
+        // @ts-ignore
+        const newInputStates: InputStateType<typeof inputTypes> = {
+            ...inputStates,
+            [key.key]: value
+        }
         setInputStates(newInputStates)
     }
 
@@ -153,15 +191,22 @@ function useModal<TProps extends UseModalProps>({
                         switch (input.type) {
                             case "string":
                                 return (
-                                    <TextInput onChangeText={text => onInputChange(input, text)} />
+                                    <TextInput onChangeText={text => onInputChange({ ...input, key: key }, text)} />
                                 )
                             case "number":
                                 return (
-                                    <TextInput />
+                                    <TextInput keyboardType='numeric' onChangeText={text => onInputChange({ ...input, key: key }, Number(text.replace(/[^0-9]/g, '')))} />
                                 )
                             case "select":
                                 return (
-                                    <TextInput />
+                                    <Picker<string>
+                                        selectedValue={inputStates[key] as string}
+                                        onValueChange={(itemValue, itemIndex) => onInputChange({ ...input, key: key }, itemValue)}
+                                    >
+                                        {
+                                            input.options.map(option => <Picker.Item label={option} value={option} />)
+                                        }
+                                    </Picker>
                                 )
                         }
                     })}
@@ -175,8 +220,9 @@ function useModal<TProps extends UseModalProps>({
         visible,
         setVisible,
         inputStates,
+        inputTypes,
         component,
-    } satisfies UseModalReturn<typeof inputTypes>
+    } as const
 }
 
 const styles = StyleSheet.create({
