@@ -32,24 +32,6 @@ const HomePage = () => {
         }
     } as const);
 
-    const f = {
-        "Page Name": {
-            type: "string"
-        },
-        "Page Number": {
-            type: "number"
-        },
-        "Page Type": {
-            type: "select",
-            options: ["Text", "Image", "Video"]
-        }
-    } as const
-
-    type test = InputStateType<typeof f>
-    type test3 = typeof outputTypes
-
-    type test2 = typeof inputStates
-
     const addPage = () => {
         setVisible(true)
         // const randomNumber = Math.random()
@@ -105,6 +87,10 @@ const HomePage = () => {
         </>
     )
 }
+
+
+
+
 
 type UseModalInputType = {
     type: "string"
@@ -191,20 +177,21 @@ function useModal<const TProps extends UseModalProps>({
                         switch (input.type) {
                             case "string":
                                 return (
-                                    <TextInput onChangeText={text => onInputChange({ ...input, key: key }, text)} />
+                                    <TextInput placeholder={key} style={styles.input} key={key} onChangeText={text => onInputChange({ ...input, key: key }, text)} />
                                 )
                             case "number":
                                 return (
-                                    <TextInput keyboardType='numeric' onChangeText={text => onInputChange({ ...input, key: key }, Number(text.replace(/[^0-9]/g, '')))} />
+                                    <TextInput placeholder={key} style={styles.input} key={key} keyboardType='numeric' onChangeText={text => onInputChange({ ...input, key: key }, Number(text.replace(/[^0-9]/g, '')))} />
                                 )
                             case "select":
                                 return (
                                     <Picker<string>
+                                        style={styles.picker}
                                         selectedValue={inputStates[key] as string}
                                         onValueChange={(itemValue, itemIndex) => onInputChange({ ...input, key: key }, itemValue)}
                                     >
                                         {
-                                            input.options.map(option => <Picker.Item label={option} value={option} />)
+                                            input.options.map(option => <Picker.Item key={`${key}${option}`} label={option} value={option} />)
                                         }
                                     </Picker>
                                 )
@@ -228,6 +215,7 @@ function useModal<const TProps extends UseModalProps>({
 const styles = StyleSheet.create({
     modalContent: {
         height: "auto",
+        minHeight: 400,
         width: '100%',
         backgroundColor: '#f1f1f1',
         borderTopRightRadius: 18,
@@ -244,11 +232,28 @@ const styles = StyleSheet.create({
         paddingRight: 10,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        // justifyContent: 'space-between',
+        justifyContent: 'flex-end',
     },
     title: {
         color: '#000',
+        width: '100%',
         fontSize: 16,
+        textAlign: 'center',
+    },
+    input: {
+        height: 40,
+        margin: 12,
+        borderWidth: 1,
+        padding: 10,
+        borderRadius: 10,
+    },
+    picker: {
+        height: 40,
+        margin: 12,
+        borderWidth: 1,
+        padding: 10,
+        borderRadius: 10,
     },
     content: {
         padding: 10

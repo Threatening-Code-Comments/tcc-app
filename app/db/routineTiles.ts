@@ -2,7 +2,6 @@ import { Query, ResultSet, ResultSetError } from "expo-sqlite"
 import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from "../constants/DbTypes"
 import { InsertCallback, ResultCallback, db } from "./database"
 
-
 export const getRoutinesWithTiles = (routineIds: Array<number | string>, callback: ResultCallback<RoutineWithTiles>) => {
     const queries: Array<Query> = []
     routineIds.map(routineId => queries.push(

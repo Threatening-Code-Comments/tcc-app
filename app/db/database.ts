@@ -14,7 +14,7 @@ let _db = SQLite.openDatabase(dbName, '1.1')
 export const db = () => _db
 
 export const initDb = () => {
-    db().transaction(t => {
+    db().transaction((t) => {
         t.executeSql(pages.create)
         t.executeSql(routines.create)
         t.executeSql(pageRoutines.create)
