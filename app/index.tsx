@@ -9,6 +9,7 @@ import { getPages, insertPages } from './db/pages'
 import { Link } from 'expo-router'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { Picker } from '@react-native-picker/picker'
+import { OutlineTextField } from './components/TextFields'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -177,11 +178,13 @@ function useModal<const TProps extends UseModalProps>({
                         switch (input.type) {
                             case "string":
                                 return (
-                                    <TextInput placeholder={key} style={styles.input} key={key} onChangeText={text => onInputChange({ ...input, key: key }, text)} />
+                                    // <TextInput placeholder={key} style={styles.input} key={key} onChangeText={text => onInputChange({ ...input, key: key }, text)} />
+                                    <OutlineTextField style={styles.materialInput} key={key} label={key} onChangeText={(text) => { console.log(text); onInputChange({ ...input, key: key }, text) }} />
                                 )
                             case "number":
                                 return (
-                                    <TextInput placeholder={key} style={styles.input} key={key} keyboardType='numeric' onChangeText={text => onInputChange({ ...input, key: key }, Number(text.replace(/[^0-9]/g, '')))} />
+                                    // <TextInput placeholder={key} style={styles.input} key={key} keyboardType='numeric' onChangeText={text => onInputChange({ ...input, key: key }, Number(text.replace(/[^0-9]/g, '')))} />
+                                    <OutlineTextField style={styles.materialInput} key={key} label={key} keyboardType='numeric' onChangeText={(text) => { console.log(text); onInputChange({ ...input, key: key }, Number(text.replace(/[^0-9]/g, ''))) }} />
                                 )
                             case "select":
                                 return (
@@ -247,6 +250,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         padding: 10,
         borderRadius: 10,
+    },
+    materialInput: {
+        margin: 12,
+        borderRadius: 20,
     },
     picker: {
         height: 40,
