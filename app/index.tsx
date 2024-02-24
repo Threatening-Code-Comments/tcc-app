@@ -188,15 +188,18 @@ function useModal<const TProps extends UseModalProps>({
                                 )
                             case "select":
                                 return (
-                                    <Picker<string>
-                                        style={styles.picker}
-                                        selectedValue={inputStates[key] as string}
-                                        onValueChange={(itemValue, itemIndex) => onInputChange({ ...input, key: key }, itemValue)}
-                                    >
-                                        {
-                                            input.options.map(option => <Picker.Item key={`${key}${option}`} label={option} value={option} />)
-                                        }
-                                    </Picker>
+                                    <View key={key}>
+                                        <Text>{key}:</Text>
+                                        <Picker<string>
+                                            style={styles.picker}
+                                            selectedValue={inputStates[key] as string}
+                                            onValueChange={(itemValue, itemIndex) => onInputChange({ ...input, key: key }, itemValue)}
+                                        >
+                                            {
+                                                input.options.map(option => <Picker.Item key={`${key}${option}`} label={option} value={option} />)
+                                            }
+                                        </Picker>
+                                    </View>
                                 )
                         }
                     })}
