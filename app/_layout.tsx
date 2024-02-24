@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 import { Pressable, View, StyleSheet } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { initDb } from './db/database';
+import { colors } from './constants/global';
 
 export default function RootLayout() {
     const router = useRouter()
@@ -20,27 +21,34 @@ export default function RootLayout() {
 
     return (
         <SafeAreaProvider>
-            <SafeAreaView>
-                <ThemeProvider value={DarkTheme}>
-                    <View style={styles.rootView}>
-                        <View style={styles.slotView}>
-                            <Slot />
+            <View style={styles.background}>
+                <SafeAreaView>
+                    <ThemeProvider value={DarkTheme}>
+                        <View style={styles.rootView}>
+                            <View style={styles.slotView}>
+                                <Slot />
+                            </View>
+                            <Pressable onPress={onBackButton} style={{ alignSelf: 'center' }}>
+                                <Ionicons name='md-backspace' size={50} color="white" />
+                            </Pressable>
                         </View>
-                        <Pressable onPress={onBackButton} style={{ alignSelf: 'center' }}>
-                            <Ionicons name='md-backspace' size={50} color="black" />
-                        </Pressable>
-                    </View>
-                </ThemeProvider>
-            </SafeAreaView>
+                    </ThemeProvider>
+                </SafeAreaView>
+            </View>
         </SafeAreaProvider>
     );
 }
 
 const styles = StyleSheet.create({
+    background: {
+        backgroundColor: colors.background,
+    },
     rootView: {
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        // backgroundColor: background,
+        // color: "white"
     },
     slotView: {
         display: "flex",

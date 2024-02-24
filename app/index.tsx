@@ -1,15 +1,13 @@
-import { ResultSet } from 'expo-sqlite'
-import React, { ReactNode, useState } from 'react'
-import { FlatList, LogBox, Modal, Text, View, StyleSheet, Pressable, TextInput } from 'react-native'
+import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { Picker } from '@react-native-picker/picker'
+import React, { useState } from 'react'
+import { FlatList, LogBox, Modal, StyleSheet, Text, View } from 'react-native'
 import { IconButton } from './components/IconButton'
+import { OutlineTextField } from './components/TextFields'
 import { PageTileComponent } from './components/Tiles'
 import { Page } from './constants/DbTypes'
 import { dropDb } from './db/database'
-import { getPages, insertPages } from './db/pages'
-import { Link } from 'expo-router'
-import FontAwesome from '@expo/vector-icons/FontAwesome'
-import { Picker } from '@react-native-picker/picker'
-import { OutlineTextField } from './components/TextFields'
+import { getPages } from './db/pages'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -65,13 +63,13 @@ const HomePage = () => {
 
     const padding = 5
     return (
-        <>
+        <View>
             <Text>HomePage</Text>
 
             <View style={{ margin: 10, display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5 }}>
-                <IconButton iconName='plus' text='Add' onPress={addPage} />
-                <IconButton iconName='refresh' text='Refresh' onPress={query} />
-                <IconButton iconName='trash' text='Drop DB' onPress={dropDb} />
+                <IconButton iconName='plus' text='Add' onPress={addPage} type='primary' />
+                <IconButton iconName='refresh' text='Refresh' onPress={query} type='secondary'/>
+                <IconButton iconName='trash' text='Drop DB' onPress={dropDb} type='error'/>
             </View>
 
             {AddPageModal}
@@ -85,7 +83,7 @@ const HomePage = () => {
                     renderItem={({ item }) => <PageTileComponent page={item} />}
                     numColumns={2} />
             </View>
-        </>
+        </View>
     )
 }
 
