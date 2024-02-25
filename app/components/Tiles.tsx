@@ -1,15 +1,21 @@
 import React, { useState } from 'react'
 import { Pressable, StyleSheet, Text } from 'react-native'
 import { Page, RoutineOnPage, Tile } from '../constants/DbTypes'
+import { InsertCallback } from '../db/database'
 import { insertTileEvent } from '../db/tileEvents'
 import JLink from './JLink'
-import { InsertCallback } from '../db/database'
 
+type TileProps = {
+    numColumns?: number
+}
+const getFlex = (numCols: number | undefined) => {
+    return 1 / ((numCols) ? numCols : 2)
+}
 
 type TileComponentProps = {
-    tile: Tile
-}
-export const TileComponent = ({ tile }: TileComponentProps) => {
+    tile: Tile,
+} & TileProps
+export const TileComponent = ({ tile, numColumns }: TileComponentProps) => {
     const [counter, setCounter] = useState(tile.counter)
 
     const addToCounter = () => {
@@ -28,7 +34,7 @@ export const TileComponent = ({ tile }: TileComponentProps) => {
     }
 
     return (
-        <Pressable style={{ ...styles.card, flex: 1 / 2 }} onPress={addToCounter}>
+        <Pressable style={[styles.card, { flex: getFlex(numColumns) }]} onPress={addToCounter}>
             <Text style={styles.name}>{tile.name}</Text>
             <Text style={styles.info}>{counter}</Text>
         </Pressable>
@@ -39,12 +45,12 @@ export const TileComponent = ({ tile }: TileComponentProps) => {
 
 type RoutineTileComponentProps = {
     routine: RoutineOnPage
-}
-export const RoutineTileComponent = ({ routine }: RoutineTileComponentProps) => {
+} & TileProps
+export const RoutineTileComponent = ({ routine, numColumns }: RoutineTileComponentProps) => {
     const length = (routine.tiles) ? routine.tiles.length : 0
 
     return (
-        <JLink style={{ ...styles.card, flex: 1 / 4 }} link={`/routines/${routine.id}`} >
+        <JLink style={[styles.card, { flex: getFlex(numColumns) }]} link={`/routines/${routine.id}`} >
             <Text style={styles.name}>{routine.name}</Text>
             <Text style={styles.info}>Has {length} Tiles</Text>
         </JLink>
@@ -55,10 +61,10 @@ export const RoutineTileComponent = ({ routine }: RoutineTileComponentProps) => 
 
 type PageTileComponentProps = {
     page: Page
-}
-export const PageTileComponent = ({page}: PageTileComponentProps) => {
+} & TileProps
+export const PageTileComponent = ({ page, numColumns }: PageTileComponentProps) => {
     return (
-        <JLink style={{ ...styles.card, flex: 1 / 2 }} link={`/pages/${page.id}`} >
+        <JLink style={[styles.card, { flex: getFlex(numColumns) }]} link={`/pages/${page.id}`} >
             <Text style={styles.name}>{page.name}</Text>
             <Text style={styles.info}>Has {page.id} Tiles</Text>
         </JLink>

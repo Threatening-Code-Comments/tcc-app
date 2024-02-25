@@ -6,6 +6,8 @@ import { IconButton } from '../components/IconButton'
 import { TileComponent } from '../components/Tiles'
 import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from '../constants/DbTypes'
 import { getRoutinesWithTiles, insertTileIntoRoutine } from '../db/routineTiles'
+import TitleDisplay from '../components/TitleDisplay'
+import { globalStyles } from '../constants/global'
 
 const RoutineDisplayPage = () => {
   const routineId = +useLocalSearchParams()['id']
@@ -42,25 +44,29 @@ const RoutineDisplayPage = () => {
     })
   }
 
+  const tileCols = 3
+  const routineName = (routine) ? routine.name : "Routine"
+
   return (
     <>
-      <Text>RoutineDisplayPage</Text>
+      <TitleDisplay text={routineName} />
 
-      <View style={{ display: 'flex', flexDirection: 'row', gap: 5 }}>
-        <IconButton iconName='refresh' text='Refresh' onPress={updateRoutine} />
+      <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', }]}>
+        <IconButton iconName='refresh' text='Refresh' onPress={updateRoutine} type='secondary' />
         <IconButton iconName='plus' text='Add Tile' onPress={addTile} />
       </View>
 
       {/*display tiles*/}
-      <View style={{ height: 600, padding: 10 }}>
+      <View style={{ height: 600, padding: 20 }}>
         <FlatList
           style={{ height: 500 }}
           data={tiles}
           contentContainerStyle={{ gap: 10 }}
           columnWrapperStyle={{ gap: 10 }}
-          numColumns={2}
+          numColumns={tileCols}
           renderItem={(test) =>
             <TileComponent
+              numColumns={tileCols}
               tile={test.item} />}
         />
       </View>

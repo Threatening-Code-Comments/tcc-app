@@ -1,10 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { IconButton } from '../components/IconButton'
 import { RoutineTileComponent } from '../components/Tiles'
+import TitleDisplay from '../components/TitleDisplay'
 import { InsertRoutineOnPage, Page, RoutineOnPage, RoutineWithTiles } from '../constants/DbTypes'
+import { globalStyles } from '../constants/global'
 import { getRoutinesForPage, insertRoutineOnPage as insertRoutinesOnPage } from '../db/pageRoutines'
 import { getPageById } from '../db/pages'
 import { getRoutinesWithTiles } from '../db/routineTiles'
@@ -61,18 +63,20 @@ const PageDisplayPage = () => {
             })
     }
 
-    return (<>
-        <Text>Hello world</Text>
-        <Text>Page ID: {(page) ? page.id : ""}</Text>
-        <Text>Page name: {(page) ? page.name : ""}</Text>
+    const routineCols = 3
 
-        <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, }}>
-            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5 }}>
+    return (<>
+        <TitleDisplay
+            text={(page) ? page.name : ""}
+            secondaryText={`${routines.length} Routines`} />
+
+        <View style={styles.buttonContainerContainer}>
+            <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end' }]}>
                 <IconButton iconName='plus' text='Add' onPress={addRoutine} />
-                <IconButton iconName='refresh' text='Refresh' onPress={updateRoutines} />
+                <IconButton iconName='refresh' text='Refresh' onPress={updateRoutines} type='secondary' />
             </View>
 
-            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5 }}>
+            <View style={[globalStyles.iconButtonContainer, { justifyContent: 'space-around' }]}>
                 <IconButton iconName='arrow-left' text='Prev' onPress={() => router.replace(`/pages/${prev}`)} />
                 <IconButton iconName='arrow-right' text='Next' onPress={() => router.replace(`/pages/${next}`)} />
             </View>
@@ -81,17 +85,24 @@ const PageDisplayPage = () => {
         <View style={{ height: 600, padding: 10 }}>
             <FlatList
                 data={routines}
-                numColumns={4}
+                numColumns={routineCols}
                 contentContainerStyle={{ gap: 10 }}
                 columnWrapperStyle={{ gap: 10 }}
-                renderItem={({ item }) => <RoutineTileComponent routine={item} />}
+                renderItem={({ item }) => <RoutineTileComponent numColumns={routineCols} routine={item} />}
             />
         </View>
     </>
     )
 }
 
-
+const styles = StyleSheet.create({
+    buttonContainerContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: 5,
+    }
+})
 
 const getRandom = (max: number): number => {
     let random = Math.random() * (max + 1)
