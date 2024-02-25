@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { FlatList, LogBox, View } from 'react-native'
 import { IconButton } from './components/IconButton'
-import { useModal } from './components/Modal'
+import { useModal } from './components/modal/Modal'
 import { PageTileComponent } from './components/Tiles'
 import TitleDisplay from './components/TitleDisplay'
 import { Page } from './constants/DbTypes'
@@ -27,6 +27,11 @@ const HomePage = () => {
             "Page Type": {
                 type: "select",
                 options: ["Text", "Image", "Video"]
+            },
+            "Add": {
+                type: "button",
+                onClick: ()=>{console.log("Hell yeah!!")},
+                icon: 'amazon'
             }
         }
     } as const);
