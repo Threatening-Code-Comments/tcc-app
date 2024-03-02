@@ -49,20 +49,22 @@ export function useModal<const TProps extends UseModalProps>({
 
     const component = (
         <Modal animationType="slide" transparent={true} visible={visible}>
-            <Pressable style={{height: '100%'}} onPress={()=>{setVisible(false)}}/>
+            <Pressable style={{ height: '100%' }} onPress={() => { setVisible(false) }} />
             <View style={modalStyles.modalContent}>
                 <View style={modalStyles.titleContainer}>
+                    <View style={{ flex: 1 }} />
                     <Text style={modalStyles.title}>{title}</Text>
                     <FontAwesome.Button
-                        color='black'
+                        style={{flex: 1}}
+                        color='white'
                         backgroundColor={"transparent"}
                         iconStyle={{ marginRight: 0 }}
                         name={"close"}
                         onPress={onClose}
                         size={15} />
                 </View>
-                <View style={modalStyles.content}>
-                    <Text>children here</Text>
+                <View style={{...modalStyles.content, padding: 20}}>
+                    {/* <Text>children here</Text> */}
 
                     {Object.keys(inputTypes).map(key => {
                         const input = inputTypes[key]

@@ -5,6 +5,7 @@ import { IconButton, IconName } from '../IconButton'
 import { OutlineTextField } from '../TextFields'
 import { modalStyles } from './ModalStyles'
 import { InputStateType, InputTypesType, OnInputChangeType } from './ModalTypeDefs'
+import { TextField } from 'rn-material-ui-textfield'
 
 type InputProps = {
     label: string,
@@ -15,13 +16,28 @@ type TextInputProps = {
     input: { type: "string"; },
 } & InputProps
 export const TextInput = ({ label, onInputChange, input }: TextInputProps) => {
+
+
     return (
-        <OutlineTextField
-            style={modalStyles.materialInput}
+        // <OutlineTextField
+        //     // style={modalStyles.materialInput}
+        //     style={{...modalStyles.materialInput}}
+        //     label={label}
+        //     onChangeText={(text) => {
+        //         onInputChange({ ...input, key: label }, text)
+        //     }}
+        // />
+        <TextField
             label={label}
-            onChangeText={(text) => {
-                onInputChange({ ...input, key: label }, text)
-            }}
+            style={modalStyles.materialInput}
+            textColor="#ffffff"
+            tintColor="#ffffff"
+            baseColor="#ffffff"
+            labelFontSize={16}
+            // inputContainerStyle={styles.emailInputStyle}
+            activeLineWidth={1}
+            // value={defaultEmail}
+            onChangeText={(text) => onInputChange({ ...input, key: label }, text)}
         />
     )
 }
@@ -71,7 +87,7 @@ type ButtonInputTypes = {
 }
 export const ButtonInput = ({ label, icon, onClick }: ButtonInputTypes) => {
     return (
-        <View style={{borderRadius: 10}}>
+        <View style={{ borderRadius: 10, }}>
             <IconButton
                 style={{ alignSelf: 'center', }}
                 text={label}

@@ -16,9 +16,9 @@ export const getRoutinesWithTiles = (routineIds: Array<number | string>, callbac
                 LEFT JOIN tiles ON routines.id = tiles.rootRoutineId
                 LEFT JOIN routine_tiles ON routines.id = routine_tiles.routineId
                 LEFT JOIN tile_events ON tiles.id = tile_events.tileId
-                WHERE routines.id = ? AND tiles.id IS NOT NULL
+                WHERE routines.id = ? 
                 GROUP BY routines.id, tiles.id;`, args: [routineId]
-        }))
+        }))//removed AND tiles.id IS NOT NULL from where
 
     db().exec(
         queries,
@@ -46,16 +46,17 @@ export const getRoutinesWithTiles = (routineIds: Array<number | string>, callbac
                     tileId: entry['id'],
                     counter: entry['counter']
                 };
+                const tilesToAdd = (tile.id !== null) ? [tile] : []
 
                 const routineInList = routines.find(rout => rout.id == routine.id)
                 if (routineInList) {
                     //the routine is already in the list, add the tile to it
-                    routineInList.tiles.push(tile)
+                    routineInList.tiles.push(...tilesToAdd)
                 } else {
                     routines.push({
                         id: routine.id,
                         name: routine.name,
-                        tiles: [tile]
+                        tiles: tilesToAdd
                     })
                 }
 

@@ -1,13 +1,14 @@
+import { ResultSet } from 'expo-sqlite'
 import React, { useState } from 'react'
 import { FlatList, LogBox, View } from 'react-native'
 import { IconButton } from './components/IconButton'
-import { useModal } from './components/modal/Modal'
 import { PageTileComponent } from './components/Tiles'
 import TitleDisplay from './components/TitleDisplay'
+import { useModal } from './components/modal/Modal'
 import { Page } from './constants/DbTypes'
 import { globalStyles } from './constants/global'
 import { dropDb } from './db/database'
-import { getPages } from './db/pages'
+import { getPages, insertPages } from './db/pages'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -30,27 +31,30 @@ const HomePage = () => {
             },
             "Add": {
                 type: "button",
-                onClick: ()=>{console.log("Hell yeah!!")},
+                onClick: () => {
+                    console.log("Hell yeah!!")
+                    console.log(inputStates["Page Name"])
+                    addPage(inputStates["Page Name"] as string)
+                },
                 icon: 'amazon'
             }
         }
     } as const);
 
-    const addPage = () => {
-        setVisible(true)
-        // const randomNumber = Math.random()
-        // const name = `Page |${randomNumber}|`
+    const addPage = (name: string) => {
+        // setVisible(true)
+        setVisible(false)
 
-        // insertPages(
-        //     [{ name: name }],
-        //     (err, res) => {
-        //         if (err) {
-        //             console.error("Error inserting page: ", err)
-        //         } else {
-        //             console.info("Inserted page: ", res)
-        //             setPages([...pages, { id: (res[0] as ResultSet).insertId, name: name }])
-        //         }
-        //     })
+        insertPages(
+            [{ name: name }],
+            (err, res) => {
+                if (err) {
+                    console.error("Error inserting page: ", err)
+                } else {
+                    console.info("Inserted page: ", res)
+                    setPages([...pages, { id: (res[0] as ResultSet).insertId, name: name }])
+                }
+            })
     }
 
     const query = () => {
@@ -72,7 +76,7 @@ const HomePage = () => {
             <TitleDisplay text='Welcome!' secondaryText={`You have ${pages.length} pages.`} />
 
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', margin: 10 }]}>
-                <IconButton iconName='plus' text='Add' onPress={addPage} type='primary' />
+                <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} type='primary' />
                 <IconButton iconName='refresh' text='Refresh' onPress={query} type='secondary' />
                 <IconButton iconName='trash' text='Drop DB' onPress={dropDb} type='error' />
             </View>

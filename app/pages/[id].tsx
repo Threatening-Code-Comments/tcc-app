@@ -1,23 +1,23 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { ResultSet } from 'expo-sqlite'
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { IconButton } from '../components/IconButton'
 import { RoutineTileComponent } from '../components/Tiles'
 import TitleDisplay from '../components/TitleDisplay'
+import { useModal } from '../components/modal/Modal'
 import { InsertRoutineOnPage, Page, RoutineOnPage, RoutineWithTiles } from '../constants/DbTypes'
 import { globalStyles } from '../constants/global'
-import { getRoutinesForPage, insertRoutineOnPage as insertRoutinesOnPage } from '../db/pageRoutines'
+import { getRoutinesForPage, insertRoutinesOnPage } from '../db/pageRoutines'
 import { getPageById } from '../db/pages'
 import { getRoutinesWithTiles } from '../db/routineTiles'
 
 const PageDisplayPage = () => {
     const [page, setPage] = useState<Page>()
-    const [queried, setQueried] = useState(false)
     const [routines, setRoutines] = useState<Array<RoutineOnPage>>([])
     useEffect(() => {
         updateRoutines()
-        setQueried(true)
     }, [])
 
     const id = Number(useLocalSearchParams()['id'])
@@ -31,12 +31,14 @@ const PageDisplayPage = () => {
         )
     }
 
-    const addRoutine = () => {
-        const routine = generateRandomRoutine(id)
+    const addRoutine = (name: string) => {
+        const routine: InsertRoutineOnPage = { name: name, pageId: page.id, posX: 2, posY: 2, spanX: 2, spanY: 2 } //generateRandomRoutine(id)
 
-        insertRoutinesOnPage([routine])
-        setQueried(false)
-        updateRoutines()
+        insertRoutinesOnPage([routine], (err, res) => {
+            const routineInserted: RoutineOnPage = { ...routine, id: (res[0] as ResultSet).insertId, routineId: (res[0] as ResultSet).insertId, tiles: [] }
+
+            setRoutines([...routines, routineInserted])
+        })
     }
 
     const updateRoutines = () => {
@@ -63,6 +65,23 @@ const PageDisplayPage = () => {
             })
     }
 
+    const { setVisible, component: ModalComponent, inputStates } = useModal({
+        title: "Add Routine",
+        inputTypes: {
+            "Routine Name": {
+                type: "string"
+            },
+            "Add": {
+                type: "button",
+                onClick: () => {
+                    setVisible(false)
+                    addRoutine(inputStates["Routine Name"] as string)
+                },
+                icon: 'plus'
+            }
+        }
+    })
+
     const routineCols = 3
 
     return (<>
@@ -72,7 +91,7 @@ const PageDisplayPage = () => {
 
         <View style={styles.buttonContainerContainer}>
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end' }]}>
-                <IconButton iconName='plus' text='Add' onPress={addRoutine} />
+                <IconButton iconName='plus' text='Add' onPress={() => { setVisible(true) }} />
                 <IconButton iconName='refresh' text='Refresh' onPress={updateRoutines} type='secondary' />
             </View>
 
@@ -81,6 +100,8 @@ const PageDisplayPage = () => {
                 <IconButton iconName='arrow-right' text='Next' onPress={() => router.replace(`/pages/${next}`)} />
             </View>
         </View>
+
+        {ModalComponent}
 
         <View style={{ height: 600, padding: 10 }}>
             <FlatList
