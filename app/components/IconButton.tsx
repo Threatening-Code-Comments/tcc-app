@@ -1,9 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import React from 'react'
-import { Animated, Button, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native'
+import { Animated, Pressable, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native'
 import { ButtonType, colors, globalStyles } from '../constants/global'
-import { TapGestureHandler, TapGestureHandlerGestureEvent } from 'react-native-gesture-handler'
-import { useAnimatedGestureHandler } from 'react-native-reanimated'
 
 export type IconName = keyof typeof FontAwesome.glyphMap
 type IconButtonProps = {

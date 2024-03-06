@@ -22,21 +22,21 @@ const HomePage = () => {
             "Page Name": {
                 type: "string"
             },
-            "Page Number": {
-                type: "number"
-            },
-            "Page Type": {
-                type: "select",
-                options: ["Text", "Image", "Video"]
-            },
+            // "Page Number": {
+            //     type: "number"
+            // },
+            // "Page Type": {
+            //     type: "select",
+            //     options: ["Text", "Image", "Video"]
+            // },
             "Add": {
                 type: "button",
                 onClick: () => {
-                    console.log("Hell yeah!!")
-                    console.log(inputStates["Page Name"])
+                    // console.log("Hell yeah!!")
+                    // console.log(inputStates["Page Name"])
                     addPage(inputStates["Page Name"] as string)
                 },
-                icon: 'amazon'
+                icon: 'plus'
             }
         }
     } as const);
@@ -75,10 +75,10 @@ const HomePage = () => {
         <View>
             <TitleDisplay text='Welcome!' secondaryText={`You have ${pages.length} pages.`} />
 
-            <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', margin: 10 }]}>
+            <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
                 <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} type='primary' />
-                <IconButton iconName='refresh' text='Refresh' onPress={query} type='secondary' />
-                <IconButton iconName='trash' text='Drop DB' onPress={dropDb} type='error' />
+                {/* <IconButton iconName='refresh' text='Refresh' onPress={query} type='secondary' /> */}
+                {/* <IconButton iconName='trash' text='Drop DB' onPress={dropDb} type='error' /> */}
             </View>
 
             {AddPageModal}

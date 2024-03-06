@@ -12,7 +12,7 @@ export const modalStyles = StyleSheet.create({
         bottom: 0,
         display: 'flex',
         flexDirection: 'column',
-        gap: 10,
+        // gap: 10,
     },
     titleContainer: {
         height: 'auto',
@@ -40,7 +40,7 @@ export const modalStyles = StyleSheet.create({
         borderRadius: 10,
     },
     materialInput: {
-        margin: 20,
+        // margin: 20,
         borderRadius: 20,
     },
     picker: {

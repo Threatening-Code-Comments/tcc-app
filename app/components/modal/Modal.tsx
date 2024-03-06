@@ -63,7 +63,7 @@ export function useModal<const TProps extends UseModalProps>({
                         onPress={onClose}
                         size={15} />
                 </View>
-                <View style={{...modalStyles.content, padding: 20}}>
+                <View style={{...modalStyles.content, /*padding: 20*/}}>
                     {/* <Text>children here</Text> */}
 
                     {Object.keys(inputTypes).map(key => {

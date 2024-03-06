@@ -66,7 +66,7 @@ export const PageTileComponent = ({ page, numColumns }: PageTileComponentProps) 
     return (
         <JLink style={[styles.card, { flex: getFlex(numColumns) }]} link={`/pages/${page.id}`} >
             <Text style={styles.name}>{page.name}</Text>
-            <Text style={styles.info}>Has ID {page.id}</Text>
+            {/* <Text style={styles.info}>Has ID {page.id}</Text> */}
         </JLink>
     )
 }

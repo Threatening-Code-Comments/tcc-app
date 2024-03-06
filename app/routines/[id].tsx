@@ -58,8 +58,8 @@ const RoutineDisplayPage = () => {
       "Add": {
         type: "button",
         onClick: () => {
-          console.log("Hell yeah!!")
-          console.log(inputStates["Tile Name"])
+          // console.log("Hell yeah!!")
+          // console.log(inputStates["Tile Name"])
           addTile(inputStates["Tile Name"])
         },
         icon: 'plus'
@@ -74,9 +74,9 @@ const RoutineDisplayPage = () => {
     <>
       <TitleDisplay text={routineName} />
 
-      <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', }]}>
-        <IconButton iconName='refresh' text='Refresh' onPress={updateRoutine} type='secondary' />
-        <IconButton iconName='plus' text='Add Tile' onPress={() => setVisible(true)} />
+      <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20}]}>
+        {/* <IconButton iconName='refresh' text='Refresh' onPress={updateRoutine} type='secondary' /> */}
+        <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
       </View>
 
       {AddTileModal}

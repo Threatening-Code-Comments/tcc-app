@@ -92,12 +92,12 @@ const PageDisplayPage = () => {
         <View style={styles.buttonContainerContainer}>
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end' }]}>
                 <IconButton iconName='plus' text='Add' onPress={() => { setVisible(true) }} />
-                <IconButton iconName='refresh' text='Refresh' onPress={updateRoutines} type='secondary' />
+                {/* <IconButton iconName='refresh' text='Refresh' onPress={updateRoutines} type='secondary' /> */}
             </View>
 
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'space-around' }]}>
-                <IconButton iconName='arrow-left' text='Prev' onPress={() => router.replace(`/pages/${prev}`)} />
-                <IconButton iconName='arrow-right' text='Next' onPress={() => router.replace(`/pages/${next}`)} />
+                {/* <IconButton iconName='arrow-left' text='Prev' onPress={() => router.replace(`/pages/${prev}`)} /> */}
+                {/* <IconButton iconName='arrow-right' text='Next' onPress={() => router.replace(`/pages/${next}`)} /> */}
             </View>
         </View>
 
@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'center',
         gap: 5,
+        paddingRight: 20
     }
 })
 

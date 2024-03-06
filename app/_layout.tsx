@@ -1,11 +1,11 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { Slot, useNavigation, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Pressable, View, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { initDb } from './db/database';
 import { colors } from './constants/global';
+import { initDb } from './db/database';
 
 export default function RootLayout() {
     const router = useRouter()
@@ -25,12 +25,12 @@ export default function RootLayout() {
                 <SafeAreaView>
                     <ThemeProvider value={DarkTheme}>
                         <View style={styles.rootView}>
+                            <Pressable onPress={onBackButton} style={{ alignSelf: 'flex-start', padding: 10, paddingLeft: 25 }}>
+                                <FontAwesome name='arrow-left' size={40} color="white" />
+                            </Pressable>
                             <View style={styles.slotView}>
                                 <Slot />
                             </View>
-                            <Pressable onPress={onBackButton} style={{ alignSelf: 'center' }}>
-                                <Ionicons name='md-backspace' size={50} color="white" />
-                            </Pressable>
                         </View>
                     </ThemeProvider>
                 </SafeAreaView>
