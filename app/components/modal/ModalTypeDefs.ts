@@ -1,17 +1,29 @@
 import { IconName } from "../IconButton"
 
-export type UseModalInputType = {
+export type UseModalStringType = {
     type: "string"
-} | {
+    value?: string
+}
+export type UseModalNumberType = {
     type: "number"
-} | {
+    value?: number
+}
+export type UseModalSelectType = {
     type: "select"
     options: readonly string[]
-} | {
+    value?: string
+}
+export type UseModalButtonType = {
     type: "button"
     icon: IconName
     onClick: () => void
 }
+
+export type UseModalInputType = 
+    UseModalStringType | 
+    UseModalNumberType | 
+    UseModalSelectType | 
+    UseModalButtonType
 
 export type UseModalProps = {
     title: string

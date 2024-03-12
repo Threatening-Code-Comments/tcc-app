@@ -1,5 +1,5 @@
 import { Picker } from '@react-native-picker/picker'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Text, View } from 'react-native'
 import { IconButton, IconName } from '../IconButton'
 import { OutlineTextField } from '../TextFields'
@@ -13,10 +13,14 @@ type InputProps = {
 }
 
 type TextInputProps = {
-    input: { type: "string"; },
+    input: { type: "string"; value?: string; },
 } & InputProps
 export const TextInput = ({ label, onInputChange, input }: TextInputProps) => {
-
+    const [text, setText] = React.useState(input.value)
+    const onChangeText = (text: string) => {
+        setText(text)
+        onInputChange({ ...input, key: label }, text)
+    }
 
     return (
         // <OutlineTextField
@@ -33,11 +37,12 @@ export const TextInput = ({ label, onInputChange, input }: TextInputProps) => {
             textColor="#ffffff"
             tintColor="#ffffff"
             baseColor="#ffffff"
+            value={text}
             labelFontSize={16}
             // inputContainerStyle={styles.emailInputStyle}
             activeLineWidth={1}
             // value={defaultEmail}
-            onChangeText={(text) => onInputChange({ ...input, key: label }, text)}
+            onChangeText={(text) => onChangeText(text)}
         />
     )
 }

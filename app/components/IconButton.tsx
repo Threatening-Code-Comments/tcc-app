@@ -18,10 +18,12 @@ export const IconButton = ({ iconName, text, style, onPress, type }: IconButtonP
     const color = colors[buttonType]
 
     return (
-        <Animated.View style={styles.buttonContainer}>
+        <Animated.View style={{...styles.buttonContainer,}}>
             <Pressable style={[style, styles.button, { backgroundColor: color, }]} onPress={onPress} android_ripple={{ color: 'black', foreground: true }}>
-                <FontAwesome name={iconName} size={iconSize} color='white' style={{ width: iconSize, height: iconSize, alignSelf: 'center' }} />
-                <Text style={globalStyles.text}>{text}</Text>
+                <FontAwesome name={iconName} size={iconSize} color='white' style={{ width: iconSize, height: iconSize, alignSelf: 'center', marginRight: -5 }} />
+                {(text != undefined)
+                    ? <Text style={globalStyles.text}>{text}</Text>
+                    : null}
             </Pressable>
         </Animated.View>
     )
@@ -31,6 +33,7 @@ const styles = StyleSheet.create({
     buttonContainer: {
         borderRadius: 20,
         overflow: 'hidden',
+        alignContent: 'center',
     },
     button: {
         display: 'flex',
@@ -40,6 +43,6 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         padding: 10,
         paddingHorizontal: 12,
-        gap: 5
+        gap: 10
     }
 })

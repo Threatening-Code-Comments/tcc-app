@@ -26,3 +26,11 @@ export const insertPages = (pages: Array<InsertPage>, callback: InsertCallback) 
 
     db().exec(statements, false, callback)
 }
+
+export const deletePage = (page: Page, callback: InsertCallback) => {
+    db().exec(
+        [{ sql: 'DELETE FROM pages WHERE id = ?', args: [page.id] }],
+        false,
+        callback
+    )
+}

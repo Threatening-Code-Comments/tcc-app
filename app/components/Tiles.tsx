@@ -1,9 +1,12 @@
 import React, { useState } from 'react'
-import { Pressable, StyleSheet, Text } from 'react-native'
+import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native'
 import { Page, RoutineOnPage, Tile } from '../constants/DbTypes'
 import { InsertCallback } from '../db/database'
 import { insertTileEvent } from '../db/tileEvents'
 import JLink from './JLink'
+import { IconButton } from './IconButton'
+import { Link } from 'expo-router'
+import { useModal } from './modal/Modal'
 
 type TileProps = {
     numColumns?: number
@@ -60,22 +63,83 @@ export const RoutineTileComponent = ({ routine, numColumns }: RoutineTileCompone
 
 
 type PageTileComponentProps = {
-    page: Page
+    page: Page,
+    isEditMode: boolean,
+    onPressDelete: () => void,
+    doAfterEdit: (page: Page) => void
 } & TileProps
-export const PageTileComponent = ({ page, numColumns }: PageTileComponentProps) => {
+export const PageTileComponent = ({ page, numColumns, isEditMode, onPressDelete, doAfterEdit }: PageTileComponentProps) => {
+
+    const editPageModal = useModal({
+        title: "Edit Page",
+        inputTypes: {
+            "Name": { type: "string", value: page.name },
+            "Save": {
+                type: "button",
+                icon: 'save',
+                onClick: () => {
+                    // @ts-ignore
+                    page.name = editPageModal.inputStates["Name"]
+                    doAfterEdit(page)
+                    editPageModal.setVisible(false)
+                }
+            }
+        }
+    })
+
     return (
-        <JLink style={[styles.card, { flex: getFlex(numColumns) }]} link={`/pages/${page.id}`} >
-            <Text style={styles.name}>{page.name}</Text>
-            {/* <Text style={styles.info}>Has ID {page.id}</Text> */}
-        </JLink>
+        <View style={{ display: 'flex', flexDirection: 'column', flex: getFlex(numColumns) }}>
+            {editPageModal.component}
+            <DeleteButton isEditMode={isEditMode} onPress={onPressDelete} />
+            <LinkOrPressable style={[styles.card, { zIndex: 1 }]} link={`/pages/${page.id}`} isLink={!isEditMode} onPress={() => editPageModal.setVisible(true)}>
+                <Text style={styles.name}>{page.name}</Text>
+            </LinkOrPressable>
+
+            {/* <JLink style={[styles.card, { zIndex: 1 }]} link={`/pages/${page.id}`} >
+                <Text style={styles.name}>{page.name}</Text>
+            </JLink> */}
+        </View>
     )
 }
 
+type LinkOrPressableProps = {
+    isLink: boolean,
+    link: string,
+    onPress: () => void,
+    replace?: boolean,
+    style?: StyleProp<ViewStyle>,
+    children: React.ReactNode,
+}
+const LinkOrPressable = ({ isLink, link, onPress, replace, style, children }: LinkOrPressableProps) => {
+    return (
+        (isLink) ?
+            <JLink link={link} replace={replace} style={style}>{children}</JLink> :
+            <Pressable onPress={onPress} style={style}>{children}</Pressable>
+    )
+}
+
+
+type DeleteButtonProps = {
+    isEditMode: boolean,
+    onPress: () => void
+}
+const DeleteButton = ({ isEditMode, onPress }: DeleteButtonProps) => {
+    if (!isEditMode) return <></>
+
+    return (
+        <View style={{ zIndex: 2, marginBottom: -50, width: '45%', height: 50, alignSelf: 'flex-end', }}>
+            <IconButton
+                iconName='times'
+                type='error'
+                onPress={onPress} />
+        </View >)
+}
 
 
 const styles = StyleSheet.create({
     card: {
         aspectRatio: 1,
+        zIndex: 0,
         minHeight: 100,
         borderRadius: 15,
         backgroundColor: '#333',
