@@ -7,6 +7,7 @@ import JLink from './JLink'
 import { IconButton } from './IconButton'
 import { Link } from 'expo-router'
 import { useModal } from './modal/Modal'
+import { updatePage } from '../db/pages'
 
 type TileProps = {
     numColumns?: number
@@ -80,6 +81,7 @@ export const PageTileComponent = ({ page, numColumns, isEditMode, onPressDelete,
                 onClick: () => {
                     // @ts-ignore
                     page.name = editPageModal.inputStates["Name"]
+                    updatePage(page, (err, res) => {})
                     doAfterEdit(page)
                     editPageModal.setVisible(false)
                 }

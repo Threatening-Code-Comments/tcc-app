@@ -34,3 +34,11 @@ export const deletePage = (page: Page, callback: InsertCallback) => {
         callback
     )
 }
+
+export const updatePage = (page: Page, callback: InsertCallback) => {
+    db().exec(
+        [{ sql: 'UPDATE pages SET name = ? WHERE id = ?', args: [page.name, page.id] }],
+        false,
+        callback
+    )
+}
