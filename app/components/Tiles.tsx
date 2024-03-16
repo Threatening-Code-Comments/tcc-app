@@ -71,7 +71,10 @@ type PageTileComponentProps = {
 } & TileProps
 export const PageTileComponent = ({ page, numColumns, isEditMode, onPressDelete, doAfterEdit }: PageTileComponentProps) => {
 
-    const editPageModal = useModal({
+    const editPageModal = useModal<{
+        "Name": "string",
+        "Save": "button"
+    }>({
         title: "Edit Page",
         inputTypes: {
             "Name": { type: "string", value: page.name },
@@ -79,7 +82,6 @@ export const PageTileComponent = ({ page, numColumns, isEditMode, onPressDelete,
                 type: "button",
                 icon: 'save',
                 onClick: () => {
-                    // @ts-ignore
                     page.name = editPageModal.inputStates["Name"]
                     updatePage(page, (err, res) => {})
                     doAfterEdit(page)

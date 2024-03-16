@@ -17,7 +17,10 @@ const HomePage = () => {
     const [pages, setPages] = useState<Page[]>([])
     const [isEditMode, setIsEditMode] = useState(false)
 
-    const { setVisible, component: AddPageModal, inputStates, inputTypes: outputTypes } = useModal({
+    const { setVisible, component: AddPageModal, inputStates } = useModal<{
+        "Page Name": "string"
+        "Add": "button"
+    }>({
         title: "Add Page",
         inputTypes: {
             "Page Name": {
@@ -26,12 +29,12 @@ const HomePage = () => {
             "Add": {
                 type: "button",
                 onClick: () => {
-                    addPage(inputStates["Page Name"] as string)
+                    addPage(inputStates["Page Name"])
                 },
                 icon: 'plus'
             }
         }
-    } as const);
+    });
 
     const addPage = (name: string) => {
         setVisible(false)

@@ -65,7 +65,10 @@ const PageDisplayPage = () => {
             })
     }
 
-    const { setVisible, component: ModalComponent, inputStates } = useModal({
+    const { setVisible, component: ModalComponent, inputStates } = useModal<{
+        "Routine Name": "string",
+        "Add": "button"
+    }>({
         title: "Add Routine",
         inputTypes: {
             "Routine Name": {
@@ -75,7 +78,7 @@ const PageDisplayPage = () => {
                 type: "button",
                 onClick: () => {
                     setVisible(false)
-                    addRoutine(inputStates["Routine Name"] as string)
+                    addRoutine(inputStates["Routine Name"])
                 },
                 icon: 'plus'
             }

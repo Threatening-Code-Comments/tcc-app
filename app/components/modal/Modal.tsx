@@ -3,46 +3,32 @@ import React, { useState } from 'react'
 import { Modal, Pressable, Text, View } from 'react-native'
 import { ButtonInput, DropdownInput, NumberInput, TextInput } from './InputTypes'
 import { modalStyles } from './ModalStyles'
-import { InputStateType, OnInputChangeType, UseModalProps } from './ModalTypeDefs'
+import { ModalInputChangeType, UseModalInputType2, UseModalInputType3, UseModalOutputType, UseModalProps, UseModalReturn, UseModalStateType } from './ModalTypeDefs'
 
-export function useModal<const TProps extends UseModalProps>({
+export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> extends UseModalProps<infer TInfer> ? TInfer : never>({
     title,
     inputTypes
-}: TProps) {
+}: UseModalProps<TTypes>): UseModalReturn<TTypes> {
 
     const defaultState = Object.keys(inputTypes).reduce((prev, key) => {
-        const addToInputStates = <
-            const TKey extends keyof typeof inputTypes,
-            const TType extends (typeof inputTypes)[TKey] & { key: TKey },
-            const TValue extends TType["type"] extends "number" ? number : string
-        >(currentInputStates: InputStateType<typeof inputTypes>, key: TType, value: TValue) => {
-            // @ts-ignore
-            const newInputStates: InputStateType<typeof inputTypes> = {
-                ...currentInputStates,
-                [key.key]: value
-            }
-            return newInputStates
-        }
-
+        const newInputStates = { ...prev };
         const input = inputTypes[key]
         if (input.type === "number")
-            return addToInputStates(prev, { ...input, key: key }, 0)
-        else
-            return addToInputStates(prev, { ...input, key: key }, "")
-    }, {} as InputStateType<typeof inputTypes>)
+            return { ...newInputStates, [key]: 0 };
+        return { ...newInputStates, [key]: "" };
+    }, {} as UseModalStateType<TTypes>)
 
     const [visible, setVisible] = useState(false)
-    const [inputStates, setInputStates] = useState<InputStateType<typeof inputTypes>>(defaultState)
+    const [inputStates, setInputStates] = useState<UseModalStateType<TTypes>>(defaultState)
 
     const onClose = () => {
         setVisible(false)
     }
 
-    const onInputChange: OnInputChangeType = (key, value) => {
-        // @ts-ignore
-        const newInputStates: InputStateType<typeof inputTypes> = {
+    const onInputChange = <TType extends UseModalInputType3, TKey extends keyof TTypes, TValue extends UseModalOutputType<TType>> (key: TKey, value: TValue) => {
+        const newInputStates: UseModalStateType<TTypes> = {
             ...inputStates,
-            [key.key]: value
+            [key]: value
         }
         setInputStates(newInputStates)
     }
@@ -55,7 +41,7 @@ export function useModal<const TProps extends UseModalProps>({
                     <View style={{ flex: 1 }} />
                     <Text style={modalStyles.title}>{title}</Text>
                     <FontAwesome.Button
-                        style={{flex: 1}}
+                        style={{ flex: 1 }}
                         color='white'
                         backgroundColor={"transparent"}
                         iconStyle={{ marginRight: 0 }}
@@ -63,7 +49,7 @@ export function useModal<const TProps extends UseModalProps>({
                         onPress={onClose}
                         size={15} />
                 </View>
-                <View style={{...modalStyles.content, /*padding: 20*/}}>
+                <View style={{ ...modalStyles.content, /*padding: 20*/ }}>
                     {/* <Text>children here</Text> */}
 
                     {Object.keys(inputTypes).map(key => {
@@ -79,7 +65,7 @@ export function useModal<const TProps extends UseModalProps>({
                                 )
                             case "select":
                                 return (
-                                    <DropdownInput key={key} label={key} onInputChange={onInputChange} inputStates={inputStates} input={input} />
+                                    <DropdownInput key={key} label={key} onInputChange={onInputChange} input={input} />
                                 )
                             case "button":
                                 return (
@@ -97,7 +83,6 @@ export function useModal<const TProps extends UseModalProps>({
         visible,
         setVisible,
         inputStates,
-        inputTypes,
         component,
-    } as const
+    }
 }
