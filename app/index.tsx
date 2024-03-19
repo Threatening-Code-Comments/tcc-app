@@ -2,14 +2,12 @@ import { ResultSet } from 'expo-sqlite'
 import React, { useEffect, useState } from 'react'
 import { FlatList, LogBox, View } from 'react-native'
 import { IconButton } from './components/IconButton'
-import { PageTileComponent } from './components/Tiles'
-import TitleDisplay from './components/TitleDisplay'
 import { useModal } from './components/modal/Modal'
+import { GenericTile } from './components/tiles/GenericTile'
+import TitleDisplay from './components/TitleDisplay'
 import { Page } from './constants/DbTypes'
 import { globalStyles } from './constants/global'
-import { dropDb } from './db/database'
 import { deletePage, getPages, insertPages } from './db/pages'
-import { UseModalStringType } from './components/modal/ModalTypeDefs'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -66,13 +64,14 @@ const HomePage = () => {
     }, [])
 
     const padding = 5
+    const numColumns = 2
     return (
         <View>
             <TitleDisplay text='Welcome!' secondaryText={`You have ${pages.length} pages.`} />
 
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
                 <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
-                <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} />
+                <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
             </View>
 
             {AddPageModal}
@@ -85,12 +84,14 @@ const HomePage = () => {
                     contentContainerStyle={{ gap: 10 }}
                     columnWrapperStyle={{ gap: 10 }}
                     renderItem={({ item }) =>
-                        <PageTileComponent
-                            page={item}
+                        <GenericTile
+                            element={item}
+                            numColumns={numColumns}
                             isEditMode={isEditMode}
-                            doAfterEdit={(page) => { setPages(pages.map(p => p.id == page.id ? page : p))}}
-                            onPressDelete={() => removePage(item)} />}
-                    numColumns={2} />
+                            doAfterEdit={(page) => { setPages(pages.map(p => p.id == page.id ? page : p)) }}
+                            onPressDelete={() => removePage(item)} />
+                    }
+                    numColumns={numColumns} />
             </View>
         </View>
     )

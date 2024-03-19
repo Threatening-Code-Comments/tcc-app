@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { IconButton } from '../components/IconButton'
-import { TileComponent } from '../components/Tiles'
+import { GenericTile } from '../components/tiles/GenericTile'
 import TitleDisplay from '../components/TitleDisplay'
 import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from '../constants/DbTypes'
 import { globalStyles } from '../constants/global'
@@ -17,6 +17,8 @@ const RoutineDisplayPage = () => {
 
   const [routine, setRoutine] = useState<RoutineWithTiles>()
   const [tiles, setTiles] = useState<Array<TileOfRoutine>>()
+  const [isEditMode, setIsEditMode] = useState(false)
+
   useEffect(() => {
     updateRoutine()
   }, [])
@@ -34,8 +36,7 @@ const RoutineDisplayPage = () => {
   }
 
   const addTile = (name: string) => {
-    const tile: InsertTileOfRoutine = {name: name, mode: 0, rootRoutineId: routineId, routineId: routineId, posX: 2, posY: 2, spanX: 2, spanY: 2};
-    //generateRandomTile(routineId)
+    const tile: InsertTileOfRoutine = { name: name, mode: 0, rootRoutineId: routineId, routineId: routineId, posX: 2, posY: 2, spanX: 2, spanY: 2 };
 
     insertTileIntoRoutine([tile], (err, res) => {
       if (err) {
@@ -58,8 +59,6 @@ const RoutineDisplayPage = () => {
       "Add": {
         type: "button",
         onClick: () => {
-          // console.log("Hell yeah!!")
-          // console.log(inputStates["Tile Name"])
           addTile(inputStates["Tile Name"])
         },
         icon: 'plus'
@@ -74,9 +73,10 @@ const RoutineDisplayPage = () => {
     <>
       <TitleDisplay text={routineName} />
 
-      <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20}]}>
+      <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
         {/* <IconButton iconName='refresh' text='Refresh' onPress={updateRoutine} type='secondary' /> */}
         <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
+        <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
       </View>
 
       {AddTileModal}
@@ -90,9 +90,14 @@ const RoutineDisplayPage = () => {
           columnWrapperStyle={{ gap: 10 }}
           numColumns={tileCols}
           renderItem={(test) =>
-            <TileComponent
+            <GenericTile
               numColumns={tileCols}
-              tile={test.item} />}
+              element={test.item}
+              isEditMode={isEditMode}
+              doAfterEdit={(tile) => { }}
+              onPressDelete={() => { }}
+            />
+          }
         />
       </View>
     </>

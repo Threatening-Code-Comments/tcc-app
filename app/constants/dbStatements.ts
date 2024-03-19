@@ -11,7 +11,9 @@ export const routinesStatements = {
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL
         );`,
-    findAll: `SELECT * FROM routines`
+    findAll: `SELECT * FROM routines`,
+    update: `UPDATE routines SET name = ? WHERE id = ?`,
+    delete: `DELETE FROM routines WHERE id = ?`
 }
 
 export const pageRoutinesStatements = {

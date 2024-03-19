@@ -1,29 +1,28 @@
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useLocalSearchParams } from 'expo-router'
 import { ResultSet } from 'expo-sqlite'
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { IconButton } from '../components/IconButton'
-import { RoutineTileComponent } from '../components/Tiles'
 import TitleDisplay from '../components/TitleDisplay'
 import { useModal } from '../components/modal/Modal'
+import { GenericTile } from '../components/tiles/GenericTile'
 import { InsertRoutineOnPage, Page, RoutineOnPage, RoutineWithTiles } from '../constants/DbTypes'
 import { globalStyles } from '../constants/global'
 import { getRoutinesForPage, insertRoutinesOnPage } from '../db/pageRoutines'
 import { getPageById } from '../db/pages'
 import { getRoutinesWithTiles } from '../db/routineTiles'
+import { deleteRoutine } from '../db/routines'
 
 const PageDisplayPage = () => {
     const [page, setPage] = useState<Page>()
     const [routines, setRoutines] = useState<Array<RoutineOnPage>>([])
+    const [isEditMode, setIsEditMode] = useState(false)
     useEffect(() => {
         updateRoutines()
     }, [])
 
     const id = Number(useLocalSearchParams()['id'])
-    const next = (id) ? id + 1 : 0
-    const prev = (id) ? id - 1 : 0
-    const router = useRouter()
 
     if (!page) {
         getPageById(id, (err, res) =>
@@ -65,6 +64,15 @@ const PageDisplayPage = () => {
             })
     }
 
+    const removeRoutine = (routine: RoutineOnPage) => {
+        deleteRoutine(routine, (err, res) => {
+            setRoutines(routines.filter(r => r.id != routine.id))
+        })
+    }
+    const updateRoutine = (routine: RoutineOnPage) => {
+        setRoutines(routines.map(r => (r.id === routine.id) ? routine : r))
+    }
+
     const { setVisible, component: ModalComponent, inputStates } = useModal({
         title: "Add Routine",
         inputTypes: {
@@ -92,12 +100,10 @@ const PageDisplayPage = () => {
         <View style={styles.buttonContainerContainer}>
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end' }]}>
                 <IconButton iconName='plus' text='Add' onPress={() => { setVisible(true) }} />
-                {/* <IconButton iconName='refresh' text='Refresh' onPress={updateRoutines} type='secondary' /> */}
+                <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} />
             </View>
 
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'space-around' }]}>
-                {/* <IconButton iconName='arrow-left' text='Prev' onPress={() => router.replace(`/pages/${prev}`)} /> */}
-                {/* <IconButton iconName='arrow-right' text='Next' onPress={() => router.replace(`/pages/${next}`)} /> */}
             </View>
         </View>
 
@@ -109,7 +115,15 @@ const PageDisplayPage = () => {
                 numColumns={routineCols}
                 contentContainerStyle={{ gap: 10 }}
                 columnWrapperStyle={{ gap: 10 }}
-                renderItem={({ item }) => <RoutineTileComponent numColumns={routineCols} routine={item} />}
+                renderItem={({ item }) =>
+                    <GenericTile
+                        numColumns={routineCols}
+                        element={item}
+                        isEditMode={isEditMode}
+                        doAfterEdit={(routine) => updateRoutine(routine)}
+                        onPressDelete={() => removeRoutine(item)} />
+                }
+
             />
         </View>
     </>

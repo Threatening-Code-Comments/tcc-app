@@ -1,5 +1,5 @@
-import { Query, ResultSet, ResultSetError } from "expo-sqlite"
-import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from "../constants/DbTypes"
+import { Query } from "expo-sqlite"
+import { InsertTileOfRoutine, RoutineWithTiles, Tile, TileOfRoutine } from "../constants/DbTypes"
 import { InsertCallback, ResultCallback, db } from "./database"
 
 export const getRoutinesWithTiles = (routineIds: Array<number | string>, callback: ResultCallback<RoutineWithTiles>) => {
@@ -103,6 +103,21 @@ export const insertTileIntoRoutine = (tiles: Array<InsertTileOfRoutine>, doOnFin
                     doOnFinish(err, res)
                 }
             )
+        }
+    )
+}
+
+export const updateTile = (tile: Tile, callback: InsertCallback) => {
+    db().exec(
+        [{
+            sql: `UPDATE tiles
+            SET name = ?, mode = ?
+            WHERE id = ?;`,
+            args: [tile.name, tile.mode, tile.id]
+        }],
+        false,
+        (err, res) => {
+            callback(err, res)
         }
     )
 }

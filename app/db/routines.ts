@@ -19,3 +19,23 @@ export const getRoutines = (callback: ResultCallback<Routine>) => {
         }
     )
 }
+
+export const deleteRoutine = (routine: Routine, callback: ResultCallback<Routine>) => {
+    db().exec(
+        [{ sql: routinesStatements.delete, args: [routine.id] }],
+        false,
+        (err, res) => {
+            callback(err, res.flatMap(entry => entry['rows']))
+        }
+    )
+}
+
+export const updateRoutine = (routine: Routine, callback: ResultCallback<Routine>) => {
+    db().exec(
+        [{ sql: routinesStatements.update, args: [routine.name, routine.id] }],
+        false,
+        (err, res) => {
+            callback(err, res.flatMap(entry => entry['rows']))
+        }
+    )
+}
