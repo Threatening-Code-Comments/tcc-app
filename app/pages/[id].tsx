@@ -83,7 +83,7 @@ const PageDisplayPage = () => {
                 type: "button",
                 onClick: () => {
                     setVisible(false)
-                    addRoutine(inputStates["Routine Name"] as string)
+                    addRoutine(inputStates["Routine Name"])
                 },
                 icon: 'plus'
             }

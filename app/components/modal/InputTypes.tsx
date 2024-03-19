@@ -1,36 +1,30 @@
 import { Picker } from '@react-native-picker/picker'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
 import { IconButton, IconName } from '../IconButton'
 import { OutlineTextField } from '../TextFields'
 import { modalStyles } from './ModalStyles'
-import { InputStateType, InputTypesType, OnInputChangeType } from './ModalTypeDefs'
 import { TextField } from 'rn-material-ui-textfield'
+import { ModalInputChangeType, UseModalNumberType, UseModalSelectType, UseModalStringType } from './ModalTypeDefs'
 
 type InputProps = {
-    label: string,
-    onInputChange: OnInputChangeType,
+    label: string
 }
 
 type TextInputProps = {
-    input: { type: "string"; value?: string; },
+    input: UseModalStringType
+    key: string
+    onInputChange: ModalInputChangeType<"string", string>
 } & InputProps
-export const TextInput = ({ label, onInputChange, input }: TextInputProps) => {
-    const [text, setText] = React.useState(input.value)
+export const TextInput = ({ label, onInputChange, key, input }: TextInputProps) => {
+    const [text, setText] = useState(input.value)
+
     const onChangeText = (text: string) => {
         setText(text)
-        onInputChange({ ...input, key: label }, text)
+        onInputChange(key, text)
     }
 
     return (
-        // <OutlineTextField
-        //     // style={modalStyles.materialInput}
-        //     style={{...modalStyles.materialInput}}
-        //     label={label}
-        //     onChangeText={(text) => {
-        //         onInputChange({ ...input, key: label }, text)
-        //     }}
-        // />
         <TextField
             label={label}
             style={modalStyles.materialInput}
@@ -39,43 +33,43 @@ export const TextInput = ({ label, onInputChange, input }: TextInputProps) => {
             baseColor="#ffffff"
             value={text}
             labelFontSize={16}
-            // inputContainerStyle={styles.emailInputStyle}
             activeLineWidth={1}
-            // value={defaultEmail}
             onChangeText={(text) => onChangeText(text)}
         />
     )
 }
 
-type NumberInputProps = {
-    input: { type: "number"; },
-} & InputProps
-export const NumberInput = ({ label, onInputChange, input }: NumberInputProps) => {
+type NumberInputProps = InputProps & {
+    input: UseModalNumberType
+    key: string
+    onInputChange: ModalInputChangeType<"number", string>
+}
+export const NumberInput = ({ label, onInputChange, input, key }: NumberInputProps) => {
     return (
         <OutlineTextField
             style={modalStyles.materialInput}
             label={label}
             keyboardType='numeric'
             onChangeText={(text) => {
-                // @ts-ignore
-                onInputChange({ ...input, key: label }, Number(text.replace(/[^0-9]/g, '')))
+                onInputChange(key, Number(text.replace(/[^0-9]/g, '')))
             }}
         />
     )
 }
 
-type DropdownInputProps = {
-    input: { type: "select"; options: readonly string[]; },
-    inputStates: InputStateType<InputTypesType>
-} & InputProps
-export const DropdownInput = ({ label, onInputChange, inputStates, input }: DropdownInputProps) => {
+type SelectInputProps = InputProps & {
+    input: UseModalSelectType
+    key: string
+    onInputChange: ModalInputChangeType<"select", string>
+}
+export const DropdownInput = ({ label, onInputChange, input, key }: SelectInputProps) => {
     return (
         <View>
             <Text>{label}:</Text>
             <Picker<string>
                 style={modalStyles.picker}
-                selectedValue={inputStates[label] as string}
-                onValueChange={(itemValue, itemIndex) => onInputChange({ ...input, key: label }, itemValue)}
+                selectedValue={input.options[label] as string}
+                onValueChange={itemValue => onInputChange(key, itemValue)}
             >
                 {
                     input.options.map(option => <Picker.Item key={`${label}${option}`} label={option} value={option} />)
@@ -85,8 +79,7 @@ export const DropdownInput = ({ label, onInputChange, inputStates, input }: Drop
     )
 }
 
-type ButtonInputTypes = {
-    label: string,
+type ButtonInputTypes = InputProps & {
     icon: IconName,
     onClick: () => void
 }
