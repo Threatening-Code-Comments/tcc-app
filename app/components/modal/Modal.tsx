@@ -57,15 +57,15 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
                         switch (input.type) {
                             case "string":
                                 return (
-                                    <TextInput key={key} label={key} onInputChange={onInputChange} input={input} />
+                                    <TextInput key={key} keyProp={key} label={key} onInputChange={onInputChange} input={input} />
                                 )
                             case "number":
                                 return (
-                                    <NumberInput key={key} label={key} onInputChange={onInputChange} input={input} />
+                                    <NumberInput key={key} keyProp={key} label={key} onInputChange={onInputChange} input={input} />
                                 )
                             case "select":
                                 return (
-                                    <DropdownInput key={key} label={key} onInputChange={onInputChange} input={input} />
+                                    <DropdownInput key={key} keyProp={key} label={key} onInputChange={onInputChange} input={input} />
                                 )
                             case "button":
                                 return (

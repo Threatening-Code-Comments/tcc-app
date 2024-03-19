@@ -58,7 +58,10 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
             ? () => { updateRoutine(element, (_err, _res) => { }) }
             : () => { updatePage(element, (_err, _res) => { }) }
 
-    const editElementModal = useModal({
+    const editElementModal = useModal<{
+        "Name": "string"
+        "Save": "button"
+    }>({
         title: title,
         inputTypes: {
             "Name": { type: "string", value: element.name },
@@ -66,8 +69,7 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
                 type: "button",
                 icon: 'save',
                 onClick: () => {
-                    console.log("halli hallo")
-                    element.name = editElementModal.inputStates["Name"]
+                    element.name = editElementModal.inputStates.Name
                     doAfterEdit(element)
                     saveOnClick()
                     editElementModal.setVisible(false)

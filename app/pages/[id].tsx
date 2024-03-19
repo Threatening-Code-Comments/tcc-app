@@ -73,7 +73,10 @@ const PageDisplayPage = () => {
         setRoutines(routines.map(r => (r.id === routine.id) ? routine : r))
     }
 
-    const { setVisible, component: ModalComponent, inputStates } = useModal({
+    const { setVisible, component: ModalComponent, inputStates } = useModal<{
+        "Routine Name": "string"
+        "Add": "button"
+    }>({
         title: "Add Routine",
         inputTypes: {
             "Routine Name": {
@@ -83,7 +86,7 @@ const PageDisplayPage = () => {
                 type: "button",
                 onClick: () => {
                     setVisible(false)
-                    addRoutine(inputStates["Routine Name"])
+                    addRoutine(inputStates['Routine Name'])
                 },
                 icon: 'plus'
             }
@@ -100,7 +103,7 @@ const PageDisplayPage = () => {
         <View style={styles.buttonContainerContainer}>
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end' }]}>
                 <IconButton iconName='plus' text='Add' onPress={() => { setVisible(true) }} />
-                <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} />
+                <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={(isEditMode) ? 'secondary' : 'primary'} />
             </View>
 
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'space-around' }]}>

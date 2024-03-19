@@ -13,10 +13,10 @@ type InputProps = {
 
 type TextInputProps = {
     input: UseModalStringType
-    key: string
+    keyProp: string
     onInputChange: ModalInputChangeType<"string", string>
 } & InputProps
-export const TextInput = ({ label, onInputChange, key, input }: TextInputProps) => {
+export const TextInput = ({ label, onInputChange, keyProp: key, input }: TextInputProps) => {
     const [text, setText] = useState(input.value)
 
     const onChangeText = (text: string) => {
@@ -41,10 +41,10 @@ export const TextInput = ({ label, onInputChange, key, input }: TextInputProps) 
 
 type NumberInputProps = InputProps & {
     input: UseModalNumberType
-    key: string
+    keyProp: string
     onInputChange: ModalInputChangeType<"number", string>
 }
-export const NumberInput = ({ label, onInputChange, input, key }: NumberInputProps) => {
+export const NumberInput = ({ label, onInputChange, input, keyProp: key }: NumberInputProps) => {
     return (
         <OutlineTextField
             style={modalStyles.materialInput}
@@ -59,10 +59,10 @@ export const NumberInput = ({ label, onInputChange, input, key }: NumberInputPro
 
 type SelectInputProps = InputProps & {
     input: UseModalSelectType
-    key: string
+    keyProp: string
     onInputChange: ModalInputChangeType<"select", string>
 }
-export const DropdownInput = ({ label, onInputChange, input, key }: SelectInputProps) => {
+export const DropdownInput = ({ label, onInputChange, input, keyProp: key }: SelectInputProps) => {
     return (
         <View>
             <Text>{label}:</Text>

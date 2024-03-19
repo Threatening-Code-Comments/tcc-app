@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "TCC-App",
-    "slug": "tcc_app_rn",
+    "slug": "tcc-app",
     "scheme": "tcc-app-scheme",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -23,7 +23,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.threateningcodecomments.tcc_app_rn"
+      "package": "com.threateningcodecomments.tcc_app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
