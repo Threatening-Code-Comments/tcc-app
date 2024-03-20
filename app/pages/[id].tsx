@@ -73,9 +73,9 @@ const PageDisplayPage = () => {
         setRoutines(routines.map(r => (r.id === routine.id) ? routine : r))
     }
 
-    const { setVisible, component: ModalComponent, inputStates } = useModal<{
+    const { setVisible, component: ModalComponent } = useModal<{
         "Routine Name": "string"
-        "Add": "button"
+        "Add": "submit"
     }>({
         title: "Add Routine",
         inputTypes: {
@@ -83,10 +83,10 @@ const PageDisplayPage = () => {
                 type: "string"
             },
             "Add": {
-                type: "button",
-                onClick: () => {
+                type: "submit",
+                onClick: (data) => {
                     setVisible(false)
-                    addRoutine(inputStates['Routine Name'])
+                    addRoutine(data['Routine Name'])
                 },
                 icon: 'plus'
             }

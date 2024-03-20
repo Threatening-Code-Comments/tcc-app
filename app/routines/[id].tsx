@@ -50,9 +50,9 @@ const RoutineDisplayPage = () => {
     })
   }
 
-  const { setVisible, component: AddTileModal, inputStates } = useModal<{
+  const { setVisible, component: AddTileModal } = useModal<{
     "Tile Name": "string",
-    "Add": "button"
+    "Add": "submit"
   }>({
     title: "Add Tile",
     inputTypes: {
@@ -60,9 +60,9 @@ const RoutineDisplayPage = () => {
         type: "string"
       },
       "Add": {
-        type: "button",
-        onClick: () => {
-          addTile(inputStates["Tile Name"])
+        type: "submit",
+        onClick: (data) => {
+          addTile(data['Tile Name'])
         },
         icon: 'plus'
       }

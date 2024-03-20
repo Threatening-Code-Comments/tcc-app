@@ -10,16 +10,17 @@ type IconButtonProps = {
     style?: StyleProp<ViewStyle>,
     onPress?: () => void,
     type?: ButtonType
+    disabled?: boolean
 }
-export const IconButton = ({ iconName, text, style, onPress, type }: IconButtonProps) => {
+export const IconButton = ({ iconName, text, style, onPress, type, disabled }: IconButtonProps) => {
     const iconSize = 32
 
     const buttonType = (type) ? type : "primary"
-    const color = colors[buttonType]
+    const color = disabled ? "gray" : colors[buttonType]
 
     return (
         <Animated.View style={{ ...styles.buttonContainer, }}>
-            <Pressable style={[style, styles.button, { backgroundColor: color, }]} onPress={onPress} android_ripple={{ color: 'black', foreground: true }}>
+            <Pressable style={[style, styles.button, { backgroundColor: color, }]} disabled={disabled} onPress={onPress} android_ripple={{ color: 'black', foreground: true }}>
                 <FontAwesome name={iconName} size={iconSize} color='white' style={{ width: iconSize, height: iconSize, alignSelf: 'center', marginRight: -5 }} />
                 {(text != undefined)
                     ? <Text style={globalStyles.text}>{text}</Text>

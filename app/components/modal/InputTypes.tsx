@@ -82,8 +82,9 @@ export const DropdownInput = ({ label, onInputChange, input, keyProp: key }: Sel
 type ButtonInputTypes = InputProps & {
     icon: IconName,
     onClick: () => void
+    disabled?: boolean
 }
-export const ButtonInput = ({ label, icon, onClick }: ButtonInputTypes) => {
+export const ButtonInput = ({ label, icon, onClick, disabled }: ButtonInputTypes) => {
     return (
         <View style={{ borderRadius: 10, }}>
             <IconButton
@@ -91,6 +92,7 @@ export const ButtonInput = ({ label, icon, onClick }: ButtonInputTypes) => {
                 text={label}
                 iconName={icon}
                 onPress={onClick}
+                disabled={disabled}
             />
         </View>
     )
