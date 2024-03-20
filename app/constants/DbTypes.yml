@@ -31,3 +31,19 @@ tileEvents:
   - tileId
   - timestamp
   - data (str)
+
+dbTable:
+- X_id
+- X_type # routine, tile, page
+- posX
+- posY
+- spanX
+- spanY
+# wenn drin, wird angezeigt
+
+# an welchen wochentagen wird angezeigt
+# uhrzeit (z.B. 9-18h Arbeitskacheln)
+dashboardSettingsTable:
+- X_id, X_type (FK)
+- settingsType
+- settingsValue

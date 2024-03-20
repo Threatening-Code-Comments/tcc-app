@@ -106,18 +106,3 @@ export const insertTileIntoRoutine = (tiles: Array<InsertTileOfRoutine>, doOnFin
         }
     )
 }
-
-export const updateTile = (tile: Tile, callback: InsertCallback) => {
-    db().exec(
-        [{
-            sql: `UPDATE tiles
-            SET name = ?, mode = ?
-            WHERE id = ?;`,
-            args: [tile.name, tile.mode, tile.id]
-        }],
-        false,
-        (err, res) => {
-            callback(err, res)
-        }
-    )
-}

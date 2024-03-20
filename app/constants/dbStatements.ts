@@ -64,3 +64,25 @@ export const tileEventsStatements = {
         FOREIGN KEY (tileId) REFERENCES tiles(id)
     );`
 }
+
+export const dashboardStatements = {
+    create: `CREATE TABLE IF NOT EXISTS dashboard (
+        elementId INTEGER NOT NULL,
+        elementType TEXT NOT NULL,
+        posX INTEGER NOT NULL,
+        posY INTEGER NOT NULL,
+        spanX INTEGER NOT NULL,
+        spanY INTEGER NOT NULL,
+        PRIMARY KEY(elementId, elementType)
+    );`
+}
+
+export const dashboardSettingsStatements = {
+    create : `CREATE TABLE IF NOT EXISTS dashboard_settings (
+        elementId INTEGER NOT NULL,
+        elementType TEXT NOT NULL,
+        settingsType TEXT NOT NULL,
+        settingsValue TEXT NOT NULL,
+        FOREIGN KEY(elementId, elementType) REFERENCES dashboard(elementId, elementType)
+    );`
+}

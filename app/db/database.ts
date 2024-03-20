@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { pageRoutinesStatements, pagesStatements, routineTilesStatements, routinesStatements, tileEventsStatements, tilesStatements } from "../constants/dbStatements";
+import { dashboardSettingsStatements, dashboardStatements, pageRoutinesStatements, pagesStatements, routineTilesStatements, routinesStatements, tileEventsStatements, tilesStatements } from "../constants/dbStatements";
 import { dbName } from "../constants/global";
 
 
@@ -9,6 +9,8 @@ const pageRoutines = pageRoutinesStatements
 const tiles = tilesStatements
 const routineTiles = routineTilesStatements
 const tileEvents = tileEventsStatements
+const dashboard = dashboardStatements
+const dashboardSettings = dashboardSettingsStatements
 
 let _db = SQLite.openDatabase(dbName, '1.1')
 export const db = () => _db
@@ -21,6 +23,8 @@ export const initDb = () => {
         t.executeSql(tiles.create)
         t.executeSql(routineTiles.create)
         t.executeSql(tileEvents.create)
+        t.executeSql(dashboard.create)
+        t.executeSql(dashboardSettings.create)
     }, (err) => { console.error('error creating tables: ', err) }, () => console.info('success creating tables'))
 }
 

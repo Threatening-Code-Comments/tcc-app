@@ -1,6 +1,6 @@
 import React from 'react'
 import { View } from 'react-native'
-import { Page, RoutineOnPage, Tile } from '../../constants/DbTypes'
+import { ElementType, Page, RoutineOnPage, Tile, isPage, isRoutineOnPage, isTile } from '../../constants/DbTypes'
 import { updatePage } from '../../db/pages'
 import { updateRoutine } from '../../db/routines'
 import { updateTile } from '../../db/routineTiles'
@@ -9,14 +9,11 @@ import { PageTileComponent } from './PageTile'
 import { RoutineTileComponent } from './RoutineTile'
 import { TileComponent } from './TileTile'
 import { getFlex, DeleteButton } from './util'
-
+import { addElementToDashboard } from '../../db/dashboard'
 
 export type TileProps = {
     numColumns?: number
 }
-
-
-type ElementType = Page | RoutineOnPage | Tile
 
 type GenericTileProps<TElement extends ElementType> = {
     element: TElement,
@@ -24,30 +21,18 @@ type GenericTileProps<TElement extends ElementType> = {
     numColumns: number,
     onPressDelete: () => void,
     doAfterEdit: (element: TElement) => void
-}
-const isTile = <TElement extends ElementType>(element: TElement): element is TElement & Tile => {
-    return "rootRoutineId" in element;
+    orientation?: "column" | "row"
 }
 
-const isRoutineOnPage = <TElement extends ElementType>(element: TElement): element is TElement & RoutineOnPage => {
-    return "pageId" in element;
-}
-
-const isPage = <TElement extends ElementType>(element: TElement): element is TElement & Page => {
-    return !isTile(element) && !(isRoutineOnPage(element));
-}
-export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit, isEditMode, onPressDelete, numColumns }: GenericTileProps<TElement>) => {
+export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit, isEditMode, onPressDelete, numColumns, orientation = "column" }: GenericTileProps<TElement>) => {
     let link = ""
     if (isTile(element)) {
-        const t = element;
         link = ``
     }
     if (isRoutineOnPage(element)) {
-        const t = element;
         link = `/routines/${element.id}`
     }
     if (isPage(element)) {
-        const t = element;
         link = `/pages/${element.id}`
     }
 
@@ -60,11 +45,17 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
 
     const editElementModal = useModal<{
         "Name": "string"
+        "Add to Dashboard": "button"
         "Save": "submit"
     }>({
         title: title,
         inputTypes: {
             "Name": { type: "string", value: element.name },
+            "Add to Dashboard": {
+                icon: "star",
+                onClick: () => addElementToDashboard(element, (error, res) => console.log("added to dashboard", error, res)),
+                type: "button"
+            },
             "Save": {
                 type: "submit",
                 icon: 'save',
@@ -80,7 +71,7 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
     const displayModal = () => editElementModal.setVisible(true)
 
     return (
-        <View style={{ display: 'flex', flexDirection: 'column', flex: getFlex(numColumns) }}>
+        <View style={{ display: 'flex', flexDirection: orientation, flex: getFlex(numColumns), aspectRatio: 1 }}>
             {editElementModal.component}
             <DeleteButton isEditMode={isEditMode} onPress={onPressDelete} />
             {isTile(element)

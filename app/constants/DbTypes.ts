@@ -38,6 +38,37 @@ export type TileEvent = {
     data: string
 }
 
+export type DashboardElementType = "Routine" | "Tile" | "Page"
+export type ElementType = Page | RoutineOnPage | Tile
+
+export type DashboardEntry = {
+    elementId: number
+    elementType: DashboardElementType
+    posX: number
+    posY: number
+    spanX: number
+    spanY: number
+}
+
+export type DashboardSetting = {
+    elementType: DashboardElementType
+    elementId: number
+    settingsType: string
+    settingsValue: string
+}
+
+export const isTile = <TElement extends ElementType>(element: TElement): element is TElement & Tile => {
+    return "rootRoutineId" in element;
+}
+
+export const isRoutineOnPage = <TElement extends ElementType>(element: TElement): element is TElement & RoutineOnPage => {
+    return "pageId" in element;
+}
+
+export const isPage = <TElement extends ElementType>(element: TElement): element is TElement & Page => {
+    return !isTile(element) && !(isRoutineOnPage(element));
+}
+
 //---------------- insert types ----------------
 export type InsertPage = {
     id?: number,
@@ -48,7 +79,7 @@ export type InsertRoutine = {
     name: string
 }
 
-export type InsertTile={
+export type InsertTile = {
     id?: number
     name: string
     mode: number

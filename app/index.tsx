@@ -1,6 +1,6 @@
 import { ResultSet } from 'expo-sqlite'
 import React, { useEffect, useState } from 'react'
-import { FlatList, LogBox, View } from 'react-native'
+import { FlatList, LogBox, View, Text } from 'react-native'
 import { IconButton } from './components/IconButton'
 import { useModal } from './components/modal/Modal'
 import { GenericTile } from './components/tiles/GenericTile'
@@ -8,6 +8,8 @@ import TitleDisplay from './components/TitleDisplay'
 import { Page } from './constants/DbTypes'
 import { globalStyles } from './constants/global'
 import { deletePage, getPages, insertPages } from './db/pages'
+import Dashboard from './Dashboard'
+import PageDisplay from './PageDisplay'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -67,10 +69,9 @@ const HomePage = () => {
     }, [])
 
     const padding = 5
-    const numColumns = 2
     return (
-        <View>
-            <TitleDisplay text='Welcome!' secondaryText={`You have ${pages.length} pages.`} />
+        <View style={{ display: "flex", height: "100%" }}>
+            <TitleDisplay text='Welcome!' secondaryText={`You have ${pages.length} pages.`} height={100} />
 
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
                 <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
@@ -79,22 +80,19 @@ const HomePage = () => {
 
             {AddPageModal}
 
+            <View style={{ flexGrow: 1 }}>
+                <Dashboard />
+            </View>
+
             <View
-                style={{ margin: 10, }}>
-                <FlatList
-                    style={{ width: '100%', padding: padding, paddingTop: 0, paddingBottom: 0, }}
-                    data={pages}
-                    contentContainerStyle={{ gap: 10 }}
-                    columnWrapperStyle={{ gap: 10 }}
-                    renderItem={({ item }) =>
-                        <GenericTile
-                            element={item}
-                            numColumns={numColumns}
-                            isEditMode={isEditMode}
-                            doAfterEdit={(page) => { setPages(pages.map(p => p.id == page.id ? page : p)) }}
-                            onPressDelete={() => removePage(item)} />
-                    }
-                    numColumns={numColumns} />
+                style={{ margin: 10, height: 175, marginTop: "auto" }}>
+                <PageDisplay
+                    isEditMode={isEditMode}
+                    padding={padding}
+                    pages={pages}
+                    doAfterEdit={(page) => { setPages(pages.map(p => p.id == page.id ? page : p)) }}
+                    onPressDelete={(item) => removePage(item)}
+                />
             </View>
         </View>
     )

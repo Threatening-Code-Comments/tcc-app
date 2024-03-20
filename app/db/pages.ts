@@ -18,6 +18,18 @@ export const getPageById = (id: number, callback: ResultCallback<Page>) => {
     )
 }
 
+export const getPagesFromIds = (ids: number[], callback: ResultCallback<Page>) => {
+    const query = `SELECT * 
+            FROM pages 
+            WHERE id IN (` + ids.map(()=>"?").join(",") + ");"
+        
+    db().exec(
+        [{sql: query, args: ids}],
+        true,
+        (err, res) => callback(err, res.map(entry => entry['rows']).flat())
+    )
+}
+
 export const insertPages = (pages: Array<InsertPage>, callback: InsertCallback) => {
     const statements: Query[] = []
     pages.map(page =>

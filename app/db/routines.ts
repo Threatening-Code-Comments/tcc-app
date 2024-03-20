@@ -20,6 +20,18 @@ export const getRoutines = (callback: ResultCallback<Routine>) => {
     )
 }
 
+export const getRoutinesFromIds = (ids: number[], callback: ResultCallback<Routine>) => {
+    const query = `SELECT * 
+            FROM routines 
+            WHERE id IN (` + ids.map(()=>"?").join(",") + ");"
+        
+    db().exec(
+        [{sql: query, args: ids}],
+        true,
+        (err, res) => callback(err, res.map(entry => entry['rows']).flat())
+    )
+}
+
 export const deleteRoutine = (routine: Routine, callback: ResultCallback<Routine>) => {
     db().exec(
         [{ sql: routinesStatements.delete, args: [routine.id] }],
