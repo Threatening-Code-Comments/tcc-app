@@ -84,8 +84,7 @@ const HomePage = () => {
                 <Dashboard />
             </View>
 
-            <View
-                style={{ margin: 10, height: 175, marginTop: "auto" }}>
+            <View style={{ height: 200, marginTop: "auto" }}>
                 <PageDisplay
                     isEditMode={isEditMode}
                     padding={padding}

@@ -6,13 +6,15 @@ import { insertTileEvent } from '../../db/tileEvents'
 import { TileProps } from './GenericTile'
 import { tileStyles } from './styles'
 import { getFlex } from './util'
+import { ComponentTypeDisplay } from './ComponentTypeDisplay'
 
 type TileComponentProps = {
     tile: Tile,
     isEditMode: boolean,
     onPressInEditMode: () => void
+    isOnDashboard?: boolean
 } & TileProps
-export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode }: TileComponentProps) => {
+export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode, isOnDashboard = false }: TileComponentProps) => {
     const [counter, setCounter] = useState(tile.counter)
 
     const addToCounter = () => {
@@ -32,9 +34,12 @@ export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode 
     const onPress = (isEditMode) ? onPressInEditMode : addToCounter
 
     return (
-        <Pressable style={[tileStyles.card, { flex: getFlex(numColumns) }]} onPress={onPress}>
-            <Text style={tileStyles.name}>{tile.name}</Text>
-            <Text style={tileStyles.info}>{counter}</Text>
-        </Pressable>
+        <>
+            <ComponentTypeDisplay display={isOnDashboard} text='T' />
+            <Pressable style={[tileStyles.card, { flex: getFlex(numColumns), flexGrow: 1 }]} onPress={onPress}>
+                <Text style={tileStyles.name}>{tile.name}</Text>
+                <Text style={tileStyles.info}>{counter}</Text>
+            </Pressable>
+        </>
     )
 }

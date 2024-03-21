@@ -85,12 +85,10 @@ const RoutineDisplayPage = () => {
       {AddTileModal}
 
       {/*display tiles*/}
-      <View style={{ height: 600, padding: 20 }}>
+      <View style={{ height: 600, padding: 10 }}>
         <FlatList
           style={{ height: 500 }}
           data={tiles}
-          contentContainerStyle={{ gap: 10 }}
-          columnWrapperStyle={{ gap: 10 }}
           numColumns={tileCols}
           renderItem={(test) =>
             <GenericTile

@@ -3,7 +3,7 @@ import { View } from 'react-native'
 import { ElementType, Page, RoutineOnPage, Tile, isPage, isRoutineOnPage, isTile } from '../../constants/DbTypes'
 import { updatePage } from '../../db/pages'
 import { updateRoutine } from '../../db/routines'
-import { updateTile } from '../../db/routineTiles'
+import { updateTile } from '../../db/tiles'
 import { useModal } from '../modal/Modal'
 import { PageTileComponent } from './PageTile'
 import { RoutineTileComponent } from './RoutineTile'
@@ -21,10 +21,11 @@ type GenericTileProps<TElement extends ElementType> = {
     numColumns: number,
     onPressDelete: () => void,
     doAfterEdit: (element: TElement) => void
-    orientation?: "column" | "row"
+    orientation?: "column" | "row",
+    isOnDashboard?: boolean
 }
 
-export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit, isEditMode, onPressDelete, numColumns, orientation = "column" }: GenericTileProps<TElement>) => {
+export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit, isEditMode, onPressDelete, numColumns, orientation = "column", isOnDashboard = false }: GenericTileProps<TElement>) => {
     let link = ""
     if (isTile(element)) {
         link = ``
@@ -71,14 +72,14 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
     const displayModal = () => editElementModal.setVisible(true)
 
     return (
-        <View style={{ display: 'flex', flexDirection: orientation, flex: getFlex(numColumns), aspectRatio: 1 }}>
+        <View style={{ display: 'flex', flexDirection: orientation, flex: getFlex(numColumns), aspectRatio: 1, margin: 5 }}>
             {editElementModal.component}
             <DeleteButton isEditMode={isEditMode} onPress={onPressDelete} />
             {isTile(element)
-                ? <TileComponent tile={element} numColumns={numColumns} onPressInEditMode={displayModal} isEditMode={isEditMode} />
+                ? <TileComponent tile={element} numColumns={numColumns} onPressInEditMode={displayModal} isEditMode={isEditMode} isOnDashboard={isOnDashboard} />
                 : isRoutineOnPage(element)
-                    ? <RoutineTileComponent routine={element} numColumns={numColumns} onPress={displayModal} isEditMode={isEditMode} onPressDelete={onPressDelete} />
-                    : <PageTileComponent page={element} numColumns={numColumns} onPress={displayModal} isEditMode={isEditMode} onPressDelete={onPressDelete} />}
+                    ? <RoutineTileComponent routine={element} numColumns={numColumns} onPress={displayModal} isEditMode={isEditMode} onPressDelete={onPressDelete} isOnDashboard={isOnDashboard} />
+                    : <PageTileComponent page={element} numColumns={numColumns} onPress={displayModal} isEditMode={isEditMode} onPressDelete={onPressDelete} isOnDashboard={isOnDashboard} />}
         </View>
     )
 }

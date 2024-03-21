@@ -116,8 +116,6 @@ const PageDisplayPage = () => {
             <FlatList
                 data={routines}
                 numColumns={routineCols}
-                contentContainerStyle={{ gap: 10 }}
-                columnWrapperStyle={{ gap: 10 }}
                 renderItem={({ item }) =>
                     <GenericTile
                         numColumns={routineCols}

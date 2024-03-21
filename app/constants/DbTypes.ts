@@ -1,3 +1,11 @@
+export type LayoutInfos = {
+    posX: number
+    posY: number
+    spanX: number
+    spanY: number
+}
+
+
 export type Page = {
     id: number
     name: string
@@ -26,11 +34,7 @@ export type RoutinePages = {
 export type TileOfRoutine = Tile & {
     tileId: number
     routineId: number
-    posX: number
-    posY: number
-    spanX: number
-    spanY: number
-}
+} & LayoutInfos
 
 export type TileEvent = {
     tileId: number
@@ -44,10 +48,6 @@ export type ElementType = Page | RoutineOnPage | Tile
 export type DashboardEntry = {
     elementId: number
     elementType: DashboardElementType
-    posX: number
-    posY: number
-    spanX: number
-    spanY: number
 }
 
 export type DashboardSetting = {
@@ -89,20 +89,12 @@ export type InsertTile = {
 type InsertRoutinePages = {
     pageId: number
     routineId?: number
-    posX: number
-    posY: number
-    spanX: number
-    spanY: number
-}
+} & LayoutInfos
 
 export type InsertTileOfRoutine = InsertTile & {
     tileId?: number
     routineId: number
-    posX: number
-    posY: number
-    spanX: number
-    spanY: number
-}
+} & LayoutInfos
 
 //---------------- compound types ----------------
 export type TilesOfRoutine = {
