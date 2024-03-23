@@ -73,7 +73,7 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
                     saveOnClick()
                     editElementModal.setVisible(false)
                 }
-            }
+            },
         }
     })
     const displayModal = () => editElementModal.setVisible(true)

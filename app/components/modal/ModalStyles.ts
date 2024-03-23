@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 
 export const modalStyles = StyleSheet.create({
     modalContent: {
@@ -51,6 +51,7 @@ export const modalStyles = StyleSheet.create({
         borderRadius: 10,
     },
     content: {
-        padding: 10
+        // padding: 10
+        paddingVertical: Dimensions.get('window').width * 0.05
     }
 });

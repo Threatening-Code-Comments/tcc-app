@@ -25,17 +25,24 @@ export const TextInput = ({ label, onInputChange, keyProp: key, input }: TextInp
     }
 
     return (
-        <TextField
-            label={label}
-            style={modalStyles.materialInput}
-            textColor="#ffffff"
-            tintColor="#ffffff"
-            baseColor="#ffffff"
-            value={text}
-            labelFontSize={16}
-            activeLineWidth={1}
-            onChangeText={(text) => onChangeText(text)}
-        />
+        <>
+            <TextField
+                label={label}
+                style={{ 
+                    // ...modalStyles.materialInput 
+                    
+                }}
+                labelColor="#000000"
+                textColor="#ffffff"
+                tintColor="#ffffff"
+                baseColor="#ffffff"
+                value={text}
+                labelFontSize={16}
+                activeLineWidth={1}
+                onChangeText={(text) => onChangeText(text)}
+            />
+            <View style={{ borderRadius: 10, height: 2, backgroundColor: 'transparent'}} />
+        </>
     )
 }
 

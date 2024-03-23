@@ -12,6 +12,7 @@
     "@react-native-picker/picker": "2.4.10",
     "@shopify/flash-list": "1.4.3",
     "@types/react": "~18.2.14",
+    "@types/rn-material-ui-textfield": "^1.0.7",
     "expo": "^49.0.23",
     "expo-constants": "~14.4.2",
     "expo-dev-client": "~2.4.13",

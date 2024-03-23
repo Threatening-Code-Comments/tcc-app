@@ -10,6 +10,7 @@ import { globalStyles } from './constants/global'
 import { deletePage, getPages, insertPages } from './db/pages'
 import Dashboard from './Dashboard'
 import PageDisplay from './PageDisplay'
+import ModalTester from './components/modal/ModalTester'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -76,6 +77,8 @@ const HomePage = () => {
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
                 <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
                 <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
+
+                <ModalTester />
             </View>
 
             {AddPageModal}

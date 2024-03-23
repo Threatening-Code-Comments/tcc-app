@@ -1,15 +1,16 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome'
-import React, { useState } from 'react'
-import { Modal, Pressable, Text, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native'
 import { ButtonInput, DropdownInput, NumberInput, TextInput } from './InputTypes'
 import { modalStyles } from './ModalStyles'
 import { ModalInputChangeType, UseModalErrorType, UseModalInputType2, UseModalInputType3, UseModalOutputType, UseModalProps, UseModalReturn, UseModalStateType } from './ModalTypeDefs'
+import { useNavigation } from 'expo-router'
 
 export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> extends UseModalProps<infer TInfer> ? TInfer : never>({
     title,
     inputTypes
 }: UseModalProps<TTypes>): UseModalReturn<TTypes> {
-
+    //TODO add back button support
     const defaultState = Object.keys(inputTypes).reduce((prev, key) => {
         const newInputStates = { ...prev };
         const input = inputTypes[key]
@@ -67,7 +68,7 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
                         onPress={onClose}
                         size={15} />
                 </View>
-                <View style={{ ...modalStyles.content, /*padding: 20*/ }}>
+                <View style={{ ...modalStyles.content, /*padding: 20*/ gap: 20, marginBottom: 100 }}>
                     {/* <Text>children here</Text> */}
 
                     {Object.keys(inputTypes).map(key => {
@@ -95,7 +96,6 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
                                 )
                         }
                     })}
-
                 </View>
             </View>
         </Modal>
