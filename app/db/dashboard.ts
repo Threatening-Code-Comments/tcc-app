@@ -17,11 +17,33 @@ export const getDashboardSettings = (callback: ResultCallback<DashboardSetting>)
     )
 }
 
-export const addElementToDashboard = <TElement extends ElementType> (element: TElement, callback: InsertCallback) => {
+export const checkIfElementOnDashboard = async <TElement extends ElementType>(element: TElement,): Promise<boolean> => {
+    const elementType: DashboardElementType = isTile(element) ? "Tile" : isRoutineOnPage(element) ? "Routine" : "Page";
+
+    const result = await db().execAsync(
+        [{ sql: 'SELECT * FROM dashboard WHERE elementId = ? AND elementType = ?', args: [element.id, elementType] }],
+        true,
+    )
+
+    return result[0]['rows'].length > 0
+}
+
+export const addElementToDashboard = <TElement extends ElementType>(element: TElement, callback: InsertCallback) => {
     const elementType: DashboardElementType = isTile(element) ? "Tile" : isRoutineOnPage(element) ? "Routine" : "Page";
     const id = element.id
     db().exec(
-        [{ sql: 'INSERT INTO dashboard VALUES(?, ?, ?, ?, ?, ?)', args: [id, elementType, 0, 0, 0, 0] }],
+        [{ sql: `INSERT OR IGNORE INTO dashboard (elementId, elementType, posX, posY, spanX, spanY) VALUES(?, ?, ?, ?, ?, ?)`, args: [id, elementType, 0, 0, 0, 0] }],
+        false,
+        (error, resultSet) => callback(error, resultSet)
+    )
+}
+
+export const removeElementFromDashboard = <TElement extends ElementType>(element: TElement, callback: InsertCallback) => {
+    const elementType: DashboardElementType = isTile(element) ? "Tile" : isRoutineOnPage(element) ? "Routine" : "Page";
+    const id = element.id
+
+    db().exec(
+        [{ sql: 'DELETE FROM dashboard WHERE elementId = ? AND elementType = ?', args: [id, elementType] }],
         false,
         (error, resultSet) => callback(error, resultSet)
     )

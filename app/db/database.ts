@@ -17,6 +17,7 @@ export const db = () => _db
 
 export const initDb = () => {
     db().transaction((t) => {
+        // t.executeSql("DROP TABLE IF EXISTS dashboard")
         t.executeSql(pages.create)
         t.executeSql(routines.create)
         t.executeSql(pageRoutines.create)

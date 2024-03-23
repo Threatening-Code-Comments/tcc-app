@@ -81,13 +81,12 @@ const HomePage = () => {
             {AddPageModal}
 
             <View style={{ flexGrow: 1 }}>
-                <Dashboard />
+                <Dashboard isEditMode={isEditMode} />
             </View>
 
             <View style={{ height: 200, marginTop: "auto" }}>
                 <PageDisplay
                     isEditMode={isEditMode}
-                    padding={padding}
                     pages={pages}
                     doAfterEdit={(page) => { setPages(pages.map(p => p.id == page.id ? page : p)) }}
                     onPressDelete={(item) => removePage(item)}

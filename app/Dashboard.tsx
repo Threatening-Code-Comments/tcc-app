@@ -1,18 +1,17 @@
-import { useEffect, useState } from "react"
-import { getPages, getPagesFromIds } from "./db/pages"
-import { getDashboardEntries } from "./db/dashboard"
-import { DashboardEntry, DashboardSetting, ElementType, isRoutineOnPage, Page, Routine, RoutineOnPage, Tile } from "./constants/DbTypes"
-import React from "react"
-import { FlatList, Text, View } from "react-native"
-import { globalStyles } from "./constants/global"
-import { getTilesFromIds } from "./db/tiles"
-import { getRoutinesFromIds } from "./db/routines"
-import { pagesStatements } from "./constants/dbStatements"
+import React, { useEffect, useState } from "react"
+import { FlatList, View } from "react-native"
 import { GenericTile } from "./components/tiles/GenericTile"
-import { getEventsForTiles } from "./db/tileEvents"
+import { DashboardEntry, DashboardSetting, ElementType, RoutineOnPage, Tile } from "./constants/DbTypes"
+import { getDashboardEntries, removeElementFromDashboard } from "./db/dashboard"
+import { getPagesFromIds } from "./db/pages"
 import { getRoutinesWithTiles } from "./db/routineTiles"
+import { getEventsForTiles } from "./db/tileEvents"
+import { getTilesFromIds } from "./db/tiles"
 
-export default function Dashboard() {
+type DashboardProps = {
+    isEditMode?: boolean
+}
+export default function Dashboard({ isEditMode = false }: DashboardProps) {
 
     const [entries, setEntries] = useState<DashboardEntry[]>([])
     const [settings, setSettings] = useState<DashboardSetting[]>([])
@@ -25,13 +24,13 @@ export default function Dashboard() {
 
     useEffect(() => {
         getDashboardEntries((_err, res) => {
-            console.log("nnghghh ", _err, res)
-            if (res[0] != undefined)
+            if (res[0] != undefined && res != entries)
                 setEntries(res)
         })
     }, [])
 
     useEffect(() => {
+        setElements([]) //reset elements
         getTilesFromIds(
             tileEntries.map((tile) => tile.elementId),
             (err, res) => {
@@ -43,7 +42,7 @@ export default function Dashboard() {
                             return tile as Tile
                         })
 
-                        setElements(old=> [...old, ...tiles])
+                        setElements(old => [...old, ...tiles])
                     }
                 )
             }
@@ -56,14 +55,14 @@ export default function Dashboard() {
                     return { ...routine, pageId: 0, routineId: routine.id, posX: 0, posY: 0, spanX: 0, spanY: 0 } as RoutineOnPage
                 })
 
-                setElements(old=> [...old, ...routines])
+                setElements(old => [...old, ...routines])
             }
         )
 
         getPagesFromIds(
             pageEntries.map((page) => page.elementId),
             (err, res) => {
-                setElements(old=> [...old, ...res])
+                setElements(old => [...old, ...res])
             }
         )
     }, [entries])
@@ -80,9 +79,9 @@ export default function Dashboard() {
                         key={item.id + "" + item.name}
                         element={item}
                         doAfterEdit={(() => { })}
-                        isEditMode={false}
+                        isEditMode={isEditMode}
                         numColumns={numColumns}
-                        onPressDelete={() => { }}
+                        onPressDelete={() => { removeElementFromDashboard(item, () => { setElements(old => old.filter((elem) => elem != item)) }) }} 
                         isOnDashboard
                     />
 

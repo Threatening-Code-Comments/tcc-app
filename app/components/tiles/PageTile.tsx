@@ -13,11 +13,10 @@ type PageTileComponentProps = {
     onPressDelete: () => void,
     isOnDashboard?: boolean
 } & TileProps
-export const PageTileComponent = ({ page, numColumns, isEditMode, onPressDelete, onPress, isOnDashboard=false }: PageTileComponentProps) => {
+export const PageTileComponent = ({ page, numColumns, isEditMode, onPressDelete, onPress, isOnDashboard = false }: PageTileComponentProps) => {
     return (
-        <View style={{ display: 'flex', flexDirection: 'column', flex: getFlex(numColumns) }}>
+        <View style={{ display: 'flex', flexDirection: 'column', flex: getFlex(numColumns),  }}>
             <ComponentTypeDisplay display={isOnDashboard} text="P" />
-            <DeleteButton isEditMode={isEditMode} onPress={onPressDelete} />
             <LinkOrPressable style={[tileStyles.card, { zIndex: 1 }]} link={`/pages/${page.id}`} isLink={!isEditMode} onPress={onPress}>
                 <Text style={tileStyles.name}>{page.name}</Text>
             </LinkOrPressable>

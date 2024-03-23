@@ -9,7 +9,8 @@ import { PageTileComponent } from './PageTile'
 import { RoutineTileComponent } from './RoutineTile'
 import { TileComponent } from './TileTile'
 import { getFlex, DeleteButton } from './util'
-import { addElementToDashboard } from '../../db/dashboard'
+import { addElementToDashboard, checkIfElementOnDashboard, removeElementFromDashboard } from '../../db/dashboard'
+import { IconName } from '../IconButton'
 
 export type TileProps = {
     numColumns?: number
@@ -21,11 +22,10 @@ type GenericTileProps<TElement extends ElementType> = {
     numColumns: number,
     onPressDelete: () => void,
     doAfterEdit: (element: TElement) => void
-    orientation?: "column" | "row",
     isOnDashboard?: boolean
 }
 
-export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit, isEditMode, onPressDelete, numColumns, orientation = "column", isOnDashboard = false }: GenericTileProps<TElement>) => {
+export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit, isEditMode, onPressDelete, numColumns, isOnDashboard = false }: GenericTileProps<TElement>) => {
     let link = ""
     if (isTile(element)) {
         link = ``
@@ -44,9 +44,11 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
             ? () => { updateRoutine(element, (_err, _res) => { }) }
             : () => { updatePage(element, (_err, _res) => { }) }
 
+
     const editElementModal = useModal<{
         "Name": "string"
         "Add to Dashboard": "button"
+        "Remove from Dashboard": "button"
         "Save": "submit"
     }>({
         title: title,
@@ -55,6 +57,11 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
             "Add to Dashboard": {
                 icon: "star",
                 onClick: () => addElementToDashboard(element, (error, res) => console.log("added to dashboard", error, res)),
+                type: "button"
+            },
+            "Remove from Dashboard": {
+                icon: "remove",
+                onClick: () => removeElementFromDashboard(element, () => { console.log("removed from dashboard") }),
                 type: "button"
             },
             "Save": {
@@ -72,7 +79,7 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
     const displayModal = () => editElementModal.setVisible(true)
 
     return (
-        <View style={{ display: 'flex', flexDirection: orientation, flex: getFlex(numColumns), aspectRatio: 1, margin: 5 }}>
+        <View style={{ display: 'flex', flexDirection: "column", flex: getFlex(numColumns), aspectRatio: 1, margin: 5 }}>
             {editElementModal.component}
             <DeleteButton isEditMode={isEditMode} onPress={onPressDelete} />
             {isTile(element)

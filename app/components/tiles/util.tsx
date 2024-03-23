@@ -28,7 +28,7 @@ export const DeleteButton = ({ isEditMode, onPress }: DeleteButtonProps) => {
     if (!isEditMode) return <></>
 
     return (
-        <View style={{ zIndex: 2, marginBottom: -50, width: '45%', height: 50, alignSelf: 'flex-end', }}>
+        <View style={{ zIndex: 2, marginBottom: -50, height: 50, aspectRatio: 1, alignSelf: 'flex-end', }}>
             <IconButton
                 iconName='times'
                 type='error'
