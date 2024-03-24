@@ -2,6 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome'
 import React from 'react'
 import { Animated, Pressable, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native'
 import { ButtonType, colors, globalStyles } from '../constants/global'
+import { Icon } from './Icon'
 
 export type IconName = keyof typeof FontAwesome.glyphMap
 type IconButtonProps = {
@@ -13,15 +14,13 @@ type IconButtonProps = {
     disabled?: boolean
 }
 export const IconButton = ({ iconName, text, style, onPress, type, disabled }: IconButtonProps) => {
-    const iconSize = 32
-
     const buttonType = (type) ? type : "primary"
     const color = disabled ? "gray" : colors[buttonType]
 
     return (
         <Animated.View style={{ ...styles.buttonContainer, }}>
             <Pressable style={[style, styles.button, { backgroundColor: color, }]} disabled={disabled} onPress={onPress} android_ripple={{ color: 'black', foreground: true }}>
-                <FontAwesome name={iconName} size={iconSize} color='white' style={{ width: iconSize, height: iconSize, alignSelf: 'center', marginRight: -5 }} />
+                <Icon iconName={iconName} iconSize={32} />
                 {(text != undefined)
                     ? <Text style={globalStyles.text}>{text}</Text>
                     : null}

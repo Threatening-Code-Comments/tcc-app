@@ -52,6 +52,6 @@ export const modalStyles = StyleSheet.create({
     },
     content: {
         // padding: 10
-        paddingVertical: Dimensions.get('window').width * 0.05
+        paddingVertical: Dimensions.get('window').width * 0.0
     }
 });

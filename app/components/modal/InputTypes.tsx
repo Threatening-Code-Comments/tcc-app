@@ -6,6 +6,7 @@ import { OutlineTextField } from '../TextFields'
 import { modalStyles } from './ModalStyles'
 import { TextField } from 'rn-material-ui-textfield'
 import { ModalInputChangeType, UseModalNumberType, UseModalSelectType, UseModalStringType } from './ModalTypeDefs'
+import { Icon } from '../Icon'
 
 type InputProps = {
     label: string
@@ -14,9 +15,11 @@ type InputProps = {
 type TextInputProps = {
     input: UseModalStringType
     keyProp: string
-    onInputChange: ModalInputChangeType<"string", string>
+    onInputChange: ModalInputChangeType<"string", string>,
+    onFocus?: () => void
+    onBlur?: () => void
 } & InputProps
-export const TextInput = ({ label, onInputChange, keyProp: key, input }: TextInputProps) => {
+export const TextInput = ({ label, onInputChange, keyProp: key, input, onFocus = () => { }, onBlur = () => { } }: TextInputProps) => {
     const [text, setText] = useState(input.value)
 
     const onChangeText = (text: string) => {
@@ -25,24 +28,30 @@ export const TextInput = ({ label, onInputChange, keyProp: key, input }: TextInp
     }
 
     return (
-        <>
-            <TextField
-                label={label}
-                style={{ 
-                    // ...modalStyles.materialInput 
-                    
-                }}
-                labelColor="#000000"
-                textColor="#ffffff"
-                tintColor="#ffffff"
-                baseColor="#ffffff"
-                value={text}
-                labelFontSize={16}
-                activeLineWidth={1}
-                onChangeText={(text) => onChangeText(text)}
-            />
-            <View style={{ borderRadius: 10, height: 2, backgroundColor: 'transparent'}} />
-        </>
+        <View style={{
+            marginTop: -10,
+            display: 'flex', flexDirection: 'row',
+            alignContent: 'flex-start', justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%',
+        }}>
+            <View style={{ flexShrink: 1, alignSelf: 'flex-start', marginTop: 35, paddingRight: 12 }}>
+                <Icon iconName='font' iconSize={24} />
+            </View>
+            <View style={{ flexGrow: 10, }}>
+                <TextField
+                    label={label}
+                    labelColor="#000000"
+                    textColor="#ffffff"
+                    tintColor="#ffffff"
+                    baseColor="#ffffff"
+                    value={text}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
+                    labelFontSize={16}
+                    activeLineWidth={1}
+                    onChangeText={(text) => onChangeText(text)}
+                />
+            </View>
+        </View>
     )
 }
 
@@ -52,17 +61,48 @@ type NumberInputProps = InputProps & {
     onInputChange: ModalInputChangeType<"number", string>
 }
 export const NumberInput = ({ label, onInputChange, input, keyProp: key }: NumberInputProps) => {
+    const [nums, setNums] = useState(input.value)
+
+    const onChangeText = (num: number) => {
+        setNums(num)
+        onInputChange(key, num)
+    }
+
     return (
-        <OutlineTextField
-            style={modalStyles.materialInput}
-            label={label}
-            keyboardType='numeric'
-            onChangeText={(text) => {
-                onInputChange(key, Number(text.replace(/[^0-9]/g, '')))
-            }}
-        />
+        <View style={{
+            marginTop: -10,
+            display: 'flex', flexDirection: 'row',
+            alignContent: 'flex-start', justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%',
+        }}>
+            <View style={{ flexShrink: 1, alignSelf: 'flex-start', marginTop: 35, paddingRight: 12 }}>
+                <Icon iconName='hashtag' iconSize={24} />
+            </View>
+            <View style={{ flexGrow: 10, }}>
+                <TextField
+                    label={label}
+                    labelColor="#000000"
+                    textColor="#ffffff"
+                    tintColor="#ffffff"
+                    baseColor="#ffffff"
+                    keyboardType='numeric'
+                    value={nums}
+                    labelFontSize={16}
+                    activeLineWidth={1}
+                    onChangeText={(text) => onChangeText(text)}
+                />
+            </View>
+        </View>
     )
 }
+
+// <OutlineTextField
+//     style={{...modalStyles.materialInput, ...{}}}
+//     label={label}
+//     keyboardType='numeric'
+//     onChangeText={(text) => {
+//         onInputChange(key, Number(text.replace(/[^0-9]/g, '')))
+//     }}
+// />
 
 type SelectInputProps = InputProps & {
     input: UseModalSelectType

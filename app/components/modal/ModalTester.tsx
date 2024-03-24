@@ -59,11 +59,11 @@ const ModalTester = () => {
         "Number 3": "number",
         "Number 4": "number",
         "Number 5": "number",
-        "Button 1": "submit",
-        "Button 2": "submit",
-        "Button 3": "submit",
-        "Button 4": "submit",
-        "Button 5": "submit",
+        "Button 1": "button",
+        "Button 2": "button",
+        "Button 3": "button",
+        "Button 4": "button",
+        "Submit": "submit",
     }>({
         title: "Modal with 10 Elements",
         inputTypes: {
@@ -98,26 +98,26 @@ const ModalTester = () => {
                 type: "number"
             },
             "Button 1": {
-                type: "submit",
-                onClick: (data) => output(JSON.stringify(data, null, 3)),
+                type: "button",
+                onClick: () => output("Button 1"),
                 icon: 'plus'
             },
             "Button 2": {
-                type: "submit",
-                onClick: (data) => output(JSON.stringify(data, null, 3)),
+                type: "button",
+                onClick: () => output("Button 2"),
                 icon: 'plus'
             },
             "Button 3": {
-                type: "submit",
-                onClick: (data) => output(JSON.stringify(data, null, 3)),
+                type: "button",
+                onClick: () => output("Button 3"),
                 icon: 'plus'
             },
             "Button 4": {
-                type: "submit",
-                onClick: (data) => output(JSON.stringify(data, null, 3)),
+                type: "button",
+                onClick: () => output("Button 4"),
                 icon: 'plus'
             },
-            "Button 5": {
+            "Submit": {
                 type: "submit",
                 onClick: (data) => output(JSON.stringify(data, null, 3)),
                 icon: 'plus'
@@ -125,13 +125,66 @@ const ModalTester = () => {
         }
     });
 
-    const components = [t1, modal5, modal10];
+    const modalDemo = useModal<{
+        "Text 1": "string",
+        "Text 2": "string",
+        "Number 1": "number",
+        "Number 2": "number",
+        "Button 1": "button",
+        "Button 2": "button",
+        "Button 3": "button",
+        // "Button 4": "button",
+        "Submit": "submit",
+    }>({
+        title: "Modal with 10 Elements",
+        inputTypes: {
+            "Text 1": {
+                type: "string"
+            },
+            "Text 2": {
+                type: "string"
+            },
+            "Number 1": {
+                type: "number"
+            },
+            "Number 2": {
+                type: "number"
+            },
+            "Button 1": {
+                type: "button",
+                onClick: () => output("Button 1"),
+                icon: 'plus'
+            },
+            "Button 2": {
+                type: "button",
+                onClick: () => output("Button 2"),
+                icon: 'plus'
+            },
+            "Button 3": {
+                type: "button",
+                onClick: () => output("Button 3"),
+                icon: 'plus'
+            },
+            // "Button 4": {
+            //     type: "button",
+            //     onClick: () => output("Button 4"),
+            //     icon: 'plus'
+            // },
+            "Submit": {
+                type: "submit",
+                onClick: (data) => output(JSON.stringify(data, null, 3)),
+                icon: 'plus'
+            },
+        }
+    });
+
+    const components = [t1, modal5, modal10, modalDemo];
 
     return (
         <>
             {components.map((c, i) => <View key={i}>{c.component}</View>)}
             {components.map((c, i) => {
-                return <IconButton key={i} iconName='edge' text={`T` + i + 1} onPress={() => { c.setVisible(true); console.log("onpress"); }} />
+                return <IconButton key={i} iconName='edge' text={`T` + i} onPress={() => { c.setVisible(true); console.log("onpress"); }} />
             })}
         </>
     )
