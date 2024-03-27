@@ -7,7 +7,7 @@ import { ModalInputChangeType, UseModalErrorType, UseModalInputType2, UseModalIn
 import { useNavigation } from 'expo-router'
 import { useKeyboardVisible } from '../hooks/keyboardIsOpened'
 import { LinearGradient } from 'expo-linear-gradient'
-import Animated, { useSharedValue } from 'react-native-reanimated'
+import Animated, { useSharedValue, withSpring, WithSpringConfig } from 'react-native-reanimated'
 
 export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> extends UseModalProps<infer TInfer> ? TInfer : never>({
     title,
@@ -47,6 +47,9 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
         setVisible(false)
     }
 
+    const flatListRef = React.useRef<FlatList>()
+    const indexList = Object.keys(inputTypes)
+
     const onInputChange = <TType extends UseModalInputType3, TKey extends keyof TTypes, TValue extends UseModalOutputType<TType>>(key: TKey, value: TValue) => {
         const newInputStates: UseModalStateType<TTypes> = {
             ...inputStates,
@@ -56,24 +59,32 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
     }
 
     const onKeyboard = (visible: boolean) => {
-        const contHeig = windowHeight * (visible ? 0.3:0.6)
+        const contHeig = windowHeight * (visible ? 0.3 : 0.6)
         const padBot = (visible) ? 0 : 100
+        const springConfig: WithSpringConfig = { mass: 1, damping: 20, stiffness: 365, overshootClamping: true, restDisplacementThreshold: 0.01, restSpeedThreshold: 0.01, }
 
         if (contentHeight.value != contHeig)
-            contentHeight.value = contHeig
+            contentHeight.value = withSpring(contHeig, springConfig)
 
         if (paddingBottomHeight.value != padBot)
-            paddingBottomHeight.value = padBot
+            paddingBottomHeight.value = withSpring(padBot, springConfig)
     }
 
-    const keyboardIsVisible = useKeyboardVisible(
-        // () => { }, () => { })
-        () => onKeyboard(true), () => onKeyboard(false))
+    const onFocus = (key: keyof TTypes) => {
+        const index = indexList.indexOf(key as string)
+        flatListRef.current.scrollToItem({ item: key, animated: true, viewOffset: 75 })
+
+    }
+    const onBlur = (key: keyof TTypes) => {
+        // flatListRef.current.props.
+
+    }
+
+    useKeyboardVisible(() => onKeyboard(true), () => onKeyboard(false))
     const windowHeight = Dimensions.get('window').height
-    // const getHeight = (keyboardClosedPercent: number, keyboardOpenPercent) => windowHeight * ((keyboardIsVisible) ? keyboardOpenPercent : keyboardClosedPercent)
     const contentHeight = useSharedValue(windowHeight * 0.6)
     const paddingBottomHeight = useSharedValue(100)
-    const shadowOpacity = useSharedValue((Object.keys(inputTypes).length > 7) ? 1 : 0)
+    const shadowOpacity = useSharedValue((indexList.length > 7) ? 1 : 0)
 
     const component = (
         <Modal animationType="slide" transparent={true} visible={visible}>
@@ -94,52 +105,28 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
                 <View style={{ ...modalStyles.content, /*padding: 20*/ }}>
                     {/* <Text>children here</Text> */}
 
-                    {/* {Object.keys(inputTypes).map(key => {
-                        const input = inputTypes[key]
-                        switch (input.type) {
-                            case "string":
-                                return (
-                                    <TextInput key={key} keyProp={key} label={key} onInputChange={onInputChange} input={input} />
-                                )
-                            case "number":
-                                return (
-                                    <NumberInput key={key} keyProp={key} label={key} onInputChange={onInputChange} input={input} />
-                                )
-                            case "select":
-                                return (
-                                    <DropdownInput key={key} keyProp={key} label={key} onInputChange={onInputChange} input={input} />
-                                )
-                            case "button":
-                                return (
-                                    <ButtonInput key={key} label={key} icon={input.icon} onClick={input.onClick} />
-                                )
-                            case "submit":
-                                return (
-                                    <ButtonInput key={key} label={key} icon={input.icon} onClick={() => input.onClick(inputStates)} disabled={Object.values(errors).some(v => v)} />
-                                )
-                        }
-                    })} */}
                     <Animated.View style={{ maxHeight: contentHeight, }} >
                         <FlatList
+                            ref={flatListRef}
                             style={{
                                 flexGrow: 1, borderRadius: 40, overflow: 'hidden'
                             }}
                             onScroll={({ nativeEvent }) => {
                                 shadowOpacity.value = 1 - perc(nativeEvent)
                             }}
-                            data={Object.keys(inputTypes)}
-                            contentContainerStyle={{ paddingHorizontal: 30 }}
+                            data={indexList}
+                            contentContainerStyle={{ paddingHorizontal: 40 }}
                             ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
                             renderItem={({ item: key }) => {
                                 const input = inputTypes[key]
                                 switch (input.type) {
                                     case "string":
                                         return (
-                                            <TextInput onFocus={()=>onKeyboard(true)} onBlur={()=>onKeyboard(false)} key={key} keyProp={key} label={key} onInputChange={onInputChange} input={input} />
+                                            <TextInput key={key} keyProp={key} onFocus={() => onFocus(key)} onBlur={() => onBlur(key)} label={key} onInputChange={onInputChange} input={input} />
                                         )
                                     case "number":
                                         return (
-                                            <NumberInput key={key} keyProp={key} label={key} onInputChange={onInputChange} input={input} />
+                                            <NumberInput key={key} keyProp={key} onFocus={() => onFocus(key)} onBlur={() => onBlur(key)} label={key} onInputChange={onInputChange} input={input} />
                                         )
                                     case "select":
                                         return (
@@ -149,10 +136,6 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
                                         return (
                                             <ButtonInput key={key} label={key} icon={input.icon} onClick={input.onClick} />
                                         )
-                                    // case "submit":
-                                    //     return (
-                                    //         <ButtonInput key={key} label={key} icon={input.icon} onClick={() => input.onClick(inputStates)} disabled={Object.values(errors).some(v => v)} />
-                                    //     )
                                 }
                             }}
                         />
@@ -166,7 +149,7 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
                     </Animated.View>
                 </View>
                 <Animated.View style={{ height: 100, marginBottom: paddingBottomHeight, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    {Object.keys(inputTypes).map((key, i) => {
+                    {indexList.map((key, i) => {
                         const input = inputTypes[key]
                         if (input.type === "submit")
                             return (

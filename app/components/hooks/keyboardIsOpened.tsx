@@ -9,14 +9,14 @@ export const useKeyboardVisible = (onShow: ()=>void, onHide: ()=>void) => {
             'keyboardDidShow',
             () => {
                 onShow()
-                setKeyboardVisible(true);
+                // setKeyboardVisible(true);
             },
         );
         const keyboardDidHideListener = Keyboard.addListener(
             'keyboardDidHide',
             () => {
                 onHide()
-                setKeyboardVisible(false);
+                // setKeyboardVisible(false);
             },
         );
 
