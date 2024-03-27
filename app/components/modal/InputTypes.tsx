@@ -1,6 +1,6 @@
 import { Picker } from '@react-native-picker/picker'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Text, View } from 'react-native'
 import Animated, { interpolateColor, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming } from 'react-native-reanimated'
 import { TextField } from 'rn-material-ui-textfield'
@@ -10,7 +10,7 @@ import { IconButton, IconName } from '../IconButton'
 import { modalStyles } from './ModalStyles'
 import { ModalInputChangeType, UseModalNumberType, UseModalSelectType, UseModalStringType } from './ModalTypeDefs'
 
-const inputMarginTop = -20
+const inputMarginTop = -10
 
 type InputProps = {
     label: string
@@ -23,12 +23,28 @@ type TextInputProps = {
     onFocus?: () => void
     onBlur?: () => void
 } & InputProps
-export const TextInput = ({ label, onInputChange, keyProp: key, input, onFocus = () => { }, onBlur = () => { } }: TextInputProps) => {
+export const TextInput = ({ label, onInputChange, keyProp: key, input, onFocus: onFocusP = () => { }, onBlur: onBlurP = () => { } }: TextInputProps) => {
     const [text, setText] = useState(input.value)
 
     const onChangeText = (text: string) => {
         setText(text)
         onInputChange(key, text)
+    }
+
+    const sharedFocus = useSharedValue(0)
+    useEffect(() => { sharedFocus.value = 0 }, [])
+
+    const progressStyles = useAnimatedStyle(() => ({
+        color: interpolateColor(sharedFocus.value, [0, 2], ['#ffffff', colors.primary], 'RGB', { gamma: 2 })
+    }))
+
+    const onFocus = () => {
+        onFocusP()
+        sharedFocus.value = withTiming(2, { duration: 200 })
+    }
+    const onBlur = () => {
+        onBlurP()
+        sharedFocus.value = withTiming(0, { duration: 200 })
     }
 
     return (
@@ -37,8 +53,8 @@ export const TextInput = ({ label, onInputChange, keyProp: key, input, onFocus =
             display: 'flex', flexDirection: 'row',
             alignContent: 'flex-start', justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%',
         }}>
-            <View style={{ flexShrink: 1, alignSelf: 'flex-start', marginTop: 35, paddingRight: 12 }}>
-                <Icon iconName='font' iconSize={24} />
+            <View style={{ flexShrink: 1, alignSelf: 'center', marginTop: 35, paddingRight: 12 }}>
+                <Icon iconName='font' iconSize={24} style={{...progressStyles}} />
             </View>
             <View style={{ flexGrow: 10, }}>
                 <TextField
@@ -52,6 +68,9 @@ export const TextInput = ({ label, onInputChange, keyProp: key, input, onFocus =
                     onBlur={onBlur}
                     labelFontSize={16}
                     activeLineWidth={1}
+                    inputContainerStyle={{
+                        top: 10,
+                    }}
                     onChangeText={(text) => onChangeText(text)}
                 />
             </View>
@@ -68,27 +87,30 @@ type NumberInputProps = InputProps & {
 }
 export const NumberInput = ({ label, onInputChange, input, keyProp: key, onFocus: onFocusP = () => { }, onBlur: onBlurP = () => { } }: NumberInputProps) => {
     const [nums, setNums] = useState(input.value)
-    const [isFocused, setIsFocused] = useState(false)
+
+    const sharedFocus = useSharedValue(0)
+    useEffect(() => { sharedFocus.value = 0 }, [])
 
     const onChangeText = (num: number) => {
         setNums(num)
         onInputChange(key, num)
     }
-    const progress = useDerivedValue(() => {
-        console.log("setting progress to: ", isFocused ? 2 : 0, ", isFocused: ", isFocused, ", label: ", label)
-        return withTiming((isFocused === true) ? 2 : 0)
-    })
+    const progressStyles = useAnimatedStyle(() => ({
+        color: interpolateColor(sharedFocus.value, [0, 2], ['#ffffff', colors.primary], 'RGB', { gamma: 2 })
+    }))
+
+    const textFieldRef = useRef<TextField>(null)
 
     const onFocus = () => {
-        setIsFocused(true)
         onFocusP()
+        textFieldRef.current.focus()
+        sharedFocus.value = withTiming(2, { duration: 200 })
     }
     const onBlur = () => {
-        setIsFocused(false)
         onBlurP()
+        textFieldRef.current.blur()
+        sharedFocus.value = withTiming(0, { duration: 200 })
     }
-
-    const iconColor = interpolateColor(progress.value, [0, 2], ['#ffffff', colors.primary], 'RGB', { gamma: 2 })
 
     return (
         <View style={{
@@ -96,17 +118,13 @@ export const NumberInput = ({ label, onInputChange, input, keyProp: key, onFocus
             display: 'flex', flexDirection: 'row',
             alignContent: 'flex-start', justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%',
         }}>
-            <Animated.View style={{ flexShrink: 1, alignSelf: 'flex-start', marginTop: 35, paddingRight: 12, }}>
-                {/* <Animated.View style={{ height: 24, width: 24, ...animatedStyle, }} /> */}
-                {/* <Icon iconName='hashtag' iconSize={24} color={iconColor} /> */}
-                <FontAwesome
-                    name={"hashtag"}
-                    size={24}
-                    // iconStyle={style}
-                    // color={color}
-                    style={{ width: 24, height: 24, alignSelf: 'center', marginRight: -5, color: iconColor }} />
+            <Animated.View style={{ flexShrink: 1, alignSelf: 'center', marginTop: 35, paddingRight: 12 }}>
+                <Icon
+                    iconName={"hashtag"}
+                    iconSize={24}
+                    style={{ width: 24, height: 24, alignSelf: 'center', marginRight: -5, ...progressStyles }} />
             </Animated.View>
-            <Animated.View style={{ flexGrow: 10, }}>
+            <Animated.View style={{ flexGrow: 10 }}>
                 <TextField
                     label={label}
                     labelColor="#000000"
@@ -115,10 +133,14 @@ export const NumberInput = ({ label, onInputChange, input, keyProp: key, onFocus
                     baseColor="#ffffff"
                     onFocus={onFocus}
                     onBlur={onBlur}
+                    ref={textFieldRef}
                     keyboardType='numeric'
                     value={nums}
                     labelFontSize={16}
                     activeLineWidth={1}
+                    inputContainerStyle={{
+                        top: 10,
+                    }}
                     onChangeText={(text) => onChangeText(text)}
                 />
             </Animated.View>
