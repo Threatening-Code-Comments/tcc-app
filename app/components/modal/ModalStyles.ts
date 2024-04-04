@@ -32,6 +32,15 @@ export const modalStyles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
     },
+    buttonContainer: {
+        flex: 1,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        width: 55,
+        height: 55,
+        alignSelf: 'center'
+    },
     input: {
         height: 40,
         margin: 20,

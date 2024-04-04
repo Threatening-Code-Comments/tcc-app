@@ -61,7 +61,7 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
     const onKeyboard = (visible: boolean) => {
         const contHeig = windowHeight * (visible ? 0.3 : 0.6)
         const padBot = (visible) ? 0 : 100
-        const springConfig: WithSpringConfig = { mass: 1, damping: 20, stiffness: 365, overshootClamping: true, restDisplacementThreshold: 0.01, restSpeedThreshold: 0.01, }
+        const springConfig: WithSpringConfig = { mass: 10, damping: 20, stiffness: 365, overshootClamping: true, restDisplacementThreshold: 0.01, restSpeedThreshold: 0.01, }
 
         if (contentHeight.value != contHeig)
             contentHeight.value = withSpring(contHeig, springConfig)
@@ -71,13 +71,11 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
     }
 
     const onFocus = (key: keyof TTypes) => {
-        const index = indexList.indexOf(key as string)
         flatListRef.current.scrollToItem({ item: key, animated: true, viewOffset: 75 })
 
     }
     const onBlur = (key: keyof TTypes) => {
-        // flatListRef.current.props.
-
+        flatListRef.current.scrollToItem({ item: key, animated: true, viewOffset: 75 })
     }
 
     useKeyboardVisible(() => onKeyboard(true), () => onKeyboard(false))
@@ -91,18 +89,18 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
             <Pressable style={{ height: '100%' }} onPress={() => { setVisible(false) }} />
             <View style={modalStyles.modalContent}>
                 <View style={modalStyles.titleContainer}>
-                    <View style={{ flex: 1 }} />
                     <Text style={modalStyles.title}>{title}</Text>
-                    <FontAwesome.Button
-                        style={{ flex: 1 }}
-                        color='white'
-                        backgroundColor={"transparent"}
-                        iconStyle={{ marginRight: 0 }}
-                        name={"close"}
-                        onPress={onClose}
-                        size={15} />
+                    <View style={modalStyles.buttonContainer} >
+                        <FontAwesome.Button
+                            color='white'
+                            backgroundColor={"transparent"}
+                            iconStyle={{ marginRight: 0 }}
+                            name={"close"}
+                            onPress={onClose}
+                            size={40} />
+                    </View>
                 </View>
-                <View style={{ ...modalStyles.content, /*padding: 20*/ }}>
+                <View style={modalStyles.content}>
                     {/* <Text>children here</Text> */}
 
                     <Animated.View style={{ maxHeight: contentHeight, }} >
@@ -111,8 +109,12 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
                             style={{
                                 flexGrow: 1, borderRadius: 40, overflow: 'hidden'
                             }}
+                            initialScrollIndex={0}
                             onScroll={({ nativeEvent }) => {
                                 shadowOpacity.value = 1 - perc(nativeEvent)
+                            }}
+                            onEndReached={({ }) => {
+                                shadowOpacity.value = 0
                             }}
                             data={indexList}
                             contentContainerStyle={{ paddingHorizontal: 40 }}

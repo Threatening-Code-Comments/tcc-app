@@ -78,7 +78,7 @@ const HomePage = () => {
                 <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
                 <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
 
-                <ModalTester />
+                {/* <ModalTester /> */}
             </View>
 
             {AddPageModal}
