@@ -1,13 +1,12 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome'
-import React, { useEffect, useState, } from 'react'
-import { Dimensions, FlatList, Modal, Pressable, ScrollView, Text, View } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import React, { useState } from 'react'
+import { Dimensions, FlatList, Modal, Pressable, Text, View } from 'react-native'
+import Animated, { useSharedValue, withSpring, WithSpringConfig } from 'react-native-reanimated'
+import { useKeyboardVisible } from '../hooks/keyboardIsOpened'
 import { ButtonInput, DropdownInput, NumberInput, TextInput } from './InputTypes'
 import { modalStyles } from './ModalStyles'
-import { ModalInputChangeType, UseModalErrorType, UseModalInputType2, UseModalInputType3, UseModalOutputType, UseModalProps, UseModalReturn, UseModalStateType } from './ModalTypeDefs'
-import { useNavigation } from 'expo-router'
-import { useKeyboardVisible } from '../hooks/keyboardIsOpened'
-import { LinearGradient } from 'expo-linear-gradient'
-import Animated, { useSharedValue, withSpring, WithSpringConfig } from 'react-native-reanimated'
+import { UseModalErrorType, UseModalInputType2, UseModalInputType3, UseModalOutputType, UseModalProps, UseModalReturn, UseModalStateType } from './ModalTypeDefs'
 
 export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> extends UseModalProps<infer TInfer> ? TInfer : never>({
     title,
