@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { ElementType, Page, RoutineOnPage, Tile, isPage, isRoutineOnPage, isTile } from '../../constants/DbTypes'
 import { updatePage } from '../../db/pages'
@@ -8,9 +8,10 @@ import { useModal } from '../modal/Modal'
 import { PageTileComponent } from './PageTile'
 import { RoutineTileComponent } from './RoutineTile'
 import { TileComponent } from './TileTile'
-import { getFlex, DeleteButton } from './util'
+import { getFlex, DeleteButton, DashboardButton } from './util'
 import { addElementToDashboard, checkIfElementOnDashboard, removeElementFromDashboard } from '../../db/dashboard'
 import { IconName } from '../IconButton'
+import { UseModalStateType } from '../modal/ModalTypeDefs'
 
 export type TileProps = {
     numColumns?: number
@@ -24,7 +25,6 @@ type GenericTileProps<TElement extends ElementType> = {
     doAfterEdit: (element: TElement) => void
     isOnDashboard?: boolean
 }
-
 export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit, isEditMode, onPressDelete, numColumns, isOnDashboard = false }: GenericTileProps<TElement>) => {
     let link = ""
     if (isTile(element)) {
@@ -36,6 +36,10 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
     if (isPage(element)) {
         link = `/pages/${element.id}`
     }
+    const [elementIsOnDashboard, setElementIsOnDashboard] = useState(false)
+    useEffect(() => {
+        checkIfElementOnDashboard(element).then((res) => setElementIsOnDashboard(res))
+    }, [])
 
     const title = (isTile(element)) ? "Edit Tile" : (isRoutineOnPage(element)) ? "Edit Routine" : "Edit Page"
     const saveOnClick = (isTile(element))
@@ -44,26 +48,31 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
             ? () => { updateRoutine(element, (_err, _res) => { }) }
             : () => { updatePage(element, (_err, _res) => { }) }
 
+    const addToDashboard = () => {
+        setElementIsOnDashboard(true)
+        addElementToDashboard(element, (error, res) => console.log("added to dashboard", error, res))
+    }
 
+    const removeFromDashboard = () => {
+        setElementIsOnDashboard(false)
+        removeElementFromDashboard(element, () => { console.log("removed from dashboard") })
+    }
+
+    const onSave = (data) => {
+        element.name = data.Name
+        doAfterEdit(element)
+        saveOnClick()
+        editElementModal.setVisible(false)
+    }
+
+    const displayModal = () => editElementModal.setVisible(true)
     const editElementModal = useModal<{
         "Name": "string"
-        "Add to Dashboard": "button"
-        "Remove from Dashboard": "button"
         "Save": "submit"
     }>({
         title: title,
         inputTypes: {
             "Name": { type: "string", value: element.name },
-            "Add to Dashboard": {
-                icon: "star",
-                onClick: () => addElementToDashboard(element, (error, res) => console.log("added to dashboard", error, res)),
-                type: "button"
-            },
-            "Remove from Dashboard": {
-                icon: "remove",
-                onClick: () => removeElementFromDashboard(element, () => { console.log("removed from dashboard") }),
-                type: "button"
-            },
             "Save": {
                 type: "submit",
                 icon: 'save',
@@ -76,12 +85,12 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
             },
         }
     })
-    const displayModal = () => editElementModal.setVisible(true)
 
     return (
         <View style={{ display: 'flex', flexDirection: "column", flex: getFlex(numColumns), aspectRatio: 1, margin: 5 }}>
             {editElementModal.component}
             <DeleteButton isEditMode={isEditMode} onPress={onPressDelete} />
+            <DashboardButton isEditMode={isEditMode} onPress={elementIsOnDashboard ? removeFromDashboard : addToDashboard} isOnDashboard={elementIsOnDashboard} />
             {isTile(element)
                 ? <TileComponent tile={element} numColumns={numColumns} onPressInEditMode={displayModal} isEditMode={isEditMode} isOnDashboard={isOnDashboard} />
                 : isRoutineOnPage(element)

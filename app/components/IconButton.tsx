@@ -21,9 +21,9 @@ export const IconButton = ({ iconName, text, style, onPress, type, disabled }: I
         <Animated.View style={{ ...styles.buttonContainer, }}>
             <Pressable style={[style, styles.button, { backgroundColor: color, }]} disabled={disabled} onPress={onPress} android_ripple={{ color: 'black', foreground: true }}>
                 <Icon iconName={iconName} iconSize={32} />
-                {(text != undefined)
+                {/* {(text != undefined)
                     ? <Text style={globalStyles.text}>{text}</Text>
-                    : null}
+                    : null} */}
             </Pressable>
         </Animated.View>
     )
@@ -31,18 +31,25 @@ export const IconButton = ({ iconName, text, style, onPress, type, disabled }: I
 
 const styles = StyleSheet.create({
     buttonContainer: {
+        display: 'flex',
+        flexDirection: 'column',
         borderRadius: 20,
         overflow: 'hidden',
         alignContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'center',
+        justifyContent: 'center',
     },
     button: {
         display: 'flex',
         flexDirection: 'row',
+        alignSelf: 'center',
+        alignContent: 'center',
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 20,
         padding: 10,
         paddingHorizontal: 12,
-        gap: 10
+        // gap: 10 // TODO reimplement
     }
 })

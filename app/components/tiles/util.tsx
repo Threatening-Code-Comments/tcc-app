@@ -28,9 +28,9 @@ export const DeleteButton = ({ isEditMode, onPress }: DeleteButtonProps) => {
     if (!isEditMode) return <></>
 
     return (
-        <View style={{ zIndex: 2, marginBottom: -50, height: 50, aspectRatio: 1, alignSelf: 'flex-end', }}>
+        <View style={{ zIndex: 2, marginBottom: -50, height: 50, aspectRatio: 1, alignSelf: 'flex-end', alignContent: 'center', }}>
             <IconButton
-                iconName='times'
+                iconName='trash'
                 type='error'
                 onPress={onPress} />
         </View >)
@@ -38,4 +38,16 @@ export const DeleteButton = ({ isEditMode, onPress }: DeleteButtonProps) => {
 
 export const getFlex = (numCols: number | undefined) => {
     return 1 / ((numCols) ? numCols : 2)
+}
+
+export const DashboardButton: React.FC<{ isEditMode: boolean, onPress: () => void, isOnDashboard: boolean }> = ({ isEditMode, onPress, isOnDashboard }) => {
+    if (!isEditMode) return <></>
+
+    return (
+        <View style={{ zIndex: 2, marginBottom: -50, height: 50, aspectRatio: 1, alignSelf: 'flex-start', }}>
+            <IconButton
+                iconName={(!isOnDashboard) ? 'star' : 'star-o'}
+                type='secondary'
+                onPress={onPress} />
+        </View >)
 }

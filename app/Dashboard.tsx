@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { FlatList, View } from "react-native"
+import { FlatList, View, Text } from "react-native"
 import { GenericTile } from "./components/tiles/GenericTile"
 import { DashboardEntry, DashboardSetting, ElementType, RoutineOnPage, Tile } from "./constants/DbTypes"
 import { getDashboardEntries, removeElementFromDashboard } from "./db/dashboard"
@@ -71,6 +71,9 @@ export default function Dashboard({ isEditMode = false }: DashboardProps) {
     const numColumns = 3;
     return (<>
         <View style={{ margin: 10 }}>
+            <View style={{ height: 15, borderColor: 'gray', borderTopWidth: 2, margin: 10, paddingTop: 5 }}>
+                <Text style={{ color: 'white', fontSize: 20, height: 30, textAlign: 'center', fontWeight: 'bold' }}>Dashboard</Text>
+            </View>
             <FlatList
                 data={elements}
                 numColumns={numColumns}
@@ -81,7 +84,7 @@ export default function Dashboard({ isEditMode = false }: DashboardProps) {
                         doAfterEdit={(() => { })}
                         isEditMode={isEditMode}
                         numColumns={numColumns}
-                        onPressDelete={() => { removeElementFromDashboard(item, () => { setElements(old => old.filter((elem) => elem != item)) }) }} 
+                        onPressDelete={() => { removeElementFromDashboard(item, () => { setElements(old => old.filter((elem) => elem != item)) }) }}
                         isOnDashboard
                     />
 
