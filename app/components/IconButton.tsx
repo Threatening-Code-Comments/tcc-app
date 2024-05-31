@@ -16,7 +16,7 @@ type IconButtonProps = {
 export const IconButton = ({ iconName, text, style, onPress, type, disabled }: IconButtonProps) => {
     const buttonType = (type) ? type : "primary"
     const color = disabled ? "gray" : colors[buttonType]
-
+    
     return (
         <Animated.View style={{ ...styles.buttonContainer, }}>
             <Pressable style={[style, styles.button, { backgroundColor: color, }]} disabled={disabled} onPress={onPress} android_ripple={{ color: 'black', foreground: true }}>
