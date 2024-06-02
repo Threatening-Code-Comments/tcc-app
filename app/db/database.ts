@@ -12,29 +12,39 @@ const tileEvents = tileEventsStatements
 const dashboard = dashboardStatements
 const dashboardSettings = dashboardSettingsStatements
 
-let _db = SQLite.openDatabase(dbName, '1.1')
+let _db = SQLite.openDatabaseSync(dbName)
 export const db = () => _db
 
+export const escapeQuery = <T>(query: string, args: T[], transform?: (T) => string) => {
+    const escape = (q: string) => q.replace(/'/g, "''")
+    return args.map(arg => {
+        if(transform)
+            return escape(transform(arg))
+        else
+            return query.replace('?', `'${arg.toString().replace(/'/g, "''")}'`)
+    }).join(' ')
+}
+
 export const initDb = () => {
-    db().transaction((t) => {
+    db().withTransactionSync(() => {
         // t.executeSql("DROP TABLE IF EXISTS dashboard")
-        t.executeSql(pages.create)
-        t.executeSql(routines.create)
-        t.executeSql(pageRoutines.create)
-        t.executeSql(tiles.create)
-        t.executeSql(routineTiles.create)
-        t.executeSql(tileEvents.create)
-        t.executeSql(dashboard.create)
-        t.executeSql(dashboardSettings.create)
-    }, (err) => { console.error('error creating tables: ', err) }, () => console.info('success creating tables'))
+        db().execSync(pages.create)
+        db().execSync(routines.create)
+        db().execSync(pageRoutines.create)
+        db().execSync(tiles.create)
+        db().execSync(routineTiles.create)
+        db().execSync(tileEvents.create)
+        db().execSync(dashboard.create)
+        db().execSync(dashboardSettings.create)
+    })
 }
 
 export const dropDb = async () => {
+    throw "geht aktuell nicht (expo update lol)"
     await _db.closeAsync()
-    _db.deleteAsync()
     console.info('db dropped')
-    _db = SQLite.openDatabase(dbName, '1.1')
+    _db = SQLite.openDatabaseSync(dbName)
 }
 
 export type ResultCallback<T> = (err: Error, res: Array<T>) => void
-export type InsertCallback = (err: Error, res: (SQLite.ResultSetError | SQLite.ResultSet)[]) => void
+export type InsertCallback = (err: Error, res: SQLite.SQLiteRunResult[]) => void

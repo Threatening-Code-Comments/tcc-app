@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
+    "babel-preset-expo": "^11.0.6",
     "tailwindcss": "^3.4.1"
   },
   "private": true
