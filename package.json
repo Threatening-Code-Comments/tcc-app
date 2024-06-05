@@ -6,12 +6,16 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "jest": "jest"
+  },
+  "jest": {
+    "preset": "react-native"
   },
   "dependencies": {
     "@react-native-picker/picker": "2.7.5",
     "@shopify/flash-list": "1.6.4",
-    "@types/react": "~18.2.79",
+    "@types/react": "18.2.0",
     "@types/rn-material-ui-textfield": "^1.0.7",
     "expo": "^51.0.9",
     "expo-constants": "~16.0.2",
@@ -33,7 +37,10 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^12.5.1",
     "babel-preset-expo": "^11.0.6",
+    "jest": "^29.7.0",
     "tailwindcss": "^3.4.1"
   },
   "private": true

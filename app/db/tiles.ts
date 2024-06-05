@@ -6,24 +6,13 @@ export const getTilesFromIds = (ids: number[], callback: ResultCallback<Tile>) =
             FROM tiles 
             WHERE id IN (` + ids.map(()=>"?").join(",") + ");"
         
-    db().exec(
-        [{sql: query, args: ids}],
-        true,
-        (err, res) => callback(err, res.map(entry => entry['rows']).flat())
-    )
+    db()
+        .getAllAsync<Tile>(query, ids)
+        .then(tiles => callback(null, tiles))
 }
 
 export const updateTile = (tile: Tile, callback: InsertCallback) => {
-    db().exec(
-        [{
-            sql: `UPDATE tiles
-            SET name = ?, mode = ?
-            WHERE id = ?;`,
-            args: [tile.name, tile.mode, tile.id]
-        }],
-        false,
-        (err, res) => {
-            callback(err, res)
-        }
-    )
+    db()
+        .runAsync('UPDATE tiles SET name = ?, mode = ? WHERE id = ?', [tile.name, tile.mode, tile.id])
+        .then(res => callback(null, [res]))
 }

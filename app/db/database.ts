@@ -26,16 +26,16 @@ export const escapeQuery = <T>(query: string, args: T[], transform?: (T) => stri
 }
 
 export const initDb = () => {
-    db().withTransactionSync(() => {
+    db().withTransactionAsync(async () => {
         // t.executeSql("DROP TABLE IF EXISTS dashboard")
-        db().execSync(pages.create)
-        db().execSync(routines.create)
-        db().execSync(pageRoutines.create)
-        db().execSync(tiles.create)
-        db().execSync(routineTiles.create)
-        db().execSync(tileEvents.create)
-        db().execSync(dashboard.create)
-        db().execSync(dashboardSettings.create)
+        await db().execAsync(pages.create)
+        await db().execAsync(routines.create)
+        await db().execAsync(pageRoutines.create)
+        await db().execAsync(tiles.create)
+        await db().execAsync(routineTiles.create)
+        await db().execAsync(tileEvents.create)
+        await db().execAsync(dashboard.create)
+        await db().execAsync(dashboardSettings.create)
     })
 }
 

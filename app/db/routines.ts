@@ -1,23 +1,19 @@
 import { InsertRoutine, Routine } from "../constants/DbTypes";
 import { routinesStatements } from "../constants/dbStatements";
-import { ResultCallback, db } from "./database";
+import { InsertCallback, ResultCallback, db } from "./database";
 
 export const insertRoutines = (routines: Array<InsertRoutine>) => {
-    db().transaction(t => {
+    db().withTransactionAsync(async () => {
         routines.map(routine =>
-            t.executeSql(`INSERT INTO routines (name) VALUES (?)`, [routine.name])
+            db().runAsync(`INSERT INTO routines (name) VALUES (?)`, [routine.name])
         )
     })
 }
 
 export const getRoutines = (callback: ResultCallback<Routine>) => {
-    db().exec(
-        [{ sql: routinesStatements.findAll, args: [] }],
-        true,
-        (err, res) => {
-            callback(err, res.flatMap(entry => entry['rows']))
-        }
-    )
+    db()
+        .getAllAsync<Routine>(routinesStatements.findAll)
+        .then(routines => callback(null, routines))
 }
 
 export const getRoutinesFromIds = (ids: number[], callback: ResultCallback<Routine>) => {
@@ -25,29 +21,19 @@ export const getRoutinesFromIds = (ids: number[], callback: ResultCallback<Routi
             FROM routines 
             WHERE id IN (` + ids.map(()=>"?").join(",") + ");"
         
-    db().exec(
-        [{sql: query, args: ids}],
-        true,
-        (err, res) => callback(err, res.map(entry => entry['rows']).flat())
-    )
+    db()
+        .getAllAsync<Routine>(query, ids)
+        .then(routines => callback(null, routines))
 }
 
-export const deleteRoutine = (routine: Routine, callback: ResultCallback<Routine>) => {
-    db().exec(
-        [{ sql: routinesStatements.delete, args: [routine.id] }],
-        false,
-        (err, res) => {
-            callback(err, res.flatMap(entry => entry['rows']))
-        }
-    )
+export const deleteRoutine = (routine: Routine, callback: InsertCallback) => {
+    db()
+        .runAsync(routinesStatements.delete, [routine.id])
+        .then(res => callback(null, []))
 }
 
 export const updateRoutine = (routine: Routine, callback: ResultCallback<Routine>) => {
-    db().exec(
-        [{ sql: routinesStatements.update, args: [routine.name, routine.id] }],
-        false,
-        (err, res) => {
-            callback(err, res.flatMap(entry => entry['rows']))
-        }
-    )
+    db()
+        .runAsync(routinesStatements.update, [routine.name, routine.id])
+        .then(res => callback(null, [routine]))
 }
