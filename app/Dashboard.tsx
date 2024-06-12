@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react"
 import { FlatList, View, Text } from "react-native"
 import { GenericTile } from "./components/tiles/GenericTile"
-import { DashboardEntry, DashboardSetting, ElementType, RoutineOnPage, Tile } from "./constants/DbTypes"
+import { DashboardElementType, DashboardEntry, DashboardSetting, ElementType, Page, RoutineOnPage, Tile } from "./constants/DbTypes"
 import { getDashboardEntries, removeElementFromDashboard } from "./db/dashboard"
 import { getPagesFromIds } from "./db/pages"
 import { getRoutinesWithTiles } from "./db/routineTiles"
 import { getEventsForTiles } from "./db/tileEvents"
 import { getTilesFromIds } from "./db/tiles"
 
+export type DashboardList = { list: DashboardEntry[], setList: (list: DashboardEntry[]) => void }
+
 type DashboardProps = {
-    isEditMode?: boolean
+    isEditMode?: boolean,
+    dashboardList: DashboardList
 }
-export default function Dashboard({ isEditMode = false }: DashboardProps) {
+export default function Dashboard({ isEditMode = false, dashboardList }: DashboardProps) {
 
     const [entries, setEntries] = useState<DashboardEntry[]>([])
     const [settings, setSettings] = useState<DashboardSetting[]>([])
@@ -21,6 +24,7 @@ export default function Dashboard({ isEditMode = false }: DashboardProps) {
     const pageEntries = entries.filter((entry) => entry.elementType == "Page")
 
     const [elements, setElements] = useState<ElementType[]>([])
+    useEffect(() => { }, [dashboardList])
 
     useEffect(() => {
         getDashboardEntries((_err, res) => {
@@ -38,7 +42,8 @@ export default function Dashboard({ isEditMode = false }: DashboardProps) {
                     res.map((tile) => tile.id),
                     (err, events) => {
                         const tiles = res.map((tile) => {
-                            tile.counter = events.filter((event) => event.tileId == tile.id).length
+                            const eventsOfTile = events.filter((event) => event.tileId == tile.id)
+                            tile.counter = (eventsOfTile) ? eventsOfTile.length : 0
                             return tile as Tile
                         })
 
@@ -68,24 +73,26 @@ export default function Dashboard({ isEditMode = false }: DashboardProps) {
     }, [entries])
 
 
-    const numColumns = 3;
+    const numColumns = 4;
     return (<>
         <View style={{ margin: 10 }}>
             <View style={{ height: 15, borderColor: 'gray', borderTopWidth: 2, margin: 10, paddingTop: 5 }}>
                 <Text style={{ color: 'white', fontSize: 20, height: 30, textAlign: 'center', fontWeight: 'bold' }}>Dashboard</Text>
             </View>
             <FlatList
+                style={{ marginTop: 10 }}
                 data={elements}
                 numColumns={numColumns}
                 renderItem={({ item }) =>
                     <GenericTile
-                        key={item.id + "" + item.name}
+                        key={"dashboard-" + item.id + "" + item.name}
                         element={item}
                         doAfterEdit={(() => { })}
                         isEditMode={isEditMode}
                         numColumns={numColumns}
                         onPressDelete={() => { removeElementFromDashboard(item, () => { setElements(old => old.filter((elem) => elem != item)) }) }}
                         isOnDashboard
+                        dashboardList={dashboardList}
                     />
 
                 }

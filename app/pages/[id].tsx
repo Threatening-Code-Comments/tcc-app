@@ -1,5 +1,4 @@
 import { useLocalSearchParams } from 'expo-router'
-import { ResultSet } from 'expo-sqlite'
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
@@ -13,6 +12,7 @@ import { getRoutinesForPage, insertRoutinesOnPage } from '../db/pageRoutines'
 import { getPageById } from '../db/pages'
 import { getRoutinesWithTiles } from '../db/routineTiles'
 import { deleteRoutine } from '../db/routines'
+import { SQLiteRunResult } from 'expo-sqlite'
 
 const PageDisplayPage = () => {
     const [page, setPage] = useState<Page>()
@@ -34,7 +34,7 @@ const PageDisplayPage = () => {
         const routine: InsertRoutineOnPage = { name: name, pageId: page.id, posX: 2, posY: 2, spanX: 2, spanY: 2 } //generateRandomRoutine(id)
 
         insertRoutinesOnPage([routine], (err, res) => {
-            const routineInserted: RoutineOnPage = { ...routine, id: (res[0] as ResultSet).insertId, routineId: (res[0] as ResultSet).insertId, tiles: [] }
+            const routineInserted: RoutineOnPage = { ...routine, id: (res[0] as SQLiteRunResult).lastInsertRowId, routineId: (res[0] as SQLiteRunResult).lastInsertRowId, tiles: [] }
 
             setRoutines([...routines, routineInserted])
         })
@@ -59,6 +59,7 @@ const PageDisplayPage = () => {
                             const tiles = routinesWithTiles.find(r => r.id === routine.id)?.tiles
                             routine.tiles = (tiles) ? tiles : []
                         })
+                        // console.log("res with tiles: ", res, " | routines of page: ", routinesOfPage)
                         setRoutines(routinesOfPage)
                     })
             })

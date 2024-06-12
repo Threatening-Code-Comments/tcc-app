@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from './constants/global';
 import { initDb } from './db/database';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function RootLayout() {
     const router = useRouter()
@@ -25,12 +26,14 @@ export default function RootLayout() {
                 <SafeAreaView>
                     <ThemeProvider value={DarkTheme}>
                         <View style={styles.rootView}>
-                            <Pressable onPress={onBackButton} style={{ alignSelf: 'flex-start', padding: 10, paddingLeft: 25 }}>
-                                <FontAwesome name='arrow-left' size={40} color="white" />
-                            </Pressable>
-                            <View style={styles.slotView}>
-                                <Slot />
-                            </View>
+                            <GestureHandlerRootView style={{ flex: 1 }}>
+                                <Pressable onPress={onBackButton} style={{ alignSelf: 'flex-start', padding: 10, paddingLeft: 25 }}>
+                                    <FontAwesome name='arrow-left' size={40} color="white" />
+                                </Pressable>
+                                <View style={styles.slotView}>
+                                    <Slot />
+                                </View>
+                            </GestureHandlerRootView>
                         </View>
                     </ThemeProvider>
                 </SafeAreaView>

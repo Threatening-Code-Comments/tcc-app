@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import { dashboardSettingsStatements, dashboardStatements, pageRoutinesStatements, pagesStatements, routineTilesStatements, routinesStatements, tileEventsStatements, tilesStatements } from "../constants/dbStatements";
-import { dbName } from "../constants/global";
+import { colors, dbName } from "../constants/global";
+import { Routine } from '@app/constants/DbTypes';
 
 
 const pages = pagesStatements
@@ -17,12 +18,12 @@ export const db = () => _db
 
 export const escapeQuery = <T>(query: string, args: T[], transform?: (T) => string) => {
     const escape = (q: string) => q.replace(/'/g, "''")
-    return args.map(arg => {
-        if(transform)
-            return escape(transform(arg))
-        else
-            return query.replace('?', `'${arg.toString().replace(/'/g, "''")}'`)
-    }).join(' ')
+    for (let arg of args) {
+        let argToEscape = transform ? transform(arg) : arg.toString()
+        argToEscape = argToEscape.replace(/'/g, "''")
+        query = query.replace('?', `'${argToEscape}'`)
+    }
+    return query
 }
 
 export const initDb = () => {
@@ -36,8 +37,23 @@ export const initDb = () => {
         await db().execAsync(tileEvents.create)
         await db().execAsync(dashboard.create)
         await db().execAsync(dashboardSettings.create)
+        addColorColumn()
     })
 }
+
+export const addColorColumn = async () => {
+    const addColorToTiles = "ALTER TABLE tiles ADD COLUMN color TEXT";
+    const addColorToRoutines = "ALTER TABLE routines ADD COLUMN color TEXT";
+    const addColorToPages = "ALTER TABLE pages ADD COLUMN color TEXT";
+
+    await db().execAsync(addColorToTiles);
+    await db().execAsync(addColorToRoutines);
+    await db().execAsync(addColorToPages);
+
+    await db().execAsync(`UPDATE tiles SET color = '${colors.primary}' WHERE color IS NULL`)
+    await db().execAsync(`UPDATE routines SET color = '${colors.primary}' WHERE color IS NULL`)
+    await db().execAsync(`UPDATE pages SET color = '${colors.primary}' WHERE color IS NULL`)
+};
 
 export const dropDb = async () => {
     throw "geht aktuell nicht (expo update lol)"

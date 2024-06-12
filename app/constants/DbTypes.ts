@@ -9,10 +9,12 @@ export type LayoutInfos = {
 export type Page = {
     id: number
     name: string
+    color: string
 }
 export type Routine = {
     id: number
     name: string
+    color: string
 }
 export type Tile = {
     id: number
@@ -20,6 +22,7 @@ export type Tile = {
     mode: number
     rootRoutineId: number
     counter?: number
+    color: string
 }
 
 export type RoutinePages = {

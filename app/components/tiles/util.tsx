@@ -30,7 +30,7 @@ export const DeleteButton = ({ isEditMode, onPress }: DeleteButtonProps) => {
     return (
         <View style={{ zIndex: 2, marginBottom: -50, height: 50, aspectRatio: 1, alignSelf: 'flex-end', alignContent: 'center', }}>
             <IconButton
-                iconName='trash'
+                iconName='trash-o'
                 type='error'
                 onPress={onPress} />
         </View >)
@@ -46,7 +46,7 @@ export const DashboardButton: React.FC<{ isEditMode: boolean, onPress: () => voi
     return (
         <View style={{ zIndex: 2, marginBottom: -50, height: 50, aspectRatio: 1, alignSelf: 'flex-start', }}>
             <IconButton
-                iconName={(!isOnDashboard) ? 'star' : 'star-o'}
+                iconName={(isOnDashboard) ? 'star' : 'star-o'}
                 type='secondary'
                 onPress={onPress} />
         </View >)

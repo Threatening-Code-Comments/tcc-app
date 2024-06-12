@@ -1,7 +1,24 @@
 {
   "compilerOptions": {
-      "jsx": "react",
-      
-},
+    "jsx": "react",
+    "baseUrl": "./",
+    "paths": {
+      "@app/*": [
+        "./app/*"
+      ],
+      "@db/*": [
+        "./app/db/*"
+      ],
+      "@components/*": [
+        "./app/components/*"
+      ],
+      "@mocks/*": [
+        "./__mocks__/*"
+      ],
+      "@tests/*": [
+        "./app/__tests__/*"
+      ]
+    }
+  },
   "extends": "expo/tsconfig.base"
 }

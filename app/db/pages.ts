@@ -31,11 +31,12 @@ export const insertPages = (pages: Array<InsertPage>, callback: InsertCallback) 
 
             pages.map(async page => {
                 res.push(
-                    await db().runAsync('INSERT INTO pages (name) VALUES (?)', [page.name])
+                    db().runAsync('INSERT INTO pages (name) VALUES (?)', [page.name])
                 )
             })
 
-            callback(null, res)
+            Promise.all(res)
+                .then(res => callback(null, res))
         })
 }
 

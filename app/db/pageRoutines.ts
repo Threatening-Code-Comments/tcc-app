@@ -7,7 +7,7 @@ export const getRoutinesForPage = (pageId: number, callback: ResultCallback<Rout
                                 LEFT JOIN page_routines ON routines.id = page_routines.routineId 
                                 WHERE page_routines.pageId = ? AND routines.id IS NOT NULL`, [pageId])
         .then((result) => {
-            callback(null, result.map(entry => entry['rows']).flat())
+            callback(null, result)
         })
         .catch((error) => {
             callback(error, [])

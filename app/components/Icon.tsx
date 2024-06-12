@@ -14,7 +14,7 @@ const Icon = Animated.createAnimatedComponent(forwardRef<any, IconProps>(({ icon
     // (color != 'white') ? console.log(color) : null
 
     return (
-        <View style={{display: 'flex', flexDirection: 'row', alignContent: 'center', justifyContent: 'center'}}>
+        <View style={{ display: 'flex', flexDirection: 'row', alignSelf: 'center', alignContent: 'center', justifyContent: 'center', alignItems: 'center', width: iconSize, height: iconSize }}>
             <FontAwesome
                 ref={ref}
                 name={iconName}
@@ -22,7 +22,8 @@ const Icon = Animated.createAnimatedComponent(forwardRef<any, IconProps>(({ icon
                 // iconStyle={style}
                 // color={color}
                 style={{
-                    ...(styles ?? {}), width: iconSize, height: iconSize, alignSelf: 'center',
+                    ...(styles ?? {}), width: '100%', height: '100%', alignSelf: 'center', justifyContent: 'center',
+                    // borderColor: 'green', borderWidth: 2,
                     // marginRight: -5,
                     color: color
                 }} />

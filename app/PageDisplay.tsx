@@ -2,15 +2,17 @@ import React from "react"
 import { FlatList, View, Text } from "react-native"
 import { GenericTile } from "./components/tiles/GenericTile"
 import { Page } from "./constants/DbTypes"
+import { DashboardList } from "./Dashboard"
 
 type PageDisplayProps = {
     pages: Page[]
     isEditMode: boolean
     doAfterEdit: (element: Page) => void
     onPressDelete: (element: Page) => void
+    dashboardList: DashboardList
 }
 
-export default function PageDisplay({ pages, isEditMode, doAfterEdit, onPressDelete }: PageDisplayProps) {
+export default function PageDisplay({ pages, isEditMode, doAfterEdit, onPressDelete, dashboardList }: PageDisplayProps) {
 
     return (
         <View style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10, height: '100%' }}>
@@ -24,11 +26,13 @@ export default function PageDisplay({ pages, isEditMode, doAfterEdit, onPressDel
                 showsHorizontalScrollIndicator={true}
                 renderItem={({ item }) =>
                     <GenericTile
+                        key={`pages-${item.id}`}
                         element={item}
                         numColumns={1}
                         isEditMode={isEditMode}
                         doAfterEdit={doAfterEdit}
-                        onPressDelete={() => onPressDelete(item)} />
+                        onPressDelete={() => onPressDelete(item)} 
+                        dashboardList={dashboardList}/>
                 } />
         </View>
     )

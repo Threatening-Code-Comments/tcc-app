@@ -1,22 +1,33 @@
-import { ResultSet } from 'expo-sqlite'
+import { SQLiteRunResult } from 'expo-sqlite'
 import React, { useEffect, useState } from 'react'
-import { FlatList, LogBox, View, Text } from 'react-native'
+import { LogBox, View } from 'react-native'
 import { IconButton } from './components/IconButton'
 import { useModal } from './components/modal/Modal'
-import { GenericTile } from './components/tiles/GenericTile'
 import TitleDisplay from './components/TitleDisplay'
-import { Page } from './constants/DbTypes'
+import { DashboardEntry, ElementType, Page } from './constants/DbTypes'
 import { globalStyles } from './constants/global'
-import { deletePage, getPages, insertPages } from './db/pages'
-import Dashboard from './Dashboard'
+import Dashboard, { DashboardList } from './Dashboard'
+import { deletePage, getPages, getPagesFromIds, insertPages } from './db/pages'
 import PageDisplay from './PageDisplay'
-import ModalTester from './components/modal/ModalTester'
+import { getDashboardEntries } from './db/dashboard'
+import { router } from 'expo-router'
+import { getRandomColor } from './components/Colors'
+import { getTilesFromIds } from './db/tiles'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
 
     const [pages, setPages] = useState<Page[]>([])
     const [isEditMode, setIsEditMode] = useState(false)
+    const [dashboardList, setDashboardList] = useState<DashboardEntry[]>([])
+    // console.log("list: : " , dashboardList)
+
+    useEffect(() => {
+        getDashboardEntries((_err, res) => {
+            // console.log("res: ", res)
+            setDashboardList(res)
+        })
+    }, [])
 
     const { setVisible, component: AddPageModal } = useModal<{
         "Page Name": "string"
@@ -47,7 +58,7 @@ const HomePage = () => {
                     console.error("Error inserting page: ", err)
                 } else {
                     console.info("Inserted page: ", res)
-                    setPages([...pages, { id: (res[0] as ResultSet).insertId, name: name }])
+                    setPages([...pages, { id: res[0].lastInsertRowId, name: name, color: getRandomColor() }])
                 }
             })
     }
@@ -77,14 +88,14 @@ const HomePage = () => {
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
                 <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
                 <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
-
+                <IconButton iconName='question' text='Query' onPress={() => getPagesFromIds([1], (err, res) => console.log("tiles:", res))} />
                 {/* <ModalTester /> */}
             </View>
 
             {AddPageModal}
 
             <View style={{ flexGrow: 1 }}>
-                <Dashboard isEditMode={isEditMode} />
+                <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} />
             </View>
 
             <View style={{ height: 200, marginTop: "auto" }}>
@@ -93,6 +104,7 @@ const HomePage = () => {
                     pages={pages}
                     doAfterEdit={(page) => { setPages(pages.map(p => p.id == page.id ? page : p)) }}
                     onPressDelete={(item) => removePage(item)}
+                    dashboardList={{ list: dashboardList, setList: setDashboardList }}
                 />
             </View>
         </View>

@@ -7,9 +7,9 @@ import { GenericTile } from '../components/tiles/GenericTile'
 import TitleDisplay from '../components/TitleDisplay'
 import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from '../constants/DbTypes'
 import { globalStyles } from '../constants/global'
-import { getRoutinesWithTiles, insertTileIntoRoutine } from '../db/routineTiles'
+import { getRoutinesWithTiles, insertTilesIntoRoutine } from '../db/routineTiles'
 import { useModal } from '../components/modal/Modal'
-import { ResultSet } from 'expo-sqlite'
+import { SQLiteRunResult } from 'expo-sqlite'
 
 const RoutineDisplayPage = () => {
   const routineId = +useLocalSearchParams()['id']
@@ -38,11 +38,11 @@ const RoutineDisplayPage = () => {
   const addTile = (name: string) => {
     const tile: InsertTileOfRoutine = { name: name, mode: 0, rootRoutineId: routineId, routineId: routineId, posX: 2, posY: 2, spanX: 2, spanY: 2 };
 
-    insertTileIntoRoutine([tile], (err, res) => {
+    insertTilesIntoRoutine([tile], (err, res) => {
       if (err) {
         console.error("Error inserting tile: ", err)
       } else {
-        const insertId = (res[0] as ResultSet).insertId as number
+        const insertId = res[0].lastInsertRowId
         const insertedTile: TileOfRoutine = { ...tile, id: insertId, tileId: insertId, counter: 0 }
         setTiles([...tiles, insertedTile])
         setVisible(false)

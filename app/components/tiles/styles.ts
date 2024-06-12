@@ -6,7 +6,7 @@ export const tileStyles = StyleSheet.create({
         zIndex: 0,
         minHeight: 100,
         borderRadius: 15,
-        backgroundColor: '#333',
+        backgroundColor: '#333333',
         color: 'white',
         justifyContent: 'center',
     },
@@ -26,12 +26,37 @@ export const tileStyles = StyleSheet.create({
         marginHorizontal: 10,
         fontWeight: '500',
         color: 'white',
-        textAlign: 'center'
+        textAlign: 'center',
+        // elevation: 5
     },
     info: {
-        fontSize: 10,
-        fontWeight: '200',
+        fontSize: 15,
+        fontWeight: 'condensed',
         color: 'white',
-        textAlign: 'center'
+        textAlign: 'center',
+        marginTop: 5
+    },
+    info2: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignContent: 'center',
+        justifyContent: 'center',
+        fontSize: 10,
+        fontWeight: '400',
+        color: 'white',
+        textAlign: 'right',
+    },
+    infoIcon: {
+        alignSelf: 'center',
+        justifyContent: 'center',
+    },
+    infoContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+        gap: 5,
+        marginRight: 5,
+        marginTop: 5
     }
 })

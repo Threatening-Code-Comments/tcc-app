@@ -1,40 +1,44 @@
 import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from "../constants/DbTypes"
 import { InsertCallback, ResultCallback, db } from "./database"
-import { Tile } from "../constants/DbTypes"
 
 export const getRoutinesWithTiles = (routineIds: Array<number | string>, callback: ResultCallback<RoutineWithTiles>) => {
+    const results: Promise<unknown>[] = []
+    const routines: Array<RoutineWithTiles> = []
+
     // TODO test this
     db()
         .withTransactionAsync(async () => {
-            routineIds.map(async routineId => {
-                const results = []
-                const res = await db().getAllAsync(
-                        `SELECT
-                            routines.id as routineId,
-                            routines.name as routineName,
-                            tiles.*,
-                            routine_tiles.*,
-                            COUNT(tile_events.tileId) AS counter
-                        FROM routines
-                        LEFT JOIN tiles ON routines.id = tiles.rootRoutineId
-                        LEFT JOIN routine_tiles ON routines.id = routine_tiles.routineId
-                        LEFT JOIN tile_events ON tiles.id = tile_events.tileId
-                        WHERE routines.id = ?
-                        GROUP BY routines.id, tiles.id;`, [routineId])
+            await Promise.all(routineIds.map(async routineId => {
+                results.push(db().getAllAsync(
+                    `SELECT
+                        routines.id as routineId,
+                        routines.name as routineName,
+                        routines.color as routineColor,
+                        tiles.*,
+                        routine_tiles.*,
+                        COUNT(tile_events.tileId) AS counter
+                    FROM routines
+                    LEFT JOIN tiles ON routines.id = tiles.rootRoutineId
+                    LEFT JOIN routine_tiles ON routines.id = routine_tiles.routineId
+                    LEFT JOIN tile_events ON tiles.id = tile_events.tileId
+                    WHERE routines.id = ?
+                    GROUP BY routines.id, tiles.id;`, [routineId]
+                ))
+            }))
 
-                results.push(res)
+            await Promise.all(results).then((results) => {
+                results.map(async e => {
+                    const entry = (await e)[0]
 
-
-                const routines: Array<RoutineWithTiles> = []
-
-                results.map(entry => {
                     const routine: RoutineWithTiles = {
                         id: entry['routineId'],
                         name: entry['routineName'],
+                        color: entry['routineColor'],
                         tiles: []
                     }
                     const tile: TileOfRoutine = {
                         id: entry['id'],
+                        color: entry['color'],
                         mode: entry['mode'],
                         name: entry['name'],
                         posX: entry['posX'],
@@ -55,38 +59,42 @@ export const getRoutinesWithTiles = (routineIds: Array<number | string>, callbac
                     } else {
                         routines.push({
                             id: routine.id,
+                            color: routine.color,
                             name: routine.name,
                             tiles: tilesToAdd
                         })
                     }
-
-
+                    // console.log("routine: ", routine, " | tile: ", tile, " | tilesToAdd: ", tilesToAdd)
                 })
             })
+            // .then(() => {
+            //     console.log("done:) : ", routines)
+            //     callback(null, routines)
+            // }).catch(err => callback(err, routines))
+            // console.log("routines: ", JSON.stringify(routines, null, 3), " Ids: ", routineIds)
+            callback(null, routines)
         })
 }
 
-export const insertTileIntoRoutine = (tiles: Array<InsertTileOfRoutine>, doOnFinish: InsertCallback) => {
+export const insertTilesIntoRoutine = (tiles: Array<InsertTileOfRoutine>, doOnFinish: InsertCallback) => {
     const results = []
 
     db()
         .withTransactionAsync(async () => {
-            tiles.map(async tile => {
+            Promise.all(tiles.map(async tile => {
+                const res = await db().runAsync(`INSERT INTO tiles (name, mode, rootRoutineId) VALUES (?, ?, ?);`, [tile.name, tile.mode, tile.rootRoutineId])
+                results.push(res)
+            }))
+                .then(() => {
+                    const tileIds = results.map(entry => entry.lastInsertRowId)
 
-                // db().execAsync('INSERT INTO tiles (name, mode, rootRoutineId) VALUES (?, ?, ?);', [tile.name, tile.mode, tile.rootRoutineId])
-                results.push(await db().runAsync(`INSERT INTO tiles (name, mode, rootRoutineId) VALUES (?, ?, ?);`, [tile.name, tile.mode, tile.rootRoutineId]))
-            })
-        })
-        .then(()=>{
-            const tileIds: Array<string> = results.flatMap(entry => entry.lastChangedRowId)
-            results.length = 0
+                    tileIds.map(async (tileId, i) => {
+                        const tile = tiles[i]
+                        await db().runAsync(`INSERT INTO routine_tiles VALUES (?, ?, ?, ?, ?, ?);`, [tileId, tile.routineId, tile.posX, tile.posY, tile.spanX, tile.spanY])
+                    })
 
-            tileIds.map(async (tileId, i) => {
-                const tile = tiles[i]
-                results.push(await db().runAsync(`INSERT INTO routine_tiles VALUES (?, ?, ?, ?, ?, ?);`, [tileId, tile.routineId, tile.posX, tile.posY, tile.spanX, tile.spanY]))
-            })
-
-            doOnFinish(null, results)
+                    doOnFinish(null, results)
+                })
         })
         .catch(err => doOnFinish(err, results))
 }

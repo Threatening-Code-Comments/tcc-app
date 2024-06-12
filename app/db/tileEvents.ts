@@ -1,3 +1,4 @@
+import { SQLiteRunResult } from "expo-sqlite"
 import { TileEvent } from "../constants/DbTypes"
 import { InsertCallback, ResultCallback, db } from "./database"
 
@@ -6,7 +7,7 @@ export const insertTileEvent = (tileId: number, timestamp: Date, data: string, c
 
     db()
         .runAsync('INSERT INTO tile_events (tileId, timestamp, data) VALUES (?, ?, ?)', [tileId, date, data])
-        .then(res => callback(null, [res]))
+        .then(res => { callback(null, (res as unknown) as SQLiteRunResult[]) })
 }
 
 export const getEventsForTiles = (tileIds: Array<number>, callback: ResultCallback<TileEvent>) => {
@@ -14,6 +15,9 @@ export const getEventsForTiles = (tileIds: Array<number>, callback: ResultCallba
         .getAllAsync<TileEvent>(
             `SELECT *
             FROM tile_events
-            WHERE tileId IN (${tileIds.map(() => "?").join(",")})`,tileIds)
-        .then(events => callback(null, events))
+            WHERE tileId IN (${tileIds.map(() => "?").join(",")})`, tileIds)
+        .then(events => {
+            callback(null, events.map(e => { return { ...e, timestamp: new Date(e.timestamp) } }))
+        })
+        .catch(err => callback(err, []))
 }
