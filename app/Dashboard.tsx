@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react"
 import { FlatList, View, Text } from "react-native"
 import { GenericTile } from "./components/tiles/GenericTile"
-import { DashboardElementType, DashboardEntry, DashboardSetting, ElementType, Page, RoutineOnPage, Tile } from "./constants/DbTypes"
+import { ElementTypeNames, DashboardEntry, DashboardSetting, ElementType, Page, RoutineOnPage, Tile } from "./constants/DbTypes"
 import { getDashboardEntries, removeElementFromDashboard } from "./db/dashboard"
 import { getPagesFromIds } from "./db/pages"
 import { getRoutinesWithTiles } from "./db/routineTiles"
 import { getEventsForTiles } from "./db/tileEvents"
 import { getTilesFromIds } from "./db/tiles"
+import { useLiveQuery } from "drizzle-orm/expo-sqlite"
+import { db } from "./db/database"
 
 export type DashboardList = { list: DashboardEntry[], setList: (list: DashboardEntry[]) => void }
 
@@ -18,6 +20,11 @@ export default function Dashboard({ isEditMode = false, dashboardList }: Dashboa
 
     const [entries, setEntries] = useState<DashboardEntry[]>([])
     const [settings, setSettings] = useState<DashboardSetting[]>([])
+
+    const { data: dashboardEntries } = useLiveQuery(db().query.dashboard.findMany({ with: { element: true } }))
+    // console.log("list: : " , dashboardList)
+
+    useEffect(() => console.log("entries: ", dashboardEntries), [dashboardEntries])
 
     const tileEntries = entries.filter((entry) => entry.elementType == "Tile")
     const routineEntries = entries.filter((entry) => entry.elementType == "Routine")

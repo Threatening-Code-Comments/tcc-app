@@ -6,6 +6,7 @@ import { getFlex, DeleteButton, LinkOrPressable } from './util'
 import { tileStyles } from './styles'
 import { ComponentTypeDisplay } from './ComponentTypeDisplay'
 import { ColorWithContrast, getColorWithContrast, getRandomColorWithContrast } from '../Colors'
+import { IconButton } from '../IconButton'
 
 type RoutineTileComponentProps = {
     routine: RoutineOnPage,

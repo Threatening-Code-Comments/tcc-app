@@ -10,6 +10,7 @@ import { globalStyles } from '../constants/global'
 import { getRoutinesWithTiles, insertTilesIntoRoutine } from '../db/routineTiles'
 import { useModal } from '../components/modal/Modal'
 import { SQLiteRunResult } from 'expo-sqlite'
+import { getRandomColor } from '@app/components/Colors'
 
 const RoutineDisplayPage = () => {
   const routineId = +useLocalSearchParams()['id']
@@ -36,7 +37,7 @@ const RoutineDisplayPage = () => {
   }
 
   const addTile = (name: string) => {
-    const tile: InsertTileOfRoutine = { name: name, mode: 0, rootRoutineId: routineId, routineId: routineId, posX: 2, posY: 2, spanX: 2, spanY: 2 };
+    const tile: InsertTileOfRoutine = { name: name, mode: 0, rootRoutineId: routineId, routineId: routineId, color: getRandomColor() };
 
     insertTilesIntoRoutine([tile], (err, res) => {
       if (err) {
@@ -103,28 +104,6 @@ const RoutineDisplayPage = () => {
       </View>
     </>
   )
-}
-
-const getRandom = (max: number): number => {
-  let random = Math.random() * (max + 1)
-  if (random > max)
-    random = max
-
-  return Math.floor(random)
-}
-
-const generateRandomTile = (routineId: number): InsertTileOfRoutine => {
-  const rn = getRandom(4000)
-  return {
-    name: `Tile ${rn}`,
-    mode: getRandom(1),
-    rootRoutineId: routineId,
-    routineId: routineId,
-    posX: getRandom(3),
-    posY: getRandom(12),
-    spanX: getRandom(4),
-    spanY: getRandom(5)
-  }
 }
 
 export default RoutineDisplayPage

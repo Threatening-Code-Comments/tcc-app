@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native"
 
-export const dbName = 'TCC_DB'
+export const dbNameOld = 'TCC_DB'
+export const dbName = 'TCC_SQLITE_DB.db'
 
 export type ButtonType = "primary" | "secondary" | "error"
 

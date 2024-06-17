@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View } from 'react-native'
-import { DashboardElementType, ElementType, Page, RoutineOnPage, Tile, isPage, isRoutineOnPage, isTile } from '../../constants/DbTypes'
+import { ElementTypeNames, ElementType, Page, RoutineOnPage, Tile, isPage, isRoutineOnPage, isTile } from '../../constants/DbTypes'
 import { updatePage } from '../../db/pages'
 import { updateRoutine } from '../../db/routines'
 import { updateTile } from '../../db/tiles'
@@ -36,7 +36,7 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
     }
 
     const dashboardList = dashboardList2 ?? { list: [], setList: () => { } }
-    const elementType: DashboardElementType = useIfElementType(element, "Tile", "Routine", "Page")
+    const elementType: ElementTypeNames = useIfElementType(element, "Tile", "Routine", "Page")
     const checkIfOnList = () => dashboardList.list.some((el) => el && el.elementId === element.id && el.elementType === elementType)
     const addToList = () => { if (!checkIfOnList()) dashboardList.setList([...dashboardList.list, { elementId: element.id, elementType: elementType }]) }
     const removeFromList = () => { if (checkIfOnList) dashboardList.setList(dashboardList.list.filter((el) => el.elementId !== element.id)) }

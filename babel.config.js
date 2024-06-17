@@ -11,7 +11,8 @@ module.exports = function (api) {
           "@mocks": "./__mocks__",
           "@tests": "./app/__tests__",
         }
-      }]
+      }],
+      ["inline-import", { "extensions": [".sql"] }]
     ]
-  };  
+  };
 };

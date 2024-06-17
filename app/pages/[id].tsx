@@ -13,6 +13,7 @@ import { getPageById } from '../db/pages'
 import { getRoutinesWithTiles } from '../db/routineTiles'
 import { deleteRoutine } from '../db/routines'
 import { SQLiteRunResult } from 'expo-sqlite'
+import { getRandomColor } from '@app/components/Colors'
 
 const PageDisplayPage = () => {
     const [page, setPage] = useState<Page>()
@@ -31,7 +32,7 @@ const PageDisplayPage = () => {
     }
 
     const addRoutine = (name: string) => {
-        const routine: InsertRoutineOnPage = { name: name, pageId: page.id, posX: 2, posY: 2, spanX: 2, spanY: 2 } //generateRandomRoutine(id)
+        const routine: InsertRoutineOnPage = { name: name, rootPageId: page.id, pageId: page.id, color: getRandomColor() } //generateRandomRoutine(id)
 
         insertRoutinesOnPage([routine], (err, res) => {
             const routineInserted: RoutineOnPage = { ...routine, id: (res[0] as SQLiteRunResult).lastInsertRowId, routineId: (res[0] as SQLiteRunResult).lastInsertRowId, tiles: [] }
@@ -141,26 +142,6 @@ const styles = StyleSheet.create({
         paddingRight: 20
     }
 })
-
-const getRandom = (max: number): number => {
-    let random = Math.random() * (max + 1)
-    if (random > max)
-        random = max
-
-    return Math.floor(random)
-}
-
-const generateRandomRoutine = (pageId: number): InsertRoutineOnPage => {
-    const rn = getRandom(4000)
-    return {
-        name: `Rou ${rn}`,
-        pageId: pageId,
-        posX: getRandom(3),
-        posY: getRandom(12),
-        spanX: getRandom(4),
-        spanY: getRandom(5)
-    }
-}
 
 
 export default PageDisplayPage

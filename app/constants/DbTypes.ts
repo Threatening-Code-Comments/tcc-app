@@ -1,8 +1,8 @@
 export type LayoutInfos = {
-    posX: number
-    posY: number
-    spanX: number
-    spanY: number
+    posX?: number
+    posY?: number
+    spanX?: number
+    spanY?: number
 }
 
 
@@ -28,10 +28,10 @@ export type Tile = {
 export type RoutinePages = {
     pageId: number
     routineId: number
-    posX: number
-    posY: number
-    spanX: number
-    spanY: number
+    posX?: number
+    posY?: number
+    spanX?: number
+    spanY?: number
 }
 
 export type TileOfRoutine = Tile & {
@@ -45,17 +45,25 @@ export type TileEvent = {
     data: string
 }
 
-export type DashboardElementType = "Routine" | "Tile" | "Page"
+export enum ElementTypeNames {
+    Page = "Page",
+    Routine = "Routine",
+    Tile = "Tile"
+}
+// export type DashboardElementType = ElementTypes.Routine | ElementTypes.Tile | ElementTypes.Page
 export type ElementType = Page | RoutineOnPage | Tile
+export const getElementTypeName = (element: ElementType): ElementTypeNames => {
+    return isTile(element) ? ElementTypeNames.Tile : isRoutineOnPage(element) ? ElementTypeNames.Routine : ElementTypeNames.Page;
+}
 
 export type DashboardEntry = {
-    elementId: number
-    elementType: DashboardElementType
+    readonly elementId: number
+    readonly elementType: ElementTypeNames
 }
 
 export type DashboardSetting = {
-    elementType: DashboardElementType
-    elementId: number
+    readonly elementType: ElementTypeNames
+    readonly elementId: number
     settingsType: string
     settingsValue: string
 }
@@ -76,15 +84,19 @@ export const isPage = <TElement extends ElementType>(element: TElement): element
 export type InsertPage = {
     id?: number,
     name: string
+    color: string
 }
 export type InsertRoutine = {
     id?: number
     name: string
+    color: string
+    rootPageId: number
 }
 
 export type InsertTile = {
     id?: number
     name: string
+    color: string
     mode: number
     rootRoutineId: number
 }

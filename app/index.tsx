@@ -1,18 +1,22 @@
-import { SQLiteRunResult } from 'expo-sqlite'
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
+import migrations from 'drizzle/migrations'
 import React, { useEffect, useState } from 'react'
-import { LogBox, View } from 'react-native'
+import { LogBox, Text, View } from 'react-native'
+import { getRandomColor } from './components/Colors'
 import { IconButton } from './components/IconButton'
 import { useModal } from './components/modal/Modal'
 import TitleDisplay from './components/TitleDisplay'
-import { DashboardEntry, ElementType, Page } from './constants/DbTypes'
+import { DashboardEntry, ElementTypeNames, Page } from './constants/DbTypes'
 import { globalStyles } from './constants/global'
-import Dashboard, { DashboardList } from './Dashboard'
+import Dashboard from './Dashboard'
+import { getDashboardEntries } from './db/dashboard'
 import { deletePage, getPages, getPagesFromIds, insertPages } from './db/pages'
 import PageDisplay from './PageDisplay'
-import { getDashboardEntries } from './db/dashboard'
-import { router } from 'expo-router'
-import { getRandomColor } from './components/Colors'
-import { getTilesFromIds } from './db/tiles'
+import { db } from './db/database'
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
+import { dashboard, schema } from './db/schema'
+import TestComponent from './TestComponent'
+import { useNavigation } from 'expo-router'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -20,7 +24,10 @@ const HomePage = () => {
     const [pages, setPages] = useState<Page[]>([])
     const [isEditMode, setIsEditMode] = useState(false)
     const [dashboardList, setDashboardList] = useState<DashboardEntry[]>([])
-    // console.log("list: : " , dashboardList)
+    const { success: migrationSuccess, error: migrationError } = useMigrations(db(), migrations)
+    const { data } = useLiveQuery(db().select().from(schema.dashboard))
+    useEffect(() => console.log("data: ", data), [data])
+    const router = useNavigation()
 
     useEffect(() => {
         getDashboardEntries((_err, res) => {
@@ -52,7 +59,7 @@ const HomePage = () => {
         setVisible(false)
 
         insertPages(
-            [{ name: name }],
+            [{ name: name, color: getRandomColor() }],
             (err, res) => {
                 if (err) {
                     console.error("Error inserting page: ", err)
@@ -80,6 +87,21 @@ const HomePage = () => {
         })
     }, [])
 
+    if (migrationError) {
+        return (
+            <View>
+                <Text>Migration error: {migrationError.message}</Text>
+            </View>
+        );
+    }
+    if (!migrationSuccess) {
+        return (
+            <View>
+                <Text>Migration is in progress...</Text>
+            </View>
+        );
+    }
+
     const padding = 5
     return (
         <View style={{ display: "flex", height: "100%" }}>
@@ -89,6 +111,7 @@ const HomePage = () => {
                 <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
                 <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
                 <IconButton iconName='question' text='Query' onPress={() => getPagesFromIds([1], (err, res) => console.log("tiles:", res))} />
+                {/* <IconButton iconName='list-ul' text='Events' /> */}
                 {/* <ModalTester /> */}
             </View>
 
@@ -96,6 +119,7 @@ const HomePage = () => {
 
             <View style={{ flexGrow: 1 }}>
                 <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} />
+                {/* <TestComponent elementList={data} /> */}
             </View>
 
             <View style={{ height: 200, marginTop: "auto" }}>

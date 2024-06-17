@@ -17,7 +17,9 @@ export default function RootLayout() {
     }
 
     useEffect(() => {
-        initDb()
+        console.log("initdb s")
+        initDb() 
+        console.log("initdb e")
     }, [])
 
     return (
