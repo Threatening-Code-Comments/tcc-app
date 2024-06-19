@@ -38,7 +38,7 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
     const dashboardList = dashboardList2 ?? { list: [], setList: () => { } }
     const elementType: ElementTypeNames = useIfElementType(element, "Tile", "Routine", "Page")
     const checkIfOnList = () => dashboardList.list.some((el) => el && el.elementId === element.id && el.elementType === elementType)
-    const addToList = () => { if (!checkIfOnList()) dashboardList.setList([...dashboardList.list, { elementId: element.id, elementType: elementType }]) }
+    const addToList = () => { if (!checkIfOnList()) dashboardList.setList([...dashboardList.list, { elementId: element.id, elementType: elementType, timeAdded: new Date() }]) }
     const removeFromList = () => { if (checkIfOnList) dashboardList.setList(dashboardList.list.filter((el) => el.elementId !== element.id)) }
 
     const link = useIfElementType(

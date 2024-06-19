@@ -56,6 +56,7 @@ export const checkIfElementOnDashboard = async <TElement extends ElementType>(el
                 eq(dashboard.elementType, getElementTypeName(element))
             )
         )
+        .orderBy(dashboard.timeAdded)
         .limit(1)
     return res.length > 0
 
@@ -68,13 +69,11 @@ export const checkIfElementOnDashboard = async <TElement extends ElementType>(el
 }
 
 export const addElementToDashboard = <TElement extends ElementType>(element: TElement, callback: InsertCallback) => {
-    db().insert(dashboard).values({ elementId: element.id, elementType: getElementTypeName(element), posX: 0, posY: 0, spanX: 0, spanY: 0 })
+    db().insert(dashboard).values({ elementId: element.id, elementType: getElementTypeName(element), posX: 0, posY: 0, spanX: 0, spanY: 0, timeAdded: new Date() })
         .then(
             res => callback(null, [res]),
             err => callback(err, [])
-        ).finally(() => {
-            db().query.dashboard.findMany({}).then(r => console.log("added, new results:", r))
-        })
+        )
 
     // db()
     //     .runAsync(`INSERT OR IGNORE INTO dashboard (elementId, elementType, posX, posY, spanX, spanY) VALUES(?, ?, ?, ?, ?, ?)`, [id, elementType, 0, 0, 0, 0])

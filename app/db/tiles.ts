@@ -9,24 +9,14 @@ export const getTilesFromIds = (ids: number[], callback: ResultCallback<Tile>) =
         return
     }
 
-
-    db()
-        .select()
-        .from(tiles)
-        .where(inArray(tiles.id, ids))
-        .then(
-            results => callback(null, results),
-            err => callback(err, [])
-        )
-
-
-    // const query = `SELECT * 
-    //         FROM tiles 
-    //         WHERE id IN (` + ids.map(()=>"?").join(",") + ");"
-
-    // db()
-    //     .getAllAsync<Tile>(query, ids)
-    //     .then(tiles => callback(null, tiles))
+    db().query.tiles.findMany({
+        where(fields, operators) {
+            return operators.inArray(fields.id, ids)
+        }, with: { events: true }
+    }).then(
+        results => callback(null, results),
+        err => callback(err, [])
+    )
 }
 
 export const updateTile = (tile: Tile, callback: InsertCallback) => {
@@ -38,8 +28,4 @@ export const updateTile = (tile: Tile, callback: InsertCallback) => {
             res => callback(null, [res]),
             err => callback(err, [])
         )
-
-    // db()
-    //     .runAsync('UPDATE tiles SET name = ?, mode = ? WHERE id = ?', [tile.name, tile.mode, tile.id])
-    //     .then(res => callback(null, [res]))
 }

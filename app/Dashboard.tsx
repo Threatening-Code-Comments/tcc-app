@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { FlatList, View, Text } from "react-native"
 import { GenericTile } from "./components/tiles/GenericTile"
-import { ElementTypeNames, DashboardEntry, DashboardSetting, ElementType, Page, RoutineOnPage, Tile } from "./constants/DbTypes"
+import { ElementTypeNames, DashboardEntry, DashboardSetting, ElementType, Page, RoutineOnPage, Tile, RoutineWithTiles } from "./constants/DbTypes"
 import { getDashboardEntries, removeElementFromDashboard } from "./db/dashboard"
 import { getPagesFromIds } from "./db/pages"
 import { getRoutinesWithTiles } from "./db/routineTiles"
@@ -17,67 +17,46 @@ type DashboardProps = {
     dashboardList: DashboardList
 }
 export default function Dashboard({ isEditMode = false, dashboardList }: DashboardProps) {
-
-    const [entries, setEntries] = useState<DashboardEntry[]>([])
-    const [settings, setSettings] = useState<DashboardSetting[]>([])
-
-    const { data: dashboardEntries } = useLiveQuery(db().query.dashboard.findMany({ with: { element: true } }))
-    // console.log("list: : " , dashboardList)
-
-    useEffect(() => console.log("entries: ", dashboardEntries), [dashboardEntries])
-
-    const tileEntries = entries.filter((entry) => entry.elementType == "Tile")
-    const routineEntries = entries.filter((entry) => entry.elementType == "Routine")
-    const pageEntries = entries.filter((entry) => entry.elementType == "Page")
+    const getIdsForType = (type: ElementTypeNames) => {
+        const entries = dashboardList.list.filter((entry) => entry.elementType == type).map(e => e.elementId)
+        return (entries.length == 0) ? [-1] : entries
+    }
 
     const [elements, setElements] = useState<ElementType[]>([])
-    useEffect(() => { }, [dashboardList])
 
+    const [tiles, setTiles] = useState<Tile[]>([])
+    const [routines, setRoutines] = useState<RoutineWithTiles[]>([])
+    const [pages, setPages] = useState<Page[]>([])
     useEffect(() => {
-        getDashboardEntries((_err, res) => {
-            if (res[0] != undefined && res != entries)
-                setEntries(res)
-        })
-    }, [])
-
-    useEffect(() => {
-        setElements([]) //reset elements
         getTilesFromIds(
-            tileEntries.map((tile) => tile.elementId),
-            (err, res) => {
-                getEventsForTiles(
-                    res.map((tile) => tile.id),
-                    (err, events) => {
-                        const tiles = res.map((tile) => {
-                            const eventsOfTile = events.filter((event) => event.tileId == tile.id)
-                            tile.counter = (eventsOfTile) ? eventsOfTile.length : 0
-                            return tile as Tile
-                        })
-
-                        setElements(old => [...old, ...tiles])
-                    }
-                )
-            }
+            getIdsForType(ElementTypeNames.Tile),
+            (err, res) => (!err) ? setTiles(res) : console.error(err)
         )
 
         getRoutinesWithTiles(
-            routineEntries.map((routine) => routine.elementId),
-            (err, res) => {
-                const routines = res.map((routine) => {
-                    return { ...routine, pageId: 0, routineId: routine.id, posX: 0, posY: 0, spanX: 0, spanY: 0 } as RoutineOnPage
-                })
-
-                setElements(old => [...old, ...routines])
-            }
+            getIdsForType(ElementTypeNames.Routine),
+            (err, res) => (!err) ? setRoutines(res) : console.error(err)
         )
 
         getPagesFromIds(
-            pageEntries.map((page) => page.elementId),
-            (err, res) => {
-                setElements(old => [...old, ...res])
-            }
+            getIdsForType(ElementTypeNames.Page),
+            (err, res) => (!err) ? setPages(res) : console.error(err)
         )
-    }, [entries])
+    }, [dashboardList.list])
+    useEffect(() => {
+        const getElement = ({ elementId, elementType }: DashboardEntry) => {
+            switch (elementType) {
+                case ElementTypeNames.Tile:
+                    return tiles.find((tile) => tile.id == elementId)
+                case ElementTypeNames.Routine:
+                    return routines.find((routine) => routine.id == elementId)
+                case ElementTypeNames.Page:
+                    return pages.find((page) => page.id == elementId)
+                default: throw new Error("Element type is not correct: " + elementType)
+            }
+        }
+        setElements(dashboardList.list.map(entry => getElement(entry)).filter(e => !!e))
+    }, [tiles, routines, pages])
 
 
     const numColumns = 4;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { Tile, TileEvent } from '../../constants/DbTypes'
-import { InsertCallback } from '../../db/database'
+import { db, InsertCallback } from '../../db/database'
 import { getEventsForTiles, insertTileEvent } from '../../db/tileEvents'
 import { TileProps } from './GenericTile'
 import { tileStyles } from './styles'
@@ -10,6 +10,9 @@ import { ComponentTypeDisplay } from './ComponentTypeDisplay'
 import { Icon } from '../Icon'
 import { hsvToColor } from 'react-native-reanimated/lib/typescript/reanimated2/Colors'
 import { ColorWithContrast, getColorWithContrast, getRandomColor, getRandomColorWithContrast } from '../Colors'
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
+import { tileEvents } from '@app/db/schema'
+import { desc, eq } from 'drizzle-orm'
 
 function getDurationFromSecond(seconds: number): string {
     const minutes = Math.floor(seconds / 60)
@@ -49,17 +52,11 @@ type TileComponentProps = {
     isOnDashboard?: boolean
 } & TileProps
 export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode, isOnDashboard = false }: TileComponentProps) => {
-    const [counter, setCounter] = useState(tile.counter)
     const [lastEvent, setLastEvent] = useState<TileEvent>()
-
+    const { data: events } = useLiveQuery(db().select().from(tileEvents).where(eq(tileEvents.tileId, tile.id)).orderBy(desc(tileEvents.timestamp)))
     useEffect(() => {
-        getEventsForTiles([tile.id], (err, res) => {
-            if (res.length > 0) {
-                const lastEvent = res.reduce((prev, curr) => prev.timestamp > curr.timestamp ? prev : curr)
-                setLastEvent(lastEvent)
-            }
-        })
-    })
+        setLastEvent(events[0])
+    }, [events])
 
     const addToCounter = () => {
         const callback: InsertCallback = (err, res) => {
@@ -68,10 +65,10 @@ export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode,
             } else {
                 console.info("Inserted tile event: ", res)
 
-                tile.counter += 1
-                setCounter(tile.counter)
+                tile.events.push(event)
             }
         }
+
         const event: TileEvent = { data: "", timestamp: new Date(), tileId: tile.id }
         insertTileEvent(tile.id, new Date(), "", callback)
         setLastEvent(event)
@@ -89,7 +86,7 @@ export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode,
             {/* <ComponentTypeDisplay display={isOnDashboard} text='T' /> */}
             <Pressable style={[tileStyles.card, { flex: getFlex(numColumns), flexGrow: 1, backgroundColor: color.color }]} onPress={onPress}>
                 <Text style={{ ...tileStyles.name, color: color.contrastColor }}>{tile.name}</Text>
-                <Text style={{ ...tileStyles.info, color: color.contrastColor }}>{counter}</Text>
+                <Text style={{ ...tileStyles.info, color: color.contrastColor }}>{tile.events.length}</Text>
 
                 <DurationLastEventDisplay lastEvent={lastEvent} color={color} />
             </Pressable>
@@ -102,6 +99,15 @@ const DurationLastEventDisplay: React.FC<{ lastEvent: TileEvent, color: ColorWit
         const duration = (Date.now() - event.timestamp.getTime())
         return getDurationFromSecond(duration / 1000)
     }
+
+    const [time, setTime] = useState(Date.now());
+
+    useEffect(() => {
+        const interval = setInterval(() => setTime(Date.now()), 1000);
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
 
     return (
         <View style={tileStyles.infoContainer}>

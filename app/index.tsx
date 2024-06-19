@@ -1,22 +1,23 @@
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import migrations from 'drizzle/migrations'
+import { useNavigation } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { LogBox, Text, View } from 'react-native'
+import { LogBox, Text, ToastAndroid, View } from 'react-native'
 import { getRandomColor } from './components/Colors'
 import { IconButton } from './components/IconButton'
 import { useModal } from './components/modal/Modal'
 import TitleDisplay from './components/TitleDisplay'
-import { DashboardEntry, ElementTypeNames, Page } from './constants/DbTypes'
+import { DashboardEntry, Page } from './constants/DbTypes'
 import { globalStyles } from './constants/global'
-import Dashboard from './Dashboard'
 import { getDashboardEntries } from './db/dashboard'
+import { db, DbErrors, initDb } from './db/database'
 import { deletePage, getPages, getPagesFromIds, insertPages } from './db/pages'
+import * as schema from './db/schema'
 import PageDisplay from './PageDisplay'
-import { db } from './db/database'
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
-import { dashboard, schema } from './db/schema'
+import Dashboard from './Dashboard'
 import TestComponent from './TestComponent'
-import { useNavigation } from 'expo-router'
+import { asc, desc } from 'drizzle-orm'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -24,17 +25,13 @@ const HomePage = () => {
     const [pages, setPages] = useState<Page[]>([])
     const [isEditMode, setIsEditMode] = useState(false)
     const [dashboardList, setDashboardList] = useState<DashboardEntry[]>([])
-    const { success: migrationSuccess, error: migrationError } = useMigrations(db(), migrations)
-    const { data } = useLiveQuery(db().select().from(schema.dashboard))
-    useEffect(() => console.log("data: ", data), [data])
-    const router = useNavigation()
 
+    const { success: migrationSuccess, error: migrationError } = useMigrations(db(), migrations)
+    const { data } = useLiveQuery(db().select().from(schema.dashboard).orderBy(desc(schema.dashboard.timeAdded)))
     useEffect(() => {
-        getDashboardEntries((_err, res) => {
-            // console.log("res: ", res)
-            setDashboardList(res)
-        })
-    }, [])
+        const list = data.sort((a, b) => b.timeAdded.getTime() - a.timeAdded.getTime())
+        setDashboardList(list)
+    }, [data])
 
     const { setVisible, component: AddPageModal } = useModal<{
         "Page Name": "string"
@@ -102,6 +99,18 @@ const HomePage = () => {
         );
     }
 
+    const migrate = () => {
+        ToastAndroid.showWithGravity("Migrating...", ToastAndroid.SHORT, ToastAndroid.CENTER)
+        initDb(
+            (err, res) => {
+                if (err && err != DbErrors.ALREADY_MIGRATED)
+                    ToastAndroid.showWithGravity("Migration failed", ToastAndroid.SHORT, ToastAndroid.CENTER)
+                else
+                    ToastAndroid.showWithGravity("Migration successful", ToastAndroid.SHORT, ToastAndroid.CENTER)
+            }
+        )
+    }
+
     const padding = 5
     return (
         <View style={{ display: "flex", height: "100%" }}>
@@ -111,6 +120,7 @@ const HomePage = () => {
                 <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
                 <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
                 <IconButton iconName='question' text='Query' onPress={() => getPagesFromIds([1], (err, res) => console.log("tiles:", res))} />
+                <IconButton iconName='arrow-right' text='Migrate' onPress={migrate} />
                 {/* <IconButton iconName='list-ul' text='Events' /> */}
                 {/* <ModalTester /> */}
             </View>
@@ -119,7 +129,7 @@ const HomePage = () => {
 
             <View style={{ flexGrow: 1 }}>
                 <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} />
-                {/* <TestComponent elementList={data} /> */}
+                {/* <TestComponent elementList={dashboardList} /> */}
             </View>
 
             <View style={{ height: 200, marginTop: "auto" }}>

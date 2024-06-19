@@ -13,21 +13,43 @@ export const getRoutinesWithTiles = (routineIds: Array<number>, callback: Result
     db().query.routines.findMany({
         where(fields, operators) {
             return operators.inArray(fields.id, routineIds)
-        },
-        with: {
-            tiles: true
+        }, with: {
+            tiles: {
+                with: {
+                    events: true
+                }
+            }
         }
     }).then(
-        (r) => {
-            const convertTiles: (tiles: typeof r[0]['tiles']) => TileOfRoutine[] = (tiles) => tiles.map(t => ({
-                id: t.id, color: t.color, mode: t.mode, name: t.name, rootRoutineId: t.rootRoutineId,
-                counter: -1, posX: -1, posY: -1, spanX: -1, spanY: -1, routineId: -1, tileId: -1
+        results => callback(null, results.map(r => ({
+            ...r,
+            tiles: r.tiles.map(t => ({
+                ...t,
+                tileId: t.id,
+                routineId: r.id
             }))
-            const routines: RoutineWithTiles[] = r.map(e => ({ id: e.id, name: e.name, color: e.color, tiles: convertTiles(e.tiles || []) }))
-            callback(null, routines)
-        },
-        (e) => callback(e, [])
+        }))),
+        err => callback(err, [])
     )
+
+    // db().query.routines.findMany({
+    //     where(fields, operators) {
+    //         return operators.inArray(fields.id, routineIds)
+    //     },
+    //     with: {
+    //         tiles: true
+    //     }
+    // }).then(
+    //     (r) => {
+    //         const convertTiles: (tiles: typeof r[0]['tiles']) => TileOfRoutine[] = (tiles) => tiles.map(t => ({
+    //             id: t.id, color: t.color, mode: t.mode, name: t.name, rootRoutineId: t.rootRoutineId,
+    //             counter: -1, posX: -1, posY: -1, spanX: -1, spanY: -1, routineId: -1, tileId: -1
+    //         }))
+    //         const routines: RoutineWithTiles[] = r.map(e => ({ id: e.id, name: e.name, color: e.color, tiles: convertTiles(e.tiles || []) }))
+    //         callback(null, routines)
+    //     },
+    //     (e) => callback(e, [])
+    // )
 
     //     db()
     //         .select()

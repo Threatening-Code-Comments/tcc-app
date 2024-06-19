@@ -21,8 +21,8 @@ export type Tile = {
     name: string
     mode: number
     rootRoutineId: number
-    counter?: number
     color: string
+    events: Array<TileEvent>
 }
 
 export type RoutinePages = {
@@ -59,6 +59,7 @@ export const getElementTypeName = (element: ElementType): ElementTypeNames => {
 export type DashboardEntry = {
     readonly elementId: number
     readonly elementType: ElementTypeNames
+    timeAdded: Date
 }
 
 export type DashboardSetting = {
@@ -73,11 +74,15 @@ export const isTile = <TElement extends ElementType>(element: TElement): element
 }
 
 export const isRoutineOnPage = <TElement extends ElementType>(element: TElement): element is TElement & RoutineOnPage => {
-    return "pageId" in element;
+    return "tiles" in element;
 }
 
 export const isPage = <TElement extends ElementType>(element: TElement): element is TElement & Page => {
     return !isTile(element) && !(isRoutineOnPage(element));
+}
+
+function isValidDate(d: Date) {
+    return !isNaN(d.getTime());
 }
 
 //---------------- insert types ----------------

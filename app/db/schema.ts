@@ -58,12 +58,13 @@ export const tileEventsRelations = relations(tileEvents, ({ one }) => ({
 }))
 
 export const dashboard = sqliteTable('dashboard', {
-    elementId: integer('elementId').notNull(),
-    elementType: text('elementType', { enum: [ElementTypeNames.Page, ElementTypeNames.Routine, ElementTypeNames.Tile] }).notNull(),
+    elementId: integer('elementId').notNull().primaryKey(),
+    elementType: text('elementType', { enum: [ElementTypeNames.Page, ElementTypeNames.Routine, ElementTypeNames.Tile] }).notNull().primaryKey(),
     posX: integer('posX').notNull(),
     posY: integer('posY').notNull(),
     spanX: integer('spanX').notNull(),
-    spanY: integer('spanY').notNull()
+    spanY: integer('spanY').notNull(),
+    timeAdded: integer('timeAdded', { mode: 'timestamp_ms' }).notNull().default(new Date())
 })
 export const dashboardRelations = relations(dashboard, ({ many, one }) => ({
     element: one(pages || routines || tiles, {
@@ -100,5 +101,3 @@ export const dashboardSettingsRelations = relations(dashboardSettings, ({ one })
 //     spanX: integer('spanX').notNull(),
 //     spanY: integer('spanY').notNull()
 // })
-
-export * as schema from './schema'

@@ -23,7 +23,7 @@ export const PageTileComponent = ({ page, numColumns, isEditMode, onPressDelete,
     return (
         <View style={{ display: 'flex', flexDirection: 'column', flex: getFlex(numColumns), }}>
             {/* <ComponentTypeDisplay display={isOnDashboard} text="P" /> */}
-            <LinkOrPressable style={[tileStyles.card, { zIndex: 1, shadowColor: color.color, shadowOpacity: 0.2, elevation: 6, shadowRadius: 3, shadowOffset: { height: 50, width: 200 } }]} link={`/pages/${page.id}`} isLink={!isEditMode} onPress={onPress}>
+            <LinkOrPressable style={[tileStyles.card, { shadowColor: color.color, zIndex: 1, shadowOpacity: 0.8, elevation: 8 }]} link={`/pages/${page.id}`} isLink={!isEditMode} onPress={onPress}>
                 <Text style={{ ...tileStyles.name, color: color.color }}>{page.name}</Text>
             </LinkOrPressable>
         </View>

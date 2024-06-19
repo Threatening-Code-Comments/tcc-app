@@ -1,16 +1,15 @@
+import { getRandomColor } from '@app/components/Colors'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { IconButton } from '../components/IconButton'
+import { useModal } from '../components/modal/Modal'
 import { GenericTile } from '../components/tiles/GenericTile'
 import TitleDisplay from '../components/TitleDisplay'
 import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from '../constants/DbTypes'
 import { globalStyles } from '../constants/global'
 import { getRoutinesWithTiles, insertTilesIntoRoutine } from '../db/routineTiles'
-import { useModal } from '../components/modal/Modal'
-import { SQLiteRunResult } from 'expo-sqlite'
-import { getRandomColor } from '@app/components/Colors'
 
 const RoutineDisplayPage = () => {
   const routineId = +useLocalSearchParams()['id']
@@ -44,7 +43,7 @@ const RoutineDisplayPage = () => {
         console.error("Error inserting tile: ", err)
       } else {
         const insertId = res[0].lastInsertRowId
-        const insertedTile: TileOfRoutine = { ...tile, id: insertId, tileId: insertId, counter: 0 }
+        const insertedTile: TileOfRoutine = { ...tile, id: insertId, tileId: insertId, events: [] }
         setTiles([...tiles, insertedTile])
         setVisible(false)
       }

@@ -30,13 +30,19 @@ export const escapeQuery = <T>(query: string, args: T[], transform?: (T) => stri
     return query
 }
 
-export const initDb = () => {
+export enum DbErrors {
+    ALREADY_MIGRATED = 'ALREADY_MIGRATED',
+}
+export const initDb = (callback?: (err, res) => void) => {
+    const cb = callback || ((err, res) => { })
     const s = schema
-    _db.withTransactionAsync(async () => {
-        const alreadyUpdated = await _db.getFirstAsync<{ name: string }>('SELECT name FROM pages WHERE name = "updated_187"')
-        if (alreadyUpdated) return //console.log('db already initialized')
+    const prefix = 'updated_187'
+    const newestUpdateName = prefix + '_1'
+    const alreadyUpdated = _db.getFirstSync<{ name: string }>(`SELECT name FROM pages WHERE name = "${newestUpdateName}"`)
+    if (alreadyUpdated) return cb(DbErrors.ALREADY_MIGRATED, []) //console.log('db already initialized')
 
-        const pages = await _db.getAllAsync<{ id: number, name: string }>('SELECT * FROM pages')
+    _db.withTransactionAsync(async () => {
+        const pages = await _db.getAllAsync<{ id: number, name: string }>(`SELECT * FROM pages WHERE name NOT LIKE '${newestUpdateName}%'`)
         const routines = await _db.getAllAsync<{ id: number, name: string }>('SELECT * FROM routines')
         const pageRoutines = await _db.getAllAsync<{ pageId: number, routineId: number }>('SELECT * FROM page_routines')
         const tiles = await _db.getAllAsync<{ id: number, name: string, mode: number, rootRoutineId: number }>('SELECT * FROM tiles')
@@ -54,10 +60,16 @@ export const initDb = () => {
         db().insert(s.tileEvents).values(tileEvents).onConflictDoNothing()
         db().insert(s.dashboard).values(dashboard.map(d => ({ ...d, posX: -1, posY: -1, spanX: -1, spanY: -1 }))).onConflictDoNothing()
 
-        _db.execAsync("insert into pages (name, color) values ('updated_187', '#ffffff')")
+        _db.execAsync(`insert into pages (name, color) values ('${newestUpdateName}', '#ffffff')`)
     }).then(
-        r => console.log('db initialized'),
-        e => console.error('db init error', e)
+        r => {
+            cb(null, r)
+            console.log('db initialized')
+        },
+        e => {
+            cb(e, null)
+            console.error('db init error', e)
+        }
     )
 }
 
