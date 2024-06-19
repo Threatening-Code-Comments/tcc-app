@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Dimensions, FlatList, Modal, Pressable, Text, View } from 'react-native'
 import Animated, { useSharedValue, withSpring, WithSpringConfig } from 'react-native-reanimated'
 import { useKeyboardVisible } from '../hooks/keyboardIsOpened'
-import { ButtonInput, DropdownInput, NumberInput, TextInput } from './InputTypes'
+import { ButtonInput, DropdownInput, NumberInput, SliderColorInput, TextInput } from './InputTypes'
 import { modalStyles } from './ModalStyles'
 import { UseModalErrorType, UseModalInputType2, UseModalInputType3, UseModalOutputType, UseModalProps, UseModalReturn, UseModalStateType } from './ModalTypeDefs'
 
@@ -36,6 +36,8 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
             case "number":
                 return { ...prev, [key]: value.toString().length === 0 };
             case "select":
+                return { ...prev, [key]: (value as string).length === 0 };
+            case "slider-color":
                 return { ...prev, [key]: (value as string).length === 0 };
             default:
                 return { ...prev, [key]: false };
@@ -136,6 +138,10 @@ export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> 
                                     case "button":
                                         return (
                                             <ButtonInput key={key} label={key} icon={input.icon} onClick={input.onClick} />
+                                        )
+                                    case "slider-color":
+                                        return (
+                                            <SliderColorInput key={key} label={key} input={input} keyProp={key} onInputChange={onInputChange} />
                                         )
                                 }
                             }}

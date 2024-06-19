@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-community/slider": "^4.5.2",
     "@react-native-picker/picker": "2.7.5",
     "@shopify/flash-list": "1.6.4",
     "@types/react": "^18.3.3",

@@ -1,7 +1,7 @@
 import { ReactNode } from "react"
 import { IconName } from "../IconButton"
 
-export type UseModalInputType3 = "string" | "number" | "select" | "button" | "submit"
+export type UseModalInputType3 = "string" | "number" | "select" | "button" | "submit" | "slider-color"
 
 export type UseModalInputType2 = {
     [key: string]: UseModalInputType3
@@ -28,6 +28,10 @@ export type UseModalButtonType = {
     icon: IconName
     onClick: () => void
 }
+export type UseModalSliderColorType = {
+    type: "slider-color"
+    value?: string
+}
 export type UseModalSubmitType<TType extends UseModalInputType2> = {
     type: "submit"
     icon: IconName
@@ -39,12 +43,14 @@ export type UseModalInputType<TType extends UseModalInputType3, TType2 extends U
     TType extends "number" ? UseModalNumberType :
     TType extends "select" ? UseModalSelectType :
     TType extends "button" ? UseModalButtonType :
+    TType extends "slider-color" ? UseModalSliderColorType :
     UseModalSubmitType<TType2>
 
 export type UseModalOutputType<TType extends UseModalInputType3> =
     TType extends "string" ? string :
     TType extends "number" ? number :
     TType extends "select" ? string :
+    TType extends "slider-color" ? string :
     never
 
 export type UseModalPropsInputTypes<TTypes extends UseModalInputType2> = {
@@ -52,11 +58,11 @@ export type UseModalPropsInputTypes<TTypes extends UseModalInputType2> = {
 }
 
 export type UseModalStateType<TTypes extends UseModalInputType2> = {
-    [TKey in keyof TTypes as TTypes[TKey] extends ("string" | "number" | "select") ? TKey : never]: UseModalOutputType<TTypes[TKey]>
+    [TKey in keyof TTypes as TTypes[TKey] extends ("string" | "number" | "select" | "slider-color") ? TKey : never]: UseModalOutputType<TTypes[TKey]>
 }
 
 export type UseModalErrorType<TTypes extends UseModalInputType2> = {
-    [TKey in keyof TTypes as TTypes[TKey] extends ("string" | "number" | "select") ? TKey : never]: boolean
+    [TKey in keyof TTypes as TTypes[TKey] extends ("string" | "number" | "select" | "slider-color") ? TKey : never]: boolean
 }
 
 export type UseModalProps<TTypes extends UseModalInputType2> = {

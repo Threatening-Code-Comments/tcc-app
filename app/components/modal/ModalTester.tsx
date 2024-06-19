@@ -22,28 +22,13 @@ const ModalTester = () => {
     });
 
     const modal5 = useModal<{
-        "Element 1": "string",
-        "Element 2": "string",
-        "Element 3": "string",
-        "Element 4": "string",
-        "Element 5": "string",
+        "Element 5": "slider-color",
     }>({
         title: "Big Modal",
         inputTypes: {
-            "Element 1": {
-                type: "string"
-            },
-            "Element 2": {
-                type: "string"
-            },
-            "Element 3": {
-                type: "string"
-            },
-            "Element 4": {
-                type: "string"
-            },
             "Element 5": {
-                type: "string"
+                type: "slider-color",
+                value: "#00FF00",
             },
         }
     });

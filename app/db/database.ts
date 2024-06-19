@@ -60,7 +60,7 @@ export const initDb = (callback?: (err, res) => void) => {
         db().insert(s.tileEvents).values(tileEvents).onConflictDoNothing()
         db().insert(s.dashboard).values(dashboard.map(d => ({ ...d, posX: -1, posY: -1, spanX: -1, spanY: -1 }))).onConflictDoNothing()
 
-        _db.execAsync(`insert into pages (name, color) values ('${newestUpdateName}', '#ffffff')`)
+        _db.execAsync(`insert into pages (name) values ('${newestUpdateName}')`)
     }).then(
         r => {
             cb(null, r)

@@ -26,6 +26,52 @@ export function getRandomColor(): string {
     return hsvToHex(h, 0.5, 0.95);
 }
 
+export function hexToHue(hex: string): number {
+    // Remove the hash symbol if it is present
+    hex = hex.replace(/^#/, '');
+
+    // Parse the hex string to get the RGB values
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+
+    // Normalize the RGB values to the range [0, 1]
+    const rNormalized = r / 255;
+    const gNormalized = g / 255;
+    const bNormalized = b / 255;
+
+    // Calculate the maximum and minimum values of r, g, and b
+    const max = Math.max(rNormalized, gNormalized, bNormalized);
+    const min = Math.min(rNormalized, gNormalized, bNormalized);
+
+    // Calculate the difference between the max and min values
+    const delta = max - min;
+
+    let hue: number;
+
+    // Calculate the hue
+    if (delta === 0) {
+        hue = 0; // If max and min are equal, the color is a shade of gray
+    } else if (max === rNormalized) {
+        hue = ((gNormalized - bNormalized) / delta) % 6;
+    } else if (max === gNormalized) {
+        hue = (bNormalized - rNormalized) / delta + 2;
+    } else {
+        hue = (rNormalized - gNormalized) / delta + 4;
+    }
+
+    // Convert the hue to degrees
+    hue = hue * 60;
+
+    // Make sure the hue is non-negative
+    if (hue < 0) {
+        hue += 360;
+    }
+
+    return hue;
+}
+
 export function hsvToHex(h: number, s: number, v: number): string {
     // Convert HSV to RGB
     let r, g, b;

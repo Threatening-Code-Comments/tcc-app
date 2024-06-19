@@ -18,6 +18,7 @@ import PageDisplay from './PageDisplay'
 import Dashboard from './Dashboard'
 import TestComponent from './TestComponent'
 import { asc, desc } from 'drizzle-orm'
+import ModalTester from './components/modal/ModalTester'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -119,10 +120,10 @@ const HomePage = () => {
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
                 <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
                 <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
-                <IconButton iconName='question' text='Query' onPress={() => getPagesFromIds([1], (err, res) => console.log("tiles:", res))} />
-                <IconButton iconName='arrow-right' text='Migrate' onPress={migrate} />
+                {/* <IconButton iconName='question' text='Query' onPress={() => getPagesFromIds([1], (err, res) => console.log("tiles:", res))} />
+                <IconButton iconName='arrow-right' text='Migrate' onPress={migrate} /> */}
                 {/* <IconButton iconName='list-ul' text='Events' /> */}
-                {/* <ModalTester /> */}
+                <ModalTester />
             </View>
 
             {AddPageModal}

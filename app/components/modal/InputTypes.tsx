@@ -8,7 +8,9 @@ import { colors } from '../../constants/global'
 import { Icon } from '../Icon'
 import { IconButton, IconName } from '../IconButton'
 import { modalStyles } from './ModalStyles'
-import { ModalInputChangeType, UseModalNumberType, UseModalSelectType, UseModalStringType } from './ModalTypeDefs'
+import { ModalInputChangeType, UseModalNumberType, UseModalSelectType, UseModalSliderColorType, UseModalStringType } from './ModalTypeDefs'
+import Slider from '@react-native-community/slider'
+import { hexToHue, hsvToHex } from '../Colors'
 
 const inputMarginTop = -10
 
@@ -54,7 +56,7 @@ export const TextInput = ({ label, onInputChange, keyProp: key, input, onFocus: 
             alignContent: 'flex-start', justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%',
         }}>
             <View style={{ flexShrink: 1, alignSelf: 'center', marginTop: 35, paddingRight: 12 }}>
-                <Icon iconName='font' iconSize={24} style={{...progressStyles}} />
+                <Icon iconName='font' iconSize={24} style={{ ...progressStyles }} />
             </View>
             <View style={{ flexGrow: 10, }}>
                 <TextField
@@ -194,6 +196,43 @@ export const ButtonInput = ({ label, icon, onClick, disabled }: ButtonInputTypes
                 onPress={onClick}
                 disabled={disabled}
             />
+        </View>
+    )
+}
+
+type SliderColorInputTypes = InputProps & {
+    input: UseModalSliderColorType
+    keyProp: string
+    onInputChange: ModalInputChangeType<"string", string>
+}
+export const SliderColorInput = ({keyProp: key, onInputChange, input }: SliderColorInputTypes) => {
+
+    const [color, setColor] = useState(input.value ?? "#FF0000")
+    const hue = hexToHue(color)
+
+    const onValueChange = (value: number) => {
+        const hex = hsvToHex(value / 360, 1, 1)
+        onInputChange(key, hex)
+        setColor(hex)
+    }
+
+    return (
+        <View style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", marginTop: 8 }}>
+
+            <Text style={{ color: "white", fontSize: 16 }}>{key}</Text>
+
+            <View style={{ display: 'flex', flexDirection: 'row', pointerEvents: "box-none", justifyContent: "center", alignItems: "center" }}>
+                <View style={{ height: 32, aspectRatio: 1, backgroundColor: color, borderRadius: 2, pointerEvents: "none" }} />
+                <Slider
+                    style={{ width: "77.5%", marginTop: 16, marginBottom: 16 }}
+                    minimumTrackTintColor={color}
+                    maximumTrackTintColor={color}
+                    thumbTintColor={color}
+                    minimumValue={0}
+                    onValueChange={onValueChange}
+                    value={hue}
+                    maximumValue={360} />
+            </View>
         </View>
     )
 }
