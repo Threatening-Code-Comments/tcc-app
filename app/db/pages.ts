@@ -13,6 +13,14 @@ export const getPages = (callback: ResultCallback<Page>) => {
         )
 }
 
+export const getPageByIdStmt = (ids: number[]) => db().query.pages.findMany({
+    where(fields, operators){
+        return operators.inArray(fields.id, ids)
+    }, with: {
+        routines: true
+    }
+})
+
 export const getPageById = (id: number, callback: ResultCallback<Page>) => {
     db()
         .select()

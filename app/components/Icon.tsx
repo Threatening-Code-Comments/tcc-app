@@ -2,6 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome'
 import React, { forwardRef } from 'react'
 import { OpaqueColorValue, StyleProp, View } from 'react-native'
 import Animated from 'react-native-reanimated'
+import { Icon as PaperIcon } from 'react-native-paper'
 
 export type IconName = keyof typeof FontAwesome.glyphMap
 type IconProps = {
@@ -15,6 +16,8 @@ const Icon = Animated.createAnimatedComponent(forwardRef<any, IconProps>(({ icon
 
     return (
         <View style={{ display: 'flex', flexDirection: 'row', alignSelf: 'center', alignContent: 'center', justifyContent: 'center', alignItems: 'center', width: iconSize, height: iconSize }}>
+            {/* <PaperIcon source={iconName} size={iconSize} /> */}
+
             <FontAwesome
                 ref={ref}
                 name={iconName}

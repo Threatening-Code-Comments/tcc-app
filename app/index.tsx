@@ -1,24 +1,19 @@
+import { desc, eq, inArray } from 'drizzle-orm'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import migrations from 'drizzle/migrations'
-import { useNavigation } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { LogBox, Text, ToastAndroid, View } from 'react-native'
-import { getRandomColor } from './components/Colors'
+import { AppRegistry, LogBox, Text, View } from 'react-native'
+import Dashboard from './Dashboard'
+import PageDisplay from './PageDisplay'
 import { IconButton } from './components/IconButton'
-import { useModal } from './components/modal/Modal'
 import TitleDisplay from './components/TitleDisplay'
+import { useModal } from './components/modal/Modal'
 import { DashboardEntry, Page } from './constants/DbTypes'
 import { globalStyles } from './constants/global'
-import { getDashboardEntries } from './db/dashboard'
-import { db, DbErrors, initDb } from './db/database'
-import { deletePage, getPages, getPagesFromIds, insertPages } from './db/pages'
+import { db } from './db/database'
+import { deletePage, getPages, insertPages, updatePage } from './db/pages'
 import * as schema from './db/schema'
-import PageDisplay from './PageDisplay'
-import Dashboard from './Dashboard'
-import TestComponent from './TestComponent'
-import { asc, desc } from 'drizzle-orm'
-import ModalTester from './components/modal/ModalTester'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -28,42 +23,51 @@ const HomePage = () => {
     const [dashboardList, setDashboardList] = useState<DashboardEntry[]>([])
 
     const { success: migrationSuccess, error: migrationError } = useMigrations(db(), migrations)
-    const { data } = useLiveQuery(db().select().from(schema.dashboard).orderBy(desc(schema.dashboard.timeAdded)))
+    const { data: dashboardLiveQuery } = useLiveQuery(db().select().from(schema.dashboard).orderBy(desc(schema.dashboard.timeAdded)))
     useEffect(() => {
-        const list = data.sort((a, b) => b.timeAdded.getTime() - a.timeAdded.getTime())
+        const list = dashboardLiveQuery.sort((a, b) => b.timeAdded.getTime() - a.timeAdded.getTime())
         setDashboardList(list)
-    }, [data])
+    }, [dashboardLiveQuery])
+    const { data: pagesLiveQuery } = useLiveQuery(db().select().from(schema.pages))
+    useEffect(() => {
+        setPages(pagesLiveQuery)
+    }, [pagesLiveQuery])
 
     const { setVisible, component: AddPageModal } = useModal<{
         "Page Name": "string"
-        "Add": "submit"
+        "Add": "submit",
+        "Color": "slider-color"
     }>({
         title: "Add Page",
         inputTypes: {
             "Page Name": {
                 type: "string"
             },
+            "Color": {
+                type: "slider-color",
+                value: "#FF0000"
+            },
             "Add": {
                 type: "submit",
                 onClick: (data) => {
-                    addPage(data['Page Name'])
+                    addPage(data['Page Name'], data.Color)
                 },
                 icon: 'plus'
             }
         }
     });
 
-    const addPage = (name: string) => {
+    const addPage = (name: string, color: string) => {
         setVisible(false)
 
         insertPages(
-            [{ name: name, color: getRandomColor() }],
+            [{ name: name, color: color }],
             (err, res) => {
                 if (err) {
                     console.error("Error inserting page: ", err)
                 } else {
                     console.info("Inserted page: ", res)
-                    setPages([...pages, { id: res[0].lastInsertRowId, name: name, color: getRandomColor() }])
+                    setPages([...pages, { id: res[0].lastInsertRowId, name: name, color: color }])
                 }
             })
     }
@@ -100,16 +104,13 @@ const HomePage = () => {
         );
     }
 
-    const migrate = () => {
-        ToastAndroid.showWithGravity("Migrating...", ToastAndroid.SHORT, ToastAndroid.CENTER)
-        initDb(
-            (err, res) => {
-                if (err && err != DbErrors.ALREADY_MIGRATED)
-                    ToastAndroid.showWithGravity("Migration failed", ToastAndroid.SHORT, ToastAndroid.CENTER)
-                else
-                    ToastAndroid.showWithGravity("Migration successful", ToastAndroid.SHORT, ToastAndroid.CENTER)
-            }
-        )
+    const updatePage = (page: Page) => {
+        db().update(schema.pages).set(page).where(eq(schema.pages.id, page.id))
+
+            .then(
+                r => setPages(pages.map(p => p.id == page.id ? page : p)),
+                err => console.error("updating page failed!", err)
+            )
     }
 
     const padding = 5
@@ -123,7 +124,7 @@ const HomePage = () => {
                 {/* <IconButton iconName='question' text='Query' onPress={() => getPagesFromIds([1], (err, res) => console.log("tiles:", res))} />
                 <IconButton iconName='arrow-right' text='Migrate' onPress={migrate} /> */}
                 {/* <IconButton iconName='list-ul' text='Events' /> */}
-                <ModalTester />
+                {/* <ModalTester /> */}
             </View>
 
             {AddPageModal}
@@ -137,7 +138,7 @@ const HomePage = () => {
                 <PageDisplay
                     isEditMode={isEditMode}
                     pages={pages}
-                    doAfterEdit={(page) => { setPages(pages.map(p => p.id == page.id ? page : p)) }}
+                    doAfterEdit={updatePage}
                     onPressDelete={(item) => removePage(item)}
                     dashboardList={{ list: dashboardList, setList: setDashboardList }}
                 />
@@ -146,4 +147,4 @@ const HomePage = () => {
     )
 }
 
-export default HomePage
+// export default HomePage

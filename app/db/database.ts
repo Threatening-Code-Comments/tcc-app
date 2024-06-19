@@ -38,7 +38,15 @@ export const initDb = (callback?: (err, res) => void) => {
     const s = schema
     const prefix = 'updated_187'
     const newestUpdateName = prefix + '_1'
-    const alreadyUpdated = _db.getFirstSync<{ name: string }>(`SELECT name FROM pages WHERE name = "${newestUpdateName}"`)
+    let alreadyUpdated = false
+
+    try{
+        alreadyUpdated = !!_db.getFirstSync<{ name: string }>(`SELECT name FROM pages WHERE name = "${newestUpdateName}"`)
+    }catch(e){
+        alreadyUpdated = true
+        console.log("No need to migrate")
+    }
+
     if (alreadyUpdated) return cb(DbErrors.ALREADY_MIGRATED, []) //console.log('db already initialized')
 
     _db.withTransactionAsync(async () => {

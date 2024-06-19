@@ -18,7 +18,7 @@ export const PageTileComponent = ({ page, numColumns, isEditMode, onPressDelete,
     const updateColor = async (c: ColorWithContrast) => { setColor(c) }
     useEffect(() => {
         updateColor(getColorWithContrast(page.color))
-    }, [])
+    }, [page.color])
 
     return (
         <View style={{ display: 'flex', flexDirection: 'column', flex: getFlex(numColumns), }}>

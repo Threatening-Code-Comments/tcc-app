@@ -3,6 +3,7 @@ import React from 'react'
 import { Animated, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native'
 import { ButtonType, colors, globalStyles } from '../constants/global'
 import { Icon } from './Icon'
+import { IconButton as PaperButton } from 'react-native-paper'
 
 export type IconName = keyof typeof FontAwesome.glyphMap
 type IconButtonProps = {
@@ -16,6 +17,14 @@ type IconButtonProps = {
 export const IconButton = ({ iconName, text, style, onPress, type, disabled }: IconButtonProps) => {
     const buttonType = (type) ? type : "primary"
     const color = disabled ? "gray" : colors[buttonType]
+
+    // return (
+    //     <PaperButton
+    //         icon={iconName}
+    //         mode='contained'
+    //         size={20}
+    //     />
+    // )
 
     return (
         <Animated.View style={{ ...styles.buttonContainer, }}>

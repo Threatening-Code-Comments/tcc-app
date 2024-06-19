@@ -7,6 +7,8 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from './constants/global';
 import { initDb } from './db/database';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { PaperProvider } from 'react-native-paper';
+import { theme } from './constants/themes';
 
 export default function RootLayout() {
     const router = useRouter()
@@ -19,7 +21,7 @@ export default function RootLayout() {
 
     useEffect(() => {
         console.log("initdb s")
-        initDb() 
+        initDb()
         console.log("initdb e")
     }, [])
 
@@ -27,20 +29,22 @@ export default function RootLayout() {
         <SafeAreaProvider>
             <View style={styles.background}>
                 <SafeAreaView>
-                    <ThemeProvider value={DarkTheme}>
-                        <View style={styles.rootView}>
-                            <GestureHandlerRootView style={{ flex: 1 }}>
-                                {location !== "/" && (
-                                    <Pressable onPress={onBackButton} style={{ alignSelf: 'flex-start', padding: 10, paddingLeft: 25 }}>
-                                        <FontAwesome name='arrow-left' size={40} color="white" />
-                                    </Pressable>
-                                )}
-                                <View style={styles.slotView}>
-                                    <Slot />
-                                </View>
-                            </GestureHandlerRootView>
-                        </View>
-                    </ThemeProvider>
+                    <PaperProvider theme={theme}>
+                        <ThemeProvider value={DarkTheme}>
+                            <View style={styles.rootView}>
+                                <GestureHandlerRootView style={{ flex: 1 }}>
+                                    {location !== "/" && (
+                                        <Pressable onPress={onBackButton} style={{ alignSelf: 'flex-start', padding: 10, paddingLeft: 25 }}>
+                                            <FontAwesome name='arrow-left' size={40} color="white" />
+                                        </Pressable>
+                                    )}
+                                    <View style={styles.slotView}>
+                                        <Slot />
+                                    </View>
+                                </GestureHandlerRootView>
+                            </View>
+                        </ThemeProvider>
+                    </PaperProvider>
                 </SafeAreaView>
             </View>
         </SafeAreaProvider>

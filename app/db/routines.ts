@@ -19,6 +19,11 @@ export const insertRoutines = (routinesP: Array<InsertRoutine>) => {
     // })
 }
 
+export const getRoutinesFromIdsStmt = (ids: number[]) => db().query.routines.findMany({
+    where(fields, operators) { return operators.inArray(fields.id, ids) },
+    with: { tiles: { with: { events: true } } }
+})
+
 export const getRoutines = (callback: ResultCallback<Routine>) => {
     db()
         .select()

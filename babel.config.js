@@ -13,6 +13,11 @@ module.exports = function (api) {
         }
       }],
       ["inline-import", { "extensions": [".sql"] }]
-    ]
+    ],
+    env: {
+      production: {
+        plugins: ['react-native-paper/babel'],
+      },
+    },
   };
 };

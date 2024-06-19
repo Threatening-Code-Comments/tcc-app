@@ -19,6 +19,11 @@ export const getTilesFromIds = (ids: number[], callback: ResultCallback<Tile>) =
     )
 }
 
+export const getTilesFromIdsStmt = (ids: number[]) => db().query.tiles.findMany({
+    where(fields, operators) { return operators.inArray(fields.id, ids) },
+    with: { events: true }
+})
+
 export const updateTile = (tile: Tile, callback: InsertCallback) => {
     db()
         .update(tiles)

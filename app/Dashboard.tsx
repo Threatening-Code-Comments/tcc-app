@@ -3,12 +3,15 @@ import { FlatList, View, Text } from "react-native"
 import { GenericTile } from "./components/tiles/GenericTile"
 import { ElementTypeNames, DashboardEntry, DashboardSetting, ElementType, Page, RoutineOnPage, Tile, RoutineWithTiles } from "./constants/DbTypes"
 import { getDashboardEntries, removeElementFromDashboard } from "./db/dashboard"
-import { getPagesFromIds } from "./db/pages"
+import { getPageByIdStmt, getPagesFromIds } from "./db/pages"
 import { getRoutinesWithTiles } from "./db/routineTiles"
 import { getEventsForTiles } from "./db/tileEvents"
-import { getTilesFromIds } from "./db/tiles"
+import { getTilesFromIds, getTilesFromIdsStmt } from "./db/tiles"
 import { useLiveQuery } from "drizzle-orm/expo-sqlite"
 import { db } from "./db/database"
+import * as schema from "@db/schema"
+import { inArray } from "drizzle-orm"
+import { getRoutinesFromIdsStmt } from "./db/routines"
 
 export type DashboardList = { list: DashboardEntry[], setList: (list: DashboardEntry[]) => void }
 
@@ -27,22 +30,17 @@ export default function Dashboard({ isEditMode = false, dashboardList }: Dashboa
     const [tiles, setTiles] = useState<Tile[]>([])
     const [routines, setRoutines] = useState<RoutineWithTiles[]>([])
     const [pages, setPages] = useState<Page[]>([])
+
+    const { data: tileData } = useLiveQuery(getTilesFromIdsStmt(getIdsForType(ElementTypeNames.Tile)))
+    const { data: routinesData } = useLiveQuery(getRoutinesFromIdsStmt(getIdsForType(ElementTypeNames.Routine)))
+    const { data: pageData } = useLiveQuery(getPageByIdStmt(getIdsForType(ElementTypeNames.Page)))
+
     useEffect(() => {
-        getTilesFromIds(
-            getIdsForType(ElementTypeNames.Tile),
-            (err, res) => (!err) ? setTiles(res) : console.error(err)
-        )
+        setTiles(tileData)
+        setRoutines(routinesData.map(r => ({ ...r, tiles: r.tiles.map(t => ({ ...t, tileId: t.id, routineId: r.id })) })))
+        setPages(pageData)
+    }, [tileData, routinesData, pageData, dashboardList.list])
 
-        getRoutinesWithTiles(
-            getIdsForType(ElementTypeNames.Routine),
-            (err, res) => (!err) ? setRoutines(res) : console.error(err)
-        )
-
-        getPagesFromIds(
-            getIdsForType(ElementTypeNames.Page),
-            (err, res) => (!err) ? setPages(res) : console.error(err)
-        )
-    }, [dashboardList.list])
     useEffect(() => {
         const getElement = ({ elementId, elementType }: DashboardEntry) => {
             switch (elementType) {

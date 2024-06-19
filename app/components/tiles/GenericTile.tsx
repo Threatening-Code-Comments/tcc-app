@@ -94,16 +94,19 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
     const displayModal = () => editElementModal.setVisible(true)
     const editElementModal = useModal<{
         "Name": "string"
+        "Color": "slider-color"
         "Save": "submit"
     }>({
         title: title,
         inputTypes: {
             "Name": { type: "string", value: element.name },
+            "Color": { type: "slider-color", value: element.color },
             "Save": {
                 type: "submit",
                 icon: 'save',
                 onClick: (data) => {
                     element.name = data.Name
+                    element.color = data.Color
                     doAfterEdit(element)
                     saveOnClick()
                     editElementModal.setVisible(false)
@@ -113,7 +116,7 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
     })
 
     return (
-        <View style={{ display: 'flex', flexDirection: "column", flex: getFlex(numColumns), aspectRatio: 1, margin: 5 }}>
+        <View style={{ display: 'flex', flexDirection: "column", flex: getFlex(numColumns), aspectRatio: 1, margin: 8 }}>
             {editElementModal.component}
             <DeleteButton isEditMode={isEditMode} onPress={onPressDelete} />
             <DashboardButton isEditMode={isEditMode} onPress={elementIsOnDashboard ? removeFromDashboard : addToDashboard} isOnDashboard={elementIsOnDashboard} />
