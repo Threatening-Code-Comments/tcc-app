@@ -4,7 +4,7 @@ import { Tile, TileEvent } from '../../constants/DbTypes'
 import { db, InsertCallback } from '../../db/database'
 import { getEventsForTiles, insertTileEvent } from '../../db/tileEvents'
 import { TileProps } from './GenericTile'
-import { tileStyles } from './styles'
+import { newTileStyles, tileStyles } from './styles'
 import { getFlex } from './util'
 import { ComponentTypeDisplay } from './ComponentTypeDisplay'
 import { Icon } from '../Icon'
@@ -13,6 +13,7 @@ import { ColorWithContrast, getColorWithContrast, getRandomColor, getRandomColor
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { tileEvents } from '@app/db/schema'
 import { desc, eq } from 'drizzle-orm'
+import { Card } from 'react-native-paper'
 
 function getDurationFromSecond(seconds: number): string {
     const minutes = Math.floor(seconds / 60)
@@ -83,13 +84,15 @@ export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode,
 
     return (
         <>
-            {/* <ComponentTypeDisplay display={isOnDashboard} text='T' /> */}
-            <Pressable style={[tileStyles.card, { flex: getFlex(numColumns), flexGrow: 1, backgroundColor: color.color }]} onPress={onPress}>
+            <Card style={{
+                ...newTileStyles.pageTile,
+                backgroundColor: color.color,
+            }} onPress={onPress}>
                 <Text style={{ ...tileStyles.name, color: color.contrastColor }}>{tile.name}</Text>
                 <Text style={{ ...tileStyles.info, color: color.contrastColor }}>{tile.events.length}</Text>
 
                 <DurationLastEventDisplay lastEvent={lastEvent} color={color} />
-            </Pressable>
+            </Card>
         </>
     )
 }

@@ -1,9 +1,10 @@
-import { desc, eq, inArray } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import migrations from 'drizzle/migrations'
 import React, { useEffect, useState } from 'react'
-import { AppRegistry, LogBox, Text, View } from 'react-native'
+import { LogBox, View } from 'react-native'
+import { Card, Text } from 'react-native-paper'
 import Dashboard from './Dashboard'
 import PageDisplay from './PageDisplay'
 import { IconButton } from './components/IconButton'
@@ -12,7 +13,7 @@ import { useModal } from './components/modal/Modal'
 import { DashboardEntry, Page } from './constants/DbTypes'
 import { globalStyles } from './constants/global'
 import { db } from './db/database'
-import { deletePage, getPages, insertPages, updatePage } from './db/pages'
+import { deletePage, getPages, insertPages } from './db/pages'
 import * as schema from './db/schema'
 
 const HomePage = () => {
@@ -113,6 +114,24 @@ const HomePage = () => {
             )
     }
 
+    // return (
+    //     <SafeAreaView style={{ flex: 1 }}>
+    //         <Card>
+    //             {/* <Text>Hi</Text> */}
+    //             <Card.Title title="Card Title" subtitle="Card Subtitle" left={p => <Text>{p.size}</Text>} />
+    //             <Card.Content>
+    //                 <Text variant="titleLarge">Card title</Text>
+    //                 <Text variant="bodyMedium">Card content</Text>
+    //             </Card.Content>
+    //             <Card.Cover source={{ uri: 'https://picsum.photos/700' }} />
+    //             <Card.Actions>
+    //                 <Button>Cancel</Button>
+    //                 <Button>Ok</Button>
+    //             </Card.Actions>
+    //         </Card>
+    //     </SafeAreaView>
+    // )
+
     const padding = 5
     return (
         <View style={{ display: "flex", height: "100%" }}>
@@ -129,8 +148,13 @@ const HomePage = () => {
 
             {AddPageModal}
 
-            <View style={{ flexGrow: 1 }}>
-                <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} />
+            <View style={{ flexGrow: 1, margin: 30 }}>
+                <Card elevation={1} >
+                    <Card.Title title="Dashboard" />
+                    <Card.Content>
+                        <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} />
+                    </Card.Content>
+                </Card>
                 {/* <TestComponent elementList={dashboardList} /> */}
             </View>
 
@@ -147,4 +171,4 @@ const HomePage = () => {
     )
 }
 
-// export default HomePage
+export default HomePage

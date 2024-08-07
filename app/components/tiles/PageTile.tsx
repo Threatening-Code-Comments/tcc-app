@@ -1,10 +1,11 @@
 import { default as React, useEffect, useState } from "react"
-import { Text, View } from "react-native"
+import { Text } from "react-native"
+import { Card } from 'react-native-paper'
 import { Page } from "../../constants/DbTypes"
 import { ColorWithContrast, getColorWithContrast } from "../Colors"
 import { TileProps } from "./GenericTile"
-import { tileStyles } from "./styles"
-import { getFlex, LinkOrPressable } from "./util"
+import { newTileStyles, tileStyles } from "./styles"
+import { LinkOrPressable } from "./util"
 
 type PageTileComponentProps = {
     page: Page,
@@ -21,11 +22,13 @@ export const PageTileComponent = ({ page, numColumns, isEditMode, onPressDelete,
     }, [page.color])
 
     return (
-        <View style={{ display: 'flex', flexDirection: 'column', flex: getFlex(numColumns), }}>
-            {/* <ComponentTypeDisplay display={isOnDashboard} text="P" /> */}
-            <LinkOrPressable style={[tileStyles.card, { shadowColor: color.color, zIndex: 1, shadowOpacity: 0.8, elevation: 8 }]} link={`/pages/${page.id}`} isLink={!isEditMode} onPress={onPress}>
+        <Card style={{
+            ...newTileStyles.pageTile,
+            shadowColor: color.color
+        }}>
+            <LinkOrPressable style={newTileStyles.linkOrPressable} link={`/pages/${page.id}`} isLink={!isEditMode} onPress={onPress}>
                 <Text style={{ ...tileStyles.name, color: color.color }}>{page.name}</Text>
             </LinkOrPressable>
-        </View>
+        </Card>
     )
 }

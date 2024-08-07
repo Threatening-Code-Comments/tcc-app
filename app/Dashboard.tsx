@@ -59,12 +59,12 @@ export default function Dashboard({ isEditMode = false, dashboardList }: Dashboa
 
     const numColumns = 4;
     return (<>
-        <View style={{ margin: 10 }}>
-            <View style={{ height: 15, borderColor: 'gray', borderTopWidth: 2, margin: 10, paddingTop: 5 }}>
+        <View style={{width: 100, }} >
+            {/* <View style={{ height: 15, borderColor: 'gray', borderTopWidth: 2, margin: 10, paddingTop: 5 }}>
                 <Text style={{ color: 'white', fontSize: 20, height: 30, textAlign: 'center', fontWeight: 'bold' }}>Dashboard</Text>
-            </View>
+            </View> */}
             <FlatList
-                style={{ marginTop: 10 }}
+                style={{ marginTop: 0 }}
                 data={elements}
                 numColumns={numColumns}
                 renderItem={({ item }) =>

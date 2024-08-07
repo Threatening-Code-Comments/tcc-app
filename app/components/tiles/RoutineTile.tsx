@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View } from 'react-native'
+import { Text } from 'react-native'
+import { Card } from 'react-native-paper'
 import { RoutineOnPage } from '../../constants/DbTypes'
+import { ColorWithContrast, getColorWithContrast } from '../Colors'
 import { TileProps } from './GenericTile'
-import { getFlex, DeleteButton, LinkOrPressable } from './util'
-import { tileStyles } from './styles'
-import { ComponentTypeDisplay } from './ComponentTypeDisplay'
-import { ColorWithContrast, getColorWithContrast, getRandomColorWithContrast } from '../Colors'
-import { IconButton } from '../IconButton'
+import { newTileStyles, tileStyles } from './styles'
+import { LinkOrPressable } from './util'
 
 type RoutineTileComponentProps = {
     routine: RoutineOnPage,
@@ -25,13 +24,14 @@ export const RoutineTileComponent = ({ routine, numColumns, isEditMode, onPressD
     }, [])
 
     return (
-        <View style={{ display: 'flex', flexDirection: 'column', flex: getFlex(numColumns) }}>
-            {/* <ComponentTypeDisplay display={isOnDashboard} text="R" /> */}
-            <DeleteButton isEditMode={isEditMode} onPress={onPressDelete} />
-            <LinkOrPressable style={[tileStyles.card, { borderColor: color.color, borderWidth: 5 }]} link={`/routines/${routine.id}`} isLink={!isEditMode} onPress={onPress} >
+        <Card style={{
+            ...newTileStyles.pageTile,
+            borderColor: color.color, borderWidth: 5,
+        }}>
+            <LinkOrPressable style={newTileStyles.linkOrPressable} link={`/routines/${routine.id}`} isLink={!isEditMode} onPress={onPress} >
                 <Text style={tileStyles.name}>{routine.name}</Text>
                 <Text style={{ ...tileStyles.info, color: color.color }}>Has {length} Tiles</Text>
             </LinkOrPressable>
-        </View>
+        </Card >
     )
 }

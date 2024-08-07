@@ -1,5 +1,19 @@
 import { StyleSheet } from 'react-native'
 
+export const newTileStyles = StyleSheet.create({
+    pageTile: {
+        aspectRatio: 1,
+        display: 'flex', flexDirection: 'column', justifyContent: 'space-around',
+        flex: 1, flexGrow: 1,
+        zIndex: 1, shadowOpacity: 0.8,
+        elevation: 8
+    },
+
+    linkOrPressable: {
+        height: '100%', width: '100%', justifyContent: 'center'
+    }
+})
+
 export const tileStyles = StyleSheet.create({
     card: {
         aspectRatio: 1,
