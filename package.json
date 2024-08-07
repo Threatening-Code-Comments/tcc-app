@@ -5,6 +5,8 @@
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
+    "normal": "expo start --clear --go --platform android",
+    "dev": "APP_VARIANT=development npx expo start",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest"

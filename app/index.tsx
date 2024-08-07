@@ -148,15 +148,15 @@ const HomePage = () => {
 
             {AddPageModal}
 
-            <View style={{ flexGrow: 1, margin: 30 }}>
-                <Card elevation={1} >
-                    <Card.Title title="Dashboard" />
-                    <Card.Content>
-                        <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} />
-                    </Card.Content>
-                </Card>
-                {/* <TestComponent elementList={dashboardList} /> */}
-            </View>
+            {/* <View style={{  }}> */}
+            <Card elevation={1} style={{ flexGrow: 1, margin: 30 }} >
+                {/* <Card.Title title="Dashboard" />
+                <Card.Content> */}
+                    <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} />
+                {/* </Card.Content> */}
+            </Card>
+            {/* <TestComponent elementList={dashboardList} /> */}
+            {/* </View> */}
 
             <View style={{ height: 200, marginTop: "auto" }}>
                 <PageDisplay

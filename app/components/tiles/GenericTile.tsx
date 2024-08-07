@@ -116,7 +116,12 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
     })
 
     return (
-        <View style={{ display: 'flex', flexDirection: "column", flex: getFlex(numColumns), flexGrow: getFlex(numColumns), aspectRatio: 1, margin: 8 }}>
+        <View style={{
+            display: 'flex', flexDirection: "column",
+            flex: getFlex(numColumns), flexGrow: getFlex(numColumns),
+            aspectRatio: 1,
+            margin: 8
+        }}>
             {editElementModal.component}
             <DeleteButton isEditMode={isEditMode} onPress={onPressDelete} />
             <DashboardButton isEditMode={isEditMode} onPress={elementIsOnDashboard ? removeFromDashboard : addToDashboard} isOnDashboard={elementIsOnDashboard} />
