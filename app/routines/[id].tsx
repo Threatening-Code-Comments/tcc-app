@@ -10,6 +10,8 @@ import TitleDisplay from '../components/TitleDisplay'
 import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from '../constants/DbTypes'
 import { globalStyles } from '../constants/global'
 import { getRoutinesWithTiles, insertTilesIntoRoutine } from '../db/routineTiles'
+import { db } from '@app/db/database'
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 
 const RoutineDisplayPage = () => {
   const routineId = +useLocalSearchParams()['id']
@@ -19,21 +21,25 @@ const RoutineDisplayPage = () => {
   const [tiles, setTiles] = useState<Array<TileOfRoutine>>()
   const [isEditMode, setIsEditMode] = useState(false)
 
+
+
+  const { data: routineData } = useLiveQuery(db().query.routines.findFirst({
+    where(fields, operators) {
+      return operators.eq(fields.id, routineId)
+    }, with: {
+      tiles: {
+        with: {
+          events: true
+        }
+      }
+    }
+  }))
   useEffect(() => {
-    updateRoutine()
-  }, [])
-
-  const reloadScreen = () => {
-    router.replace(`/routines/${routineId}`)
-  }
-
-  const updateRoutine = () => {
-    getRoutinesWithTiles([routineId], (_err, res) => {
-      setRoutine(res[0])
-      const tilesOfRoutine = (res[0].tiles.length > 0) ? res[0].tiles : []
-      setTiles(tilesOfRoutine)
-    })
-  }
+    if (!routineData) return
+    const tiles = routineData.tiles.map(t => ({ ...t, tileId: t.id, routineId: routineId }))
+    setRoutine({ ...routineData, tiles: tiles })
+    setTiles(tiles)
+  }, [routineData])
 
   const addTile = (name: string) => {
     const tile: InsertTileOfRoutine = { name: name, mode: 0, rootRoutineId: routineId, routineId: routineId, color: getRandomColor() };
@@ -100,7 +106,7 @@ const RoutineDisplayPage = () => {
               numColumns={tileCols}
               element={test.item}
               isEditMode={isEditMode}
-              doAfterEdit={(tile) => { }}
+              doAfterEdit={() => { }}
               onPressDelete={() => { }}
             />
           }

@@ -4,7 +4,7 @@ export default {
   "name": (IS_DEV) ? "TCC-App (Dev)" : "TCC-App",
   "slug": "tcc_app_rn",
   "scheme": "tcc-app-scheme",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "orientation": "portrait",
   "icon": "./assets/icon.png",
   "userInterfaceStyle": "dark",

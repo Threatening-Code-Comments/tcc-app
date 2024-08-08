@@ -56,7 +56,9 @@ export const TextInput = ({ label, onInputChange, keyProp: key, input, onFocus: 
             alignContent: 'flex-start', justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%',
         }}>
             <View style={{ flexShrink: 1, alignSelf: 'center', marginTop: 35, paddingRight: 12 }}>
-                <Icon iconName='font' iconSize={24} style={{ ...progressStyles }} />
+                <Icon iconName='font' iconSize={24}
+                    // styles={{ ...progressStyles }}
+                />
             </View>
             <View style={{ flexGrow: 10, }}>
                 <TextField
@@ -124,7 +126,8 @@ export const NumberInput = ({ label, onInputChange, input, keyProp: key, onFocus
                 <Icon
                     iconName={"hashtag"}
                     iconSize={24}
-                    style={{ width: 24, height: 24, alignSelf: 'center', marginRight: -5, ...progressStyles }} />
+                // style={{ width: 24, height: 24, alignSelf: 'center', marginRight: -5, ...progressStyles }} 
+                />
             </Animated.View>
             <Animated.View style={{ flexGrow: 10 }}>
                 <TextField
