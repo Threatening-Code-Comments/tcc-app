@@ -37,7 +37,8 @@
     "react-native-screens": "3.31.1",
     "rn-material-ui-textfield": "^1.0.9",
     "ts-node": "^10.9.2",
-    "typescript": "~5.3.3"
+    "typescript": "~5.3.3",
+    "expo-build-properties": "~0.12.5"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

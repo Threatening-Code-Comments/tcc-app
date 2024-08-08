@@ -25,13 +25,26 @@ export default {
       "backgroundColor": "#ffffff"
     },
     "package": "com.threateningcodecomments.tcc_app" + (IS_DEV ? ".dev" : ""),
-    "versionCode": 2
+    "versionCode": 3,
   },
   "web": {
     "favicon": "./assets/favicon.png"
   },
   "plugins": [
-    "expo-router"
+    "expo-router",
+    [
+      "expo-build-properties",
+      {
+        "android": {
+          "compileSdkVersion": 34,
+          "targetSdkVersion": 34,
+          "buildToolsVersion": "34.0.0"
+        },
+        "ios": {
+          "deploymentTarget": "13.4"
+        }
+      }
+    ]
   ],
   "extra": {
     "router": {
