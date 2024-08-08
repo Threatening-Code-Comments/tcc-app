@@ -21,7 +21,7 @@ export const RoutineTileComponent = ({ routine, numColumns, isEditMode, onPressD
     const updateColor = async (c: ColorWithContrast) => { setColor(c) }
     useEffect(() => {
         updateColor(getColorWithContrast(routine.color))
-    }, [])
+    }, [routine.color])
 
     return (
         <Card style={{

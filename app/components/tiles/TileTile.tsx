@@ -80,7 +80,7 @@ export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode,
     const updateColor = async (c: ColorWithContrast) => { setColor(c) }
     useEffect(() => {
         updateColor(getColorWithContrast(tile.color))
-    }, [])
+    }, [tile.color])
 
     return (
         <>

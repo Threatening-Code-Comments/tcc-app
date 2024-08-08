@@ -80,6 +80,7 @@ export const updateRoutine = (routine: Routine, callback: InsertCallback) => {
     db()
         .update(routines)
         .set({ name: routine.name, color: routine.color })
+        .where(eq(routines.id, routine.id))
         .then(
             (r) => callback(null, [r]),
             (e) => callback(e, [])

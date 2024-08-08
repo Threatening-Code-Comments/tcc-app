@@ -14,16 +14,41 @@ import { getRoutinesWithTiles } from '../db/routineTiles'
 import { deleteRoutine } from '../db/routines'
 import { SQLiteRunResult } from 'expo-sqlite'
 import { getRandomColor } from '@app/components/Colors'
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
+import { db } from '@app/db/database'
+import * as schema from '@app/db/schema'
+import { eq } from 'drizzle-orm'
 
 const PageDisplayPage = () => {
     const [page, setPage] = useState<Page>()
     const [routines, setRoutines] = useState<Array<RoutineOnPage>>([])
     const [isEditMode, setIsEditMode] = useState(false)
-    useEffect(() => {
-        updateRoutines()
-    }, [])
+    // useEffect(() => {
+    //     updateRoutines()
+    // }, [])
 
     const id = Number(useLocalSearchParams()['id'])
+
+    const { data: routineData } = useLiveQuery(
+        db().query.routines.findMany({
+            where(fields, operators) {
+                return operators.eq(fields.rootPageId, id)
+            }, with: {
+                tiles: {
+                    with: {
+                        events: true
+                    }
+                }
+            },
+            orderBy: schema.routines.id
+        })
+    )
+    useEffect(() => {
+        setRoutines(routineData.map(r => ({ ...r, pageId: id, routineId: r.id, tiles: r.tiles.map(t => ({ ...t, tileId: t.id, routineId: r.id })) })))
+    }, [routineData])
+    useEffect(() => {
+        console.log("2: ", routines.map(r => ({ name: r.name, tiles: r.tiles.length, id: r.id })))
+    }, [routines])
 
     if (!page) {
         getPageById(id, (err, res) =>
@@ -39,31 +64,6 @@ const PageDisplayPage = () => {
 
             setRoutines([...routines, routineInserted])
         })
-    }
-
-    const updateRoutines = () => {
-        const routinesOfPage: RoutineOnPage[] = []
-        const routinesWithTiles: RoutineWithTiles[] = []
-        getRoutinesForPage(
-            id,
-            (error, res) => {
-                (error) ? console.error("error getting routines") : ""
-
-                routinesOfPage.push(...res)
-
-                getRoutinesWithTiles(routinesOfPage.map(routine => routine.id),
-                    (err, res) => {
-                        routinesWithTiles.push(...res)
-
-                        //iterate over routinesOfPage and insert tiles of corresponding routineWithTiles into the routineOnPage
-                        routinesOfPage.map(routine => {
-                            const tiles = routinesWithTiles.find(r => r.id === routine.id)?.tiles
-                            routine.tiles = (tiles) ? tiles : []
-                        })
-                        // console.log("res with tiles: ", res, " | routines of page: ", routinesOfPage)
-                        setRoutines(routinesOfPage)
-                    })
-            })
     }
 
     const removeRoutine = (routine: RoutineOnPage) => {
@@ -117,6 +117,7 @@ const PageDisplayPage = () => {
         <View style={{ height: 600, padding: 10 }}>
             <FlatList
                 data={routines}
+                extraData={routineData}
                 numColumns={routineCols}
                 renderItem={({ item }) =>
                     <GenericTile
