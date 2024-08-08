@@ -7,6 +7,8 @@
     "android": "expo start --android",
     "normal": "expo start --clear --go --android",
     "dev": "cross-env APP_VARIANT=development npx expo start",
+    "build": "eas build --platform android --local",
+    "buildeas": "eas build --platform android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest"
