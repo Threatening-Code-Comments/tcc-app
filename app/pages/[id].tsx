@@ -46,9 +46,9 @@ const PageDisplayPage = () => {
     useEffect(() => {
         setRoutines(routineData.map(r => ({ ...r, pageId: id, routineId: r.id, tiles: r.tiles.map(t => ({ ...t, tileId: t.id, routineId: r.id })) })))
     }, [routineData])
-    useEffect(() => {
-        console.log("2: ", routines.map(r => ({ name: r.name, tiles: r.tiles.length, id: r.id })))
-    }, [routines])
+    // useEffect(() => {
+    //     console.log("2: ", routines.map(r => ({ name: r.name, tiles: r.tiles.length, id: r.id })))
+    // }, [routines])
 
     if (!page) {
         getPageById(id, (err, res) =>
@@ -56,9 +56,9 @@ const PageDisplayPage = () => {
         )
     }
 
-    const addRoutine = (name: string) => {
-        const routine: InsertRoutineOnPage = { name: name, rootPageId: page.id, pageId: page.id, color: getRandomColor() } //generateRandomRoutine(id)
-
+    const addRoutine = (name: string, color: string) => {
+        const routine: InsertRoutineOnPage = { name: name, rootPageId: page.id, pageId: page.id, color: color } //generateRandomRoutine(id)
+        console.log("color: ", color)
         insertRoutinesOnPage([routine], (err, res) => {
             const routineInserted: RoutineOnPage = { ...routine, id: (res[0] as SQLiteRunResult).lastInsertRowId, routineId: (res[0] as SQLiteRunResult).lastInsertRowId, tiles: [] }
 
@@ -77,6 +77,7 @@ const PageDisplayPage = () => {
 
     const { setVisible, component: ModalComponent } = useModal<{
         "Routine Name": "string"
+        "Color": "slider-color"
         "Add": "submit"
     }>({
         title: "Add Routine",
@@ -84,11 +85,15 @@ const PageDisplayPage = () => {
             "Routine Name": {
                 type: "string"
             },
+            "Color": {
+                type: "slider-color",
+                value: getRandomColor()
+            },
             "Add": {
                 type: "submit",
                 onClick: (data) => {
                     setVisible(false)
-                    addRoutine(data['Routine Name'])
+                    addRoutine(data['Routine Name'], data.Color)
                 },
                 icon: 'plus'
             }

@@ -52,12 +52,17 @@ const RoutineDisplayPage = () => {
 
   const { setVisible, component: AddTileModal } = useModal<{
     "Tile Name": "string",
+    "Color": "slider-color",
     "Add": "submit"
   }>({
     title: "Add Tile",
     inputTypes: {
       "Tile Name": {
         type: "string"
+      },
+      "Color": {
+        type: "slider-color",
+        value: getRandomColor()
       },
       "Add": {
         type: "submit",

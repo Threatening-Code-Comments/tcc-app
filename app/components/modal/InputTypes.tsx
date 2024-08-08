@@ -205,7 +205,7 @@ type SliderColorInputTypes = InputProps & {
     keyProp: string
     onInputChange: ModalInputChangeType<"string", string>
 }
-export const SliderColorInput = ({keyProp: key, onInputChange, input }: SliderColorInputTypes) => {
+export const SliderColorInput = ({ keyProp: key, onInputChange, input }: SliderColorInputTypes) => {
 
     const [color, setColor] = useState(input.value ?? "#FF0000")
     const hue = hexToHue(color)
@@ -215,6 +215,10 @@ export const SliderColorInput = ({keyProp: key, onInputChange, input }: SliderCo
         onInputChange(key, hex)
         setColor(hex)
     }
+
+    useEffect(() => {
+        onInputChange(key, color)
+    }, [])
 
     return (
         <View style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", marginTop: 8 }}>
