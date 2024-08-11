@@ -12,6 +12,8 @@ import { globalStyles } from '../constants/global'
 import { getRoutinesWithTiles, insertTilesIntoRoutine } from '../db/routineTiles'
 import { db } from '@app/db/database'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
+import JLink from '@app/components/JLink'
+import { Text } from 'react-native-paper'
 
 const RoutineDisplayPage = () => {
   const routineId = +useLocalSearchParams()['id']
@@ -91,6 +93,7 @@ const RoutineDisplayPage = () => {
         {/* <IconButton iconName='refresh' text='Refresh' onPress={updateRoutine} type='secondary' /> */}
         <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
         <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
+        <IconButton iconName='list' text='Events' onPress={() => router.push('/events/r' + routineId)} />
       </View>
 
       {AddTileModal}
