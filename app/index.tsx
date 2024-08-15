@@ -12,9 +12,12 @@ import TitleDisplay from './components/TitleDisplay'
 import { useModal } from './components/modal/Modal'
 import { DashboardEntry, Page } from './constants/DbTypes'
 import { globalStyles } from './constants/global'
-import { db } from './db/database'
+import { db, initDb } from './db/database'
 import { deletePage, getPages, insertPages } from './db/pages'
 import * as schema from './db/schema'
+import { router } from 'expo-router'
+import JLink from './components/JLink'
+import { showToast } from './util/comms'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -114,6 +117,15 @@ const HomePage = () => {
             )
     }
 
+    const migrationButton = async () =>{
+        try {
+            await initDb((err, res) => { if (err) showToast(err.message); else showToast("Migration successful"); })
+            showToast("Success, please restart the App.")
+        } catch (e) {
+            console.error("Migration failed!", e)
+        }
+    }
+
     // return (
     //     <SafeAreaView style={{ flex: 1 }}>
     //         <Card>
@@ -144,6 +156,7 @@ const HomePage = () => {
                 <IconButton iconName='arrow-right' text='Migrate' onPress={migrate} /> */}
                 {/* <IconButton iconName='list-ul' text='Events' /> */}
                 {/* <ModalTester /> */}
+                <IconButton iconName='database' text='Migrate' onPress={migrationButton} />
             </View>
 
             {AddPageModal}
@@ -152,7 +165,7 @@ const HomePage = () => {
             <Card elevation={1} style={{ flexGrow: 1, margin: 30 }} >
                 {/* <Card.Title title="Dashboard" />
                 <Card.Content> */}
-                    <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} />
+                <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} />
                 {/* </Card.Content> */}
             </Card>
             {/* <TestComponent elementList={dashboardList} /> */}

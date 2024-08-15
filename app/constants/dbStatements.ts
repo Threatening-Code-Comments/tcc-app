@@ -3,7 +3,8 @@ export const pagesStatements = {
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL
         );`,
-    findAll: `SELECT * FROM pages`
+    findAll: `SELECT * FROM pages`,
+    name: 'pages'
 }
 
 export const routinesStatements = {
@@ -13,7 +14,8 @@ export const routinesStatements = {
         );`,
     findAll: `SELECT * FROM routines`,
     update: `UPDATE routines SET name = ? WHERE id = ?`,
-    delete: `DELETE FROM routines WHERE id = ?`
+    delete: `DELETE FROM routines WHERE id = ?`,
+    name: 'routines'
 }
 
 export const pageRoutinesStatements = {
@@ -28,7 +30,8 @@ export const pageRoutinesStatements = {
         FOREIGN KEY (pageId) REFERENCES pages(id),
         FOREIGN KEY (routineId) REFERENCES routines(id)
     );`,
-    findAll: `SELECT * FROM page_routines`
+    findAll: `SELECT * FROM page_routines`,
+    name: 'page_routines'
 }
 
 export const tilesStatements = {
@@ -38,7 +41,9 @@ export const tilesStatements = {
         mode INTEGER NOT NULL,
         rootRoutineId INTEGER NOT NULL,
         FOREIGN KEY (rootRoutineId) REFERENCES routines(id)
-    );`
+    );`,
+    findAll: `SELECT * FROM tiles`,
+    name: 'tiles'
 }
 
 export const routineTilesStatements = {
@@ -52,7 +57,9 @@ export const routineTilesStatements = {
         CONSTRAINT PK_routineTiles PRIMARY KEY (tileId,routineId),
         FOREIGN KEY (tileId) REFERENCES tiles(id),
         FOREIGN KEY (routineId) REFERENCES routines(id)
-    );`
+    );`,
+    findAll: `SELECT * FROM routine_tiles`,
+    name: 'routine_tiles'
 }
 
 export const tileEventsStatements = {
@@ -62,7 +69,9 @@ export const tileEventsStatements = {
         timestamp DATETIME NOT NULL,
         data TEXT NOT NULL,
         FOREIGN KEY (tileId) REFERENCES tiles(id)
-    );`
+    );`,
+    findAll: `SELECT * FROM tile_events`,
+    name: 'tile_events'
 }
 
 export const dashboardStatements = {
@@ -74,15 +83,19 @@ export const dashboardStatements = {
         spanX INTEGER NOT NULL,
         spanY INTEGER NOT NULL,
         PRIMARY KEY(elementId, elementType)
-    );`
+    );`,
+    findAll: `SELECT * FROM dashboard`,
+    name: 'dashboard'
 }
 
 export const dashboardSettingsStatements = {
-    create : `CREATE TABLE IF NOT EXISTS dashboard_settings (
+    create: `CREATE TABLE IF NOT EXISTS dashboard_settings (
         elementId INTEGER NOT NULL,
         elementType TEXT NOT NULL,
         settingsType TEXT NOT NULL,
         settingsValue TEXT NOT NULL,
         FOREIGN KEY(elementId, elementType) REFERENCES dashboard(elementId, elementType)
-    );`
+    );`,
+    findAll: `SELECT * FROM dashboard_settings`,
+    name: 'dashboard_settings'
 }
