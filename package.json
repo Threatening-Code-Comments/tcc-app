@@ -11,7 +11,8 @@
     "buildeas": "npx eas build --platform android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest"
+    "test": "jest",
+    "update": "eas update --branch preview --message "
   },
   "dependencies": {
     "@react-native-community/slider": "^4.5.2",
