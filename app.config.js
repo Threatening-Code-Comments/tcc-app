@@ -65,7 +65,10 @@ export default {
         "android": {
           "compileSdkVersion": 34,
           "targetSdkVersion": 34,
-          "buildToolsVersion": "34.0.0"
+          "buildToolsVersion": "34.0.0",
+          "enableProguardInReleaseBuilds": true,
+          "enableShrinkResourcesInReleaseBuilds": true
+
         },
         "ios": {
           "deploymentTarget": "13.4"
