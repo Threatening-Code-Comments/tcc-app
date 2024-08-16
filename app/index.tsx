@@ -117,12 +117,12 @@ const HomePage = () => {
             )
     }
 
-    const migrationButton = async () =>{
+    const migrationButton = async () => {
         try {
-            await initDb((err, res) => { if (err) showToast(err.message); else showToast("Migration successful"); })
-            showToast("Success, please restart the App.")
+            await initDb((err, res) => { if (err) showToast(err.message); else showToast("Migration abgeschlossen."); })
+            showToast("Erfolg, bitte App neustarten..")
         } catch (e) {
-            console.error("Migration failed!", e)
+            console.error("Migration Fehlgeschlagen!", e)
         }
     }
 
