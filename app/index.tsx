@@ -156,7 +156,7 @@ const HomePage = () => {
                 <IconButton iconName='arrow-right' text='Migrate' onPress={migrate} /> */}
                 {/* <IconButton iconName='list-ul' text='Events' /> */}
                 {/* <ModalTester /> */}
-                {/* <IconButton iconName='database' text='Migrate' onPress={migrationButton} /> */}
+                <IconButton iconName='database' text='Migrate' onPress={migrationButton} />
             </View>
 
             {AddPageModal}
