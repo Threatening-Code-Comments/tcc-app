@@ -1,17 +1,44 @@
 const IS_DEV = process.env.APP_VARIANT === 'development';
+const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
+
+const APP_NAME = "TCC-App";
+const PACKAGE_NAME = "com.threateningcodecomments.tcc_app";
+
+const APP_VERSION = "1.2.1";
+const VERSION_NUMBER = 4
+
+const getAppName = () => {
+  if (IS_DEV) {
+    return `${APP_NAME} (Dev)`;
+  } else if (IS_PREVIEW) {
+    return `${APP_NAME} (Preview)`;
+  } else {
+    return APP_NAME;
+  }
+}
+
+const getPackageName = () => {
+  if (IS_DEV) {
+    return `${PACKAGE_NAME}.dev`;
+  } else if (IS_PREVIEW) {
+    return `${PACKAGE_NAME}.preview`;
+  } else {
+    return PACKAGE_NAME;
+  }
+}
 
 export default {
-  "name": (IS_DEV) ? "TCC-App (Dev)" : "TCC-App",
+  "name": getAppName(),
   "slug": "tcc_app_rn",
   "scheme": "tcc-app-scheme",
-  "version": "1.2.0",
+  "version": APP_VERSION,
   "orientation": "portrait",
   "icon": "./assets/icon.png",
   "userInterfaceStyle": "dark",
   "splash": {
     "image": "./assets/splash.png",
     "resizeMode": "contain",
-    "backgroundColor": "#ffffff"
+    "backgroundColor": "#242424"
   },
   "assetBundlePatterns": [
     "**/*"
@@ -22,13 +49,13 @@ export default {
   "android": {
     "adaptiveIcon": {
       "foregroundImage": "./assets/adaptive-icon.png",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#242424"
     },
-    "package": "com.threateningcodecomments.tcc_app" + (IS_DEV ? ".dev" : ""),
-    "versionCode": 3,
+    "package": getPackageName(),
+    "versionCode": VERSION_NUMBER
   },
   "web": {
-    "favicon": "./assets/favicon.png"
+    "favicon": "./assets/icon.png"
   },
   "plugins": [
     "expo-router",
