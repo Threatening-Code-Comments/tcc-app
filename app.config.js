@@ -53,5 +53,11 @@ export default {
     "eas": {
       "projectId": "ee880685-abce-4b8e-8fbe-0409c593ae63"
     }
+  },
+  "updates": {
+    "url": "https://u.expo.dev/ee880685-abce-4b8e-8fbe-0409c593ae63"
+  },
+  "runtimeVersion": {
+    "policy": "appVersion"
   }
 }
