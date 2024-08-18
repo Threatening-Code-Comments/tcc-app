@@ -4,8 +4,8 @@ import { Animated, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } fro
 import { ButtonType, colors, globalStyles } from '../constants/global'
 import { Icon } from './Icon'
 import { IconButton as PaperButton } from 'react-native-paper'
+import { IconName } from '@app/constants/iconNames'
 
-export type IconName = keyof typeof FontAwesome.glyphMap
 type IconButtonProps = {
     iconName: IconName,
     text?: string,

@@ -150,13 +150,13 @@ const HomePage = () => {
             <TitleDisplay text='Welcome!' secondaryText={`You have ${pages.length} pages.`} height={100} />
 
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
-                <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
+                <IconButton iconName='add' text='Add' onPress={() => setVisible(true)} />
                 <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
                 {/* <IconButton iconName='question' text='Query' onPress={() => getPagesFromIds([1], (err, res) => console.log("tiles:", res))} />
                 <IconButton iconName='arrow-right' text='Migrate' onPress={migrate} /> */}
                 {/* <IconButton iconName='list-ul' text='Events' /> */}
                 {/* <ModalTester /> */}
-                <IconButton iconName='database' text='Migrate' onPress={migrationButton} />
+                <IconButton iconName='db' text='Migrate' onPress={migrationButton} />
             </View>
 
             {AddPageModal}

@@ -107,7 +107,7 @@ const PageDisplayPage = () => {
 
         <View style={styles.buttonContainerContainer}>
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end' }]}>
-                <IconButton iconName='plus' text='Add' onPress={() => { setVisible(true) }} />
+                <IconButton iconName='add' text='Add' onPress={() => { setVisible(true) }} />
                 <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={(isEditMode) ? 'secondary' : 'primary'} />
             </View>
 

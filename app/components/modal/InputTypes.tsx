@@ -6,11 +6,12 @@ import Animated, { interpolateColor, useAnimatedStyle, useDerivedValue, useShare
 import { TextField } from 'rn-material-ui-textfield'
 import { colors } from '../../constants/global'
 import { Icon } from '../Icon'
-import { IconButton, IconName } from '../IconButton'
+import { IconButton } from '../IconButton'
 import { modalStyles } from './ModalStyles'
 import { ModalInputChangeType, UseModalNumberType, UseModalSelectType, UseModalSliderColorType, UseModalStringType } from './ModalTypeDefs'
 import Slider from '@react-native-community/slider'
 import { hexToHue, hsvToHex } from '../Colors'
+import { IconName } from '@app/constants/iconNames'
 
 const inputMarginTop = -10
 
@@ -56,8 +57,8 @@ export const TextInput = ({ label, onInputChange, keyProp: key, input, onFocus: 
             alignContent: 'flex-start', justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%',
         }}>
             <View style={{ flexShrink: 1, alignSelf: 'center', marginTop: 35, paddingRight: 12 }}>
-                <Icon iconName='font' iconSize={24}
-                    // styles={{ ...progressStyles }}
+                <Icon iconName='text' iconSize={24}
+                // styles={{ ...progressStyles }}
                 />
             </View>
             <View style={{ flexGrow: 10, }}>
@@ -124,7 +125,7 @@ export const NumberInput = ({ label, onInputChange, input, keyProp: key, onFocus
         }}>
             <Animated.View style={{ flexShrink: 1, alignSelf: 'center', marginTop: 35, paddingRight: 12 }}>
                 <Icon
-                    iconName={"hashtag"}
+                    iconName='numeric'
                     iconSize={24}
                 // style={{ width: 24, height: 24, alignSelf: 'center', marginRight: -5, ...progressStyles }} 
                 />

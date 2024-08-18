@@ -91,9 +91,9 @@ const RoutineDisplayPage = () => {
 
       <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
         {/* <IconButton iconName='refresh' text='Refresh' onPress={updateRoutine} type='secondary' /> */}
-        <IconButton iconName='plus' text='Add' onPress={() => setVisible(true)} />
+        <IconButton iconName='add' text='Add' onPress={() => setVisible(true)} />
         <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
-        {/* <IconButton iconName='list' text='Events' onPress={() => router.push('/events/r' + routineId)} /> */}
+        <IconButton iconName='list' text='Events' onPress={() => router.push('/events/r' + routineId)} />
       </View>
 
       {AddTileModal}

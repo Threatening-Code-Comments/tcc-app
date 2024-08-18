@@ -1,5 +1,5 @@
+import { IconName } from "@app/constants/iconNames"
 import { ReactNode } from "react"
-import { IconName } from "../IconButton"
 
 export type UseModalInputType3 = "string" | "number" | "select" | "button" | "submit" | "slider-color"
 

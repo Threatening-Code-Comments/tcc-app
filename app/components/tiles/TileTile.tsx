@@ -1,19 +1,16 @@
-import React, { useEffect, useState } from 'react'
-import { Pressable, Text, View } from 'react-native'
-import { Tile, TileEvent } from '../../constants/DbTypes'
-import { db, InsertCallback } from '../../db/database'
-import { getEventsForTiles, insertTileEvent } from '../../db/tileEvents'
-import { TileProps } from './GenericTile'
-import { newTileStyles, tileStyles } from './styles'
-import { getFlex } from './util'
-import { ComponentTypeDisplay } from './ComponentTypeDisplay'
-import { Icon } from '../Icon'
-import { hsvToColor } from 'react-native-reanimated/lib/typescript/reanimated2/Colors'
-import { ColorWithContrast, getColorWithContrast, getRandomColor, getRandomColorWithContrast } from '../Colors'
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { tileEvents } from '@app/db/schema'
 import { desc, eq } from 'drizzle-orm'
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
+import React, { useEffect, useState } from 'react'
+import { Text, View } from 'react-native'
 import { Card } from 'react-native-paper'
+import { Tile, TileEvent } from '../../constants/DbTypes'
+import { db, InsertCallback } from '../../db/database'
+import { insertTileEvent } from '../../db/tileEvents'
+import { ColorWithContrast, getColorWithContrast } from '../Colors'
+import { Icon } from '../Icon'
+import { TileProps } from './GenericTile'
+import { newTileStyles, tileStyles } from './styles'
 
 function getDurationFromSecond(seconds: number): string {
     const minutes = Math.floor(seconds / 60)
@@ -115,7 +112,7 @@ const DurationLastEventDisplay: React.FC<{ lastEvent: TileEvent, color: ColorWit
     return (
         <View style={tileStyles.infoContainer}>
             <Text style={{ ...tileStyles.info2, color: color.contrastColor }}>{lastEvent ? getDurationText(lastEvent) : "no events"}</Text>
-            <Icon styles={tileStyles.infoIcon} iconName={"clock-o"} iconSize={15} color={color.contrastColor} />
+            <Icon styles={tileStyles.infoIcon} iconName={"clockOutline"} iconSize={15} color={color.contrastColor} />
         </View>
     )
 }
