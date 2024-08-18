@@ -3,9 +3,9 @@
   "version": "1.1.0",
   "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "normal": "expo start --clear --go --android",
+    "start": "cross-env APP_VARIANT=development expo start",
+    "android": "cross-env APP_VARIANT=development expo start --android",
+    "normal": "cross-env APP_VARIANT=development expo start --clear --go --android",
     "dev": "cross-env APP_VARIANT=development npx expo start",
     "build": "npx eas build --platform android --local",
     "buildeas": "npx eas build --platform android",
