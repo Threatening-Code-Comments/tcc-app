@@ -2,17 +2,20 @@ import { getColorWithContrast } from '@app/components/Colors'
 import { Icon } from '@app/components/Icon'
 import { IconButton } from '@app/components/IconButton'
 import { Tile, TileEvent } from '@app/constants/DbTypes'
+import { updateTileEvent } from '@app/db/tileEvents'
 import { showToast } from '@app/util/comms'
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Button, Card, Text } from 'react-native-paper'
+import { TimePickerModal } from 'react-native-paper-dates'
 
 type EventDayMap = Map<string, TileEvent[]>
 
 type TileEventCardProps = {
-    tile: Tile
+    tile: Tile,
+    editEvent: (e: TileEvent) => void
 }
-const TileEventCard = ({ tile }: TileEventCardProps) => {
+const TileEventCard = ({ tile, editEvent }: TileEventCardProps) => {
     const [events, setEvents] = useState<EventDayMap>(new Map())
     useEffect(() => {
         const eventCopy = new Map()
@@ -31,7 +34,7 @@ const TileEventCard = ({ tile }: TileEventCardProps) => {
             <Card.Content>
                 {Array.from(events.values()).map((v, i) => {
                     return <View key={"eventdisplay" + v} style={{ margin: 8 }}>
-                        <EventDayDisplay events={v} />
+                        <EventDayDisplay events={v} editEvent={editEvent} />
                     </View>
                 })}
             </Card.Content>
@@ -61,7 +64,7 @@ const formatTimestamp = (timestamp: Date) => {
 
 export default TileEventCard
 
-const EventDayDisplay = ({ events }: { events: TileEvent[] }) => {
+const EventDayDisplay = ({ events, editEvent }: { events: TileEvent[], editEvent: (e: TileEvent) => void }) => {
     const [expanded, setExpanded] = useState(false)
 
     if (!events || events.length === 0 || events[0] === undefined) { console.log("returning :("); return null; }
@@ -75,6 +78,7 @@ const EventDayDisplay = ({ events }: { events: TileEvent[] }) => {
 
     return (
         <Card elevation={5}>
+
             <View style={{
                 ...dayDisplayStyles.container,
                 ...((expanded) ? greyBorder : {})
@@ -97,7 +101,7 @@ const EventDayDisplay = ({ events }: { events: TileEvent[] }) => {
                         key={i + e.timestamp.toISOString() + e.tileId}
                     >
                         <Text style={dayDisplayStyles.eventText} >{formatTimestamp(e.timestamp).slice(7)}</Text>
-                        <IconButton style={{ ...dayDisplayStyles.button, backgroundColor: 'blue' }} iconName='edit' onPress={() => showToast('Edit!')} />
+                        <IconButton style={{ ...dayDisplayStyles.button, backgroundColor: 'blue' }} iconName='edit' onPress={() => editEvent(e)} />
                         {/* <View style={{ ...dayDisplayStyles.button, backgroundColor: 'blue' }} /> */}
                         {/* <View style={{ ...dayDisplayStyles.button, backgroundColor: 'red' }} /> */}
                         <IconButton style={{ ...dayDisplayStyles.button, backgroundColor: 'red' }} type='error' iconName='delete' onPress={() => showToast('Delete!')} />
@@ -140,7 +144,7 @@ const dayDisplayStyles = StyleSheet.create({
         textAlign: 'center',
         alignSelf: 'center'
     }, button: {
-        width: dateHeight, height: dateHeight,
+        width: 45, height: 45,
         alignSelf: 'center',
         flexGrow: 1,
     }
