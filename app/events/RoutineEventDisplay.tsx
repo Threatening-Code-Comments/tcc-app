@@ -35,8 +35,8 @@ export const RoutineEventDisplay = ({ routineId }: RoutineEventDisplayProps) => 
 
     return (
         <>
-            <View style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: 5 }}>
-                {routine.tiles.map(t => (<TileEventCard key={t.id + t.name} tile={t} />))}
+            <View style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: 5, marginHorizontal: 15 }}>
+                {routine.tiles.map(t => ((t.events.length > 0) ? <TileEventCard key={t.id + t.name} tile={t} /> : null))}
             </View>
         </>
     )
