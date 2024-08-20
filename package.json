@@ -12,7 +12,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "update": "eas update --branch preview"
+    "update": "eas update --branch preview -p android"
   },
   "dependencies": {
     "@react-native-community/slider": "^4.5.2",
