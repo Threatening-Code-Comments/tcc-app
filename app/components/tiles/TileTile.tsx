@@ -11,6 +11,7 @@ import { ColorWithContrast, getColorWithContrast } from '../Colors'
 import { Icon } from '../Icon'
 import { TileProps } from './GenericTile'
 import { newTileStyles, tileStyles } from './styles'
+import { showToast } from '@app/util/comms'
 
 function getDurationFromSecond(seconds: number): string {
     const minutes = Math.floor(seconds / 60)
@@ -50,6 +51,7 @@ type TileComponentProps = {
     isOnDashboard?: boolean
 } & TileProps
 export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode, isOnDashboard = false }: TileComponentProps) => {
+    const [pressable, setPressable] = useState(true)
     const [lastEvent, setLastEvent] = useState<TileEvent>()
     const { data: events } = useLiveQuery(db().select().from(tileEvents).where(eq(tileEvents.tileId, tile.id)).orderBy(desc(tileEvents.timestamp)))
     useEffect(() => {
@@ -57,11 +59,22 @@ export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode,
     }, [events])
 
     const addToCounter = () => {
+        if (!pressable) {
+            return
+        }
+        setPressable(false)
+
         const callback: InsertCallback = (err, res) => {
             if (err) {
-                console.error("Error inserting tile event: ", err)
+                // console.error("Error inserting tile event: ", err)
+                showToast("Error inserting tile event")
             } else {
-                console.info("Inserted tile event: ", res)
+                // console.info("Inserted tile event: ", res)
+                showToast("Inserted tile event")
+
+                window.setTimeout(()=>{
+                    setPressable(true)
+                }, 750)
 
                 tile.events.push(event)
             }
