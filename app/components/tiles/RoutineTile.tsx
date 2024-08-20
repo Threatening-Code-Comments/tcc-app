@@ -30,7 +30,7 @@ export const RoutineTileComponent = ({ routine, numColumns, isEditMode, onPressD
         }}>
             <LinkOrPressable style={newTileStyles.linkOrPressable} link={`/routines/${routine.id}`} isLink={!isEditMode} onPress={onPress} >
                 <Text style={tileStyles.name}>{routine.name}</Text>
-                <Text style={{ ...tileStyles.info, color: color.color }}>Has {length} Tiles</Text>
+                <Text style={{ ...tileStyles.info, color: color.color }}>{length} Tiles</Text>
             </LinkOrPressable>
         </Card >
     )
