@@ -27,6 +27,7 @@ export const RoutineTileComponent = ({ routine, numColumns, isEditMode, onPressD
         <Card style={{
             ...newTileStyles.pageTile,
             borderColor: color.color, borderWidth: 5,
+            margin: -2.5
         }}>
             <LinkOrPressable style={newTileStyles.linkOrPressable} link={`/routines/${routine.id}`} isLink={!isEditMode} onPress={onPress} >
                 <Text style={tileStyles.name}>{routine.name}</Text>
