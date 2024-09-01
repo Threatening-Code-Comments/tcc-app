@@ -43,9 +43,9 @@ export default {
   "assetBundlePatterns": [
     "**/*"
   ],
-  "ios": {
-    "supportsTablet": true
-  },
+  // "ios": {
+  //   "supportsTablet": true
+  // },
   "android": {
     "adaptiveIcon": {
       "foregroundImage": "./assets/adaptive-icon.png",
@@ -54,9 +54,9 @@ export default {
     "package": getPackageName(),
     "versionCode": VERSION_NUMBER
   },
-  "web": {
-    "favicon": "./assets/icon.png"
-  },
+  // "web": {
+  //   "favicon": "./assets/icon.png"
+  // },
   "plugins": [
     "expo-router",
     [
