@@ -70,10 +70,9 @@ export const deleteChildrenOfRoutine = async (routineId: number) => {
     })
 
     const tileIds = tilesFromDb.map(tile => tile.id)
-    const eventIds = tilesFromDb.map(tile => tile.events.map(e => e.eventId)).flat()
 
     await db().delete(tiles).where(inArray(tiles.id, tileIds))
-    await db().delete(tileEvents).where(inArray(tileEvents.eventId, eventIds))
+    await db().delete(tileEvents).where(inArray(tileEvents.tileId, tileIds))
     await db().delete(dashboard).where(
         and(
             eq(dashboard.elementType, ElementTypeNames.Page),
