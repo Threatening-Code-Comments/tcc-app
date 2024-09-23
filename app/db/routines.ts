@@ -1,7 +1,7 @@
-import { eq, inArray } from "drizzle-orm";
-import { InsertRoutine, Routine } from "../constants/DbTypes";
+import { and, eq, inArray } from "drizzle-orm";
+import { ElementTypeNames, InsertRoutine, Routine } from "../constants/DbTypes";
 import { InsertCallback, ResultCallback, db } from "./database";
-import { routines, tileEvents, tiles } from "./schema";
+import { dashboard, routines, tileEvents, tiles } from "./schema";
 
 export const insertRoutines = (routinesP: Array<InsertRoutine>) => {
     db()
@@ -74,6 +74,11 @@ export const deleteChildrenOfRoutine = async (routineId: number) => {
 
     await db().delete(tiles).where(inArray(tiles.id, tileIds))
     await db().delete(tileEvents).where(inArray(tileEvents.eventId, eventIds))
+    await db().delete(dashboard).where(
+        and(
+            eq(dashboard.elementType, ElementTypeNames.Page),
+            eq(dashboard.elementId, routineId)
+        ))
 }
 export const deleteRoutine = (routine: Routine, callback: InsertCallback) => {
     deleteChildrenOfRoutine(routine.id)
