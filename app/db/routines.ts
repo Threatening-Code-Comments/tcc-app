@@ -1,7 +1,7 @@
-import { eq, inArray } from "drizzle-orm";
-import { InsertRoutine, Routine } from "../constants/DbTypes";
+import { and, eq, inArray } from "drizzle-orm";
+import { ElementTypeNames, InsertRoutine, Routine } from "../constants/DbTypes";
 import { InsertCallback, ResultCallback, db } from "./database";
-import { routines } from "./schema";
+import { dashboard, routines, tileEvents, tiles } from "./schema";
 
 export const insertRoutines = (routinesP: Array<InsertRoutine>) => {
     db()
@@ -62,7 +62,25 @@ export const getRoutinesFromIds = (ids: number[], callback: ResultCallback<Routi
     //     .then(routines => callback(null, routines))
 }
 
+export const deleteChildrenOfRoutine = async (routineId: number) => {
+    const tilesFromDb = await db().query.tiles.findMany({
+        with: { events: true }, where(fields, operators) {
+            return operators.eq(fields.rootRoutineId, routineId)
+        },
+    })
+
+    const tileIds = tilesFromDb.map(tile => tile.id)
+
+    await db().delete(tiles).where(inArray(tiles.id, tileIds))
+    await db().delete(tileEvents).where(inArray(tileEvents.tileId, tileIds))
+    await db().delete(dashboard).where(
+        and(
+            eq(dashboard.elementType, ElementTypeNames.Page),
+            eq(dashboard.elementId, routineId)
+        ))
+}
 export const deleteRoutine = (routine: Routine, callback: InsertCallback) => {
+    deleteChildrenOfRoutine(routine.id)
     db()
         .delete(routines)
         .where(eq(routines.id, routine.id))

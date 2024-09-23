@@ -14,7 +14,8 @@ import { newTileStyles, tileStyles } from './styles'
 import { showToast } from '@app/util/comms'
 
 function getDurationFromSecond(seconds: number): string {
-    const minutes = Math.floor(seconds / 60)
+    const floor = (i: number) => Math.floor(i)
+    const minutes = floor(seconds / 60)
 
     if (seconds < 0) {
         return ""
@@ -25,22 +26,25 @@ function getDurationFromSecond(seconds: number): string {
     }
 
     if (minutes < 60) {
-        return `${minutes}min`
+        const rest = seconds - minutes * 60
+        return `${minutes}min ${floor(rest)}s`
     }
 
-    const hours = Math.floor(minutes / 60)
+    const hours = floor(minutes / 60)
     if (hours < 24) {
-        return `${hours}h`
+        const rest = minutes - hours * 60
+        return `${hours}h ${floor(rest)}min`
     }
 
-    const days = Math.floor(hours / 24)
+    const days = floor(hours / 24)
     if (days < 30) {
-        return `${days}d`
+        const rest = hours - days * 24
+        return `${days}d ${floor(rest)}`
     }
 
     const months = Math.floor(days / 30)
     if (months < 12) {
-        return `${months}m, ${hours % 24}d`
+        return `${months}m, ${floor(hours % 24)}d`
     }
 }
 
@@ -72,7 +76,7 @@ export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode,
                 // console.info("Inserted tile event: ", res)
                 showToast("Inserted tile event")
 
-                window.setTimeout(()=>{
+                window.setTimeout(() => {
                     setPressable(true)
                 }, 750)
 

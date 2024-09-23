@@ -1,7 +1,7 @@
-import { eq, inArray } from "drizzle-orm"
-import { InsertPage, Page } from "../constants/DbTypes"
+import { and, eq, inArray } from "drizzle-orm"
+import { ElementTypeNames, InsertPage, Page } from "../constants/DbTypes"
 import { InsertCallback, ResultCallback, db } from "./database"
-import { pages } from "./schema"
+import { dashboard, pages, routines, tileEvents, tiles } from "./schema"
 
 export const getPages = (callback: ResultCallback<Page>) => {
     db()
@@ -14,7 +14,7 @@ export const getPages = (callback: ResultCallback<Page>) => {
 }
 
 export const getPageByIdStmt = (ids: number[]) => db().query.pages.findMany({
-    where(fields, operators){
+    where(fields, operators) {
         return operators.inArray(fields.id, ids)
     }, with: {
         routines: true
@@ -86,7 +86,27 @@ export const insertPages = (pagesP: Array<InsertPage>, callback: InsertCallback)
     //     })
 }
 
+export const deleteChildrenOfPage = async (pageId: number) => {
+    const routinesFromDb = await db().query.routines.findMany({
+        with: { tiles: { with: { events: true } } }, where(fields, operators) {
+            return operators.eq(fields.rootPageId, pageId)
+        },
+    })
+
+    const routineIds = routinesFromDb.map(r => r.id)
+    const tileIds = routinesFromDb.map(r => r.tiles.map(t => t.id)).flat()
+
+    await db().delete(routines).where(inArray(routines.id, routineIds))
+    await db().delete(tiles).where(inArray(tiles.id, tileIds))
+    await db().delete(tileEvents).where(inArray(tileEvents.tileId, tileIds))
+    await db().delete(dashboard).where(
+        and(
+            eq(dashboard.elementType, ElementTypeNames.Page),
+            eq(dashboard.elementId, pageId)
+        ))
+}
 export const deletePage = (page: Page, callback: InsertCallback) => {
+    deleteChildrenOfPage(page.id)
     db()
         .delete(pages)
         .where(eq(pages.id, page.id))

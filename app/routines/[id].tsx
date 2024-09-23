@@ -7,13 +7,14 @@ import { IconButton } from '../components/IconButton'
 import { useModal } from '../components/modal/Modal'
 import { GenericTile } from '../components/tiles/GenericTile'
 import TitleDisplay from '../components/TitleDisplay'
-import { InsertTileOfRoutine, RoutineWithTiles, TileOfRoutine } from '../constants/DbTypes'
+import { InsertTileOfRoutine, RoutineWithTiles, Tile, TileOfRoutine } from '../constants/DbTypes'
 import { globalStyles } from '../constants/global'
 import { getRoutinesWithTiles, insertTilesIntoRoutine } from '../db/routineTiles'
 import { db } from '@app/db/database'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import JLink from '@app/components/JLink'
 import { Text } from 'react-native-paper'
+import { deleteTile } from '@app/db/tiles'
 
 const RoutineDisplayPage = () => {
   const routineId = +useLocalSearchParams()['id']
@@ -77,10 +78,21 @@ const RoutineDisplayPage = () => {
         onClick: (data) => {
           addTile(data['Tile Name'])
         },
-        icon: 'plus'
+        icon: 'add'
       }
     }
   })
+  const deleteTileFromRoutine = (tile: Tile)=>{
+    deleteTile(tile, 
+      (e, r)=>{
+        if(e){
+          console.error("Failed to delete tile.")
+        }else{
+          setTiles(p=>[...p.filter(t=>t.id != tile.id)])
+        }
+      }
+    )
+  }
 
   const tileCols = 3
   const routineName = (routine) ? routine.name : "Routine"
@@ -110,7 +122,7 @@ const RoutineDisplayPage = () => {
               element={test.item}
               isEditMode={isEditMode}
               doAfterEdit={() => { }}
-              onPressDelete={() => { }}
+              onPressDelete={() => { deleteTileFromRoutine(test.item) }}
             />
           }
         />
