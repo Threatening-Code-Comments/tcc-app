@@ -1,5 +1,5 @@
 import { getRandomColor } from '@app/components/Colors';
-import { ElementTypeNames } from '@app/constants/DbTypes';
+import { DashboardEntry, ElementTypeNames, Page, Routine, Tile, TileEvent } from '@app/constants/DbTypes';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import * as SQLite from 'expo-sqlite';
 import { dashboardSettingsStatements, dashboardStatements, pageRoutinesStatements, pagesStatements, routineTilesStatements, routinesStatements, tileEventsStatements, tilesStatements } from "../constants/dbStatements";
@@ -29,6 +29,33 @@ export const escapeQuery = <T>(query: string, args: T[], transform?: (T) => stri
         query = query.replace('?', `'${argToEscape}'`)
     }
     return query
+}
+
+export type DbExportType = {
+    pages: Page[],
+    routines: (Routine & { rootPageId: number })[],
+    tiles: Tile[],
+    tileEvents: TileEvent[],
+    dashboard: (DashboardEntry & {
+        posX: number,
+        posY: number,
+        spanX: number,
+        spanY: number,
+        element: {
+            id: number,
+            name: string,
+            color: string,
+        }
+    })[]
+}
+export const getAllAsObject = async (): Promise<DbExportType> => {
+    const pages = await db().select().from(schema.pages)
+    const routines = (await db().query.routines.findMany({ with: { rootPage: true } }))
+    const tiles = (await db().query.tiles.findMany({ with: { events: true } }))
+    const tileEvents = tiles.map(t=>t.events).flat()
+    const dashboard = (await db().query.dashboard.findMany({ with: { element: true } }))
+
+    return { pages, routines, tiles, tileEvents, dashboard }
 }
 
 export enum DbErrors {

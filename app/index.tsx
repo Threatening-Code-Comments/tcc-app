@@ -3,21 +3,22 @@ import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
 import migrations from 'drizzle/migrations'
 import React, { useEffect, useState } from 'react'
-import { LogBox, View } from 'react-native'
+import { LogBox, ToastAndroid, View } from 'react-native'
 import { Card, Text } from 'react-native-paper'
 import Dashboard from './Dashboard'
 import PageDisplay from './PageDisplay'
 import { IconButton } from './components/IconButton'
 import TitleDisplay from './components/TitleDisplay'
 import { useModal } from './components/modal/Modal'
-import { DashboardEntry, Page } from './constants/DbTypes'
+import { DashboardEntry, Page, Tile, TileEvent } from './constants/DbTypes'
 import { globalStyles } from './constants/global'
-import { db, initDb } from './db/database'
+import { db, DbExportType, getAllAsObject, initDb } from './db/database'
 import { deletePage, getPages, insertPages } from './db/pages'
 import * as schema from './db/schema'
 import { router } from 'expo-router'
 import JLink from './components/JLink'
 import { showToast } from './util/comms'
+import * as Clipboard from 'expo-clipboard'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -56,7 +57,51 @@ const HomePage = () => {
                 onClick: (data) => {
                     addPage(data['Page Name'], data.Color)
                 },
-                icon: 'plus'
+                icon: 'add'
+            }
+        }
+    });
+
+    const exportDb = async () => {
+        Clipboard.setStringAsync(JSON.stringify(await getAllAsObject()))
+    }
+    const importDataToDb = async (data: string) => {
+        const dataToImport: DbExportType = JSON.parse(data)
+        console.log(JSON.stringify(dataToImport, null, 2))
+
+        //JSON doesn't automatically convert the iso dates back into dates....
+        const tileEvents: TileEvent[] = dataToImport.tiles.map(t => t.events.map(te => ({ ...te, timestamp: new Date(te.timestamp) }))).flat()
+
+        //in testing this needed to be here...
+        let changes;
+        changes = (await db().insert(schema.pages).values(dataToImport.pages).onConflictDoNothing()).changes
+        changes = (await db().insert(schema.routines).values(dataToImport.routines).onConflictDoNothing()).changes
+        changes = (await db().insert(schema.tiles).values(dataToImport.tiles).onConflictDoNothing()).changes
+        changes = (await db().insert(schema.tileEvents).values(tileEvents).onConflictDoNothing()).changes
+        changes = (await db().insert(schema.dashboard).values(dataToImport.dashboard).onConflictDoNothing()).changes
+    }
+    const migrationModal = useModal<{
+        "Data": "string"
+        "Import": "submit",
+        "Export": "button"
+    }>({
+        title: "Add Page",
+        inputTypes: {
+            "Data": {
+                type: "string",
+            },
+            "Export": {
+                icon: 'arrowUp',
+                type: 'button',
+                onClick: exportDb
+            },
+            "Import": {
+                type: "submit",
+                onClick: async (data) => {
+                    await importDataToDb(data.Data)
+                    ToastAndroid.show("Finished Importing!", ToastAndroid.LONG)
+                },
+                icon: 'add'
             }
         }
     });
@@ -118,12 +163,7 @@ const HomePage = () => {
     }
 
     const migrationButton = async () => {
-        try {
-            await initDb((err, res) => { if (err) showToast(err.message); else showToast("Migration abgeschlossen."); })
-            showToast("Erfolg, bitte App neustarten..")
-        } catch (e) {
-            console.error("Migration Fehlgeschlagen!", e)
-        }
+        migrationModal.setVisible(true)
     }
 
     // return (
@@ -160,6 +200,7 @@ const HomePage = () => {
             </View>
 
             {AddPageModal}
+            {migrationModal.component}
 
             {/* <View style={{  }}> */}
             <Card elevation={1} style={{ flexGrow: 1, margin: 30 }} >
