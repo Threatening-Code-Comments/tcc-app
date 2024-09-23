@@ -63,13 +63,17 @@ export const getRoutinesFromIds = (ids: number[], callback: ResultCallback<Routi
 }
 
 export const deleteChildrenOfRoutine = async (routineId: number) => {
-    const tilesFromDb = await db().query.tiles.findMany({ with: { events: true } })
+    const tilesFromDb = await db().query.tiles.findMany({
+        with: { events: true }, where(fields, operators) {
+            return operators.eq(fields.rootRoutineId, routineId)
+        },
+    })
 
     const tileIds = tilesFromDb.map(tile => tile.id)
     const eventIds = tilesFromDb.map(tile => tile.events.map(e => e.eventId)).flat()
 
-    db().delete(tiles).where(inArray(tiles.id, tileIds))
-    db().delete(tileEvents).where(inArray(tileEvents.eventId, eventIds))
+    await db().delete(tiles).where(inArray(tiles.id, tileIds))
+    await db().delete(tileEvents).where(inArray(tileEvents.eventId, eventIds))
 }
 export const deleteRoutine = (routine: Routine, callback: InsertCallback) => {
     deleteChildrenOfRoutine(routine.id)

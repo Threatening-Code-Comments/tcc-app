@@ -87,15 +87,19 @@ export const insertPages = (pagesP: Array<InsertPage>, callback: InsertCallback)
 }
 
 export const deleteChildrenOfPage = async (pageId: number) => {
-    const routinesFromDb = await db().query.routines.findMany({ with: { tiles: { with: { events: true } } } })
+    const routinesFromDb = await db().query.routines.findMany({
+        with: { tiles: { with: { events: true } } }, where(fields, operators) {
+            return operators.eq(fields.rootPageId, pageId)
+        },
+    })
 
     const routineIds = routinesFromDb.map(r => r.id)
     const tileIds = routinesFromDb.map(r => r.tiles.map(t => t.id)).flat()
     const eventIds = routinesFromDb.map(r => r.tiles.map(t => t.events.map(e => e.eventId)).flat()).flat()
 
-    db().delete(routines).where(inArray(routines.id, routineIds))
-    db().delete(tiles).where(inArray(tiles.id, tileIds))
-    db().delete(tileEvents).where(inArray(tileEvents.eventId, eventIds))
+    await db().delete(routines).where(inArray(routines.id, routineIds))
+    await db().delete(tiles).where(inArray(tiles.id, tileIds))
+    await db().delete(tileEvents).where(inArray(tileEvents.eventId, eventIds))
 }
 export const deletePage = (page: Page, callback: InsertCallback) => {
     deleteChildrenOfPage(page.id)
