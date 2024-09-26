@@ -81,24 +81,21 @@ const HomePage = () => {
         changes = (await db().insert(schema.dashboard).values(dataToImport.dashboard).onConflictDoNothing()).changes
     }
     const migrationModal = useModal<{
-        "Data": "string"
-        "Import": "submit",
+        "Import from Clipboard": "button",
         "Export": "button"
     }>({
         title: "Add Page",
         inputTypes: {
-            "Data": {
-                type: "string",
-            },
             "Export": {
                 icon: 'arrowUp',
                 type: 'button',
                 onClick: exportDb
             },
-            "Import": {
-                type: "submit",
-                onClick: async (data) => {
-                    await importDataToDb(data.Data)
+            "Import from Clipboard": {
+                type: "button",
+                onClick: async () => {
+                    const data = await Clipboard.getStringAsync()
+                    await importDataToDb(data)
                     ToastAndroid.show("Finished Importing!", ToastAndroid.LONG)
                 },
                 icon: 'add'
