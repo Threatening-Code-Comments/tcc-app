@@ -39,7 +39,7 @@ function getDurationFromSecond(seconds: number): string {
     const days = floor(hours / 24)
     if (days < 30) {
         const rest = hours - days * 24
-        return `${days}d ${floor(rest)}`
+        return `${days}d ${floor(rest)}h`
     }
 
     const months = Math.floor(days / 30)
