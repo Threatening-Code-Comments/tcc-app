@@ -1,4 +1,5 @@
 import { tileEvents } from '@app/db/schema'
+import { showToast } from '@app/util/comms'
 import { desc, eq } from 'drizzle-orm'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import React, { useEffect, useState } from 'react'
@@ -11,7 +12,8 @@ import { ColorWithContrast, getColorWithContrast } from '../Colors'
 import { Icon } from '../Icon'
 import { TileProps } from './GenericTile'
 import { newTileStyles, tileStyles } from './styles'
-import { showToast } from '@app/util/comms'
+import { Popup } from '@components/popup/Popup'
+import { PopupElement } from '../popup/PopupTypeDefs'
 
 function getDurationFromSecond(seconds: number): string {
     const floor = (i: number) => Math.floor(i)
@@ -96,12 +98,23 @@ export const TileComponent = ({ tile, numColumns, isEditMode, onPressInEditMode,
         updateColor(getColorWithContrast(tile.color))
     }, [tile.color])
 
+    const [infoPopupVisible, setInfoPopupVisible] = useState(false)
+    const popupContent: PopupElement[] = [
+        { type: 'textfield', label: 'Name', value: tile.name, onChange: (value) => { tile.name = value } },
+    ]
+
     return (
         <>
             <Card style={{
                 ...newTileStyles.pageTile,
                 backgroundColor: color.color,
-            }} onPress={onPress}>
+            }} onPress={onPress} onLongPress={() => setInfoPopupVisible(true)}>
+                <Popup
+                    color={tile.color}
+                    isOpen={infoPopupVisible}
+                    setModalOpen={setInfoPopupVisible}
+                    content={popupContent} />
+
                 <Text style={{ ...tileStyles.name, color: color.contrastColor }}>{tile.name}</Text>
                 <Text style={{ ...tileStyles.info, color: color.contrastColor }}>{tile.events.length}</Text>
 

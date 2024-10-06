@@ -7,6 +7,7 @@ import { useKeyboardVisible } from '../hooks/keyboardIsOpened'
 import { ButtonInput, DropdownInput, NumberInput, SliderColorInput, TextInput } from './InputTypes'
 import { modalStyles } from './ModalStyles'
 import { UseModalErrorType, UseModalInputType2, UseModalInputType3, UseModalOutputType, UseModalProps, UseModalReturn, UseModalStateType } from './ModalTypeDefs'
+import { Popup } from '../popup/Popup'
 
 export function useModal<TTypes extends UseModalInputType2 = UseModalProps<any> extends UseModalProps<infer TInfer> ? TInfer : never>({
     title,

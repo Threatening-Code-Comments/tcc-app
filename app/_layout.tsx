@@ -27,24 +27,24 @@ export default function RootLayout() {
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider value={DarkTheme}>
-            <PaperProvider theme={theme}>
-                <View style={styles.background}>
-                    <SafeAreaView>
-                        <View style={styles.rootView}>
+            <ThemeProvider value={DarkTheme}>
+                <PaperProvider theme={theme}>
+                    <View style={styles.background}>
+                        <SafeAreaView>
+                            <View style={styles.rootView}>
                                 {location !== "/" && (
                                     <Pressable onPress={onBackButton} style={{ alignSelf: 'flex-start', padding: 10, paddingLeft: 25 }}>
                                         <FontAwesome name='arrow-left' size={40} color="white" />
                                     </Pressable>
                                 )}
                                 <View style={styles.slotView}>
-                                    <Slot />
+                                        <Slot />
                                 </View>
-                        </View>
-                    </SafeAreaView>
-                </View>
-            </PaperProvider>
-        </ThemeProvider>
+                            </View>
+                        </SafeAreaView>
+                    </View>
+                </PaperProvider>
+            </ThemeProvider>
         </GestureHandlerRootView>
     );
 }
