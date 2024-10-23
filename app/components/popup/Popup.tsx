@@ -1,7 +1,6 @@
 import React from 'react'
-import { KeyboardAvoidingView, ModalProps, Pressable, Modal as RNModal, StyleSheet, View } from 'react-native'
-import { Card, TextInput, Text } from 'react-native-paper'
-import Animated from 'react-native-reanimated'
+import { ModalProps, Pressable, Modal as RNModal, StyleSheet, View } from 'react-native'
+import { Card, Text, TextInput } from 'react-native-paper'
 import { Icon } from '../Icon'
 import { PopupElement } from './PopupTypeDefs'
 
