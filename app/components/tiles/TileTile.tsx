@@ -142,6 +142,7 @@ export const TileComponent = ({ tile, numColumns = 3, isEditMode, onPressInEditM
                 <Text style={{
                     ...tileStyles.name,
                     fontSize: getNameSize(),
+                    flexGrow: 1,
                     color: color.contrastColor,
                 }} ellipsizeMode='tail' numberOfLines={2}>{tile.name}</Text>
                 <Text style={{
@@ -150,8 +151,8 @@ export const TileComponent = ({ tile, numColumns = 3, isEditMode, onPressInEditM
                     marginTop: 'auto'
                 }}>{tile.events.length}</Text>
 
-                <View style={{ bottom: 0, position: 'absolute', right: 0 }}>
-                    <DurationLastEventDisplay lastEvent={lastEvent} color={color} />
+                <View style={{ }}>
+                <DurationLastEventDisplay lastEvent={lastEvent} color={color} />
                 </View>
             </Card>
         </>
