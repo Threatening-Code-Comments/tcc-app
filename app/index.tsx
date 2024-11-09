@@ -19,6 +19,7 @@ import { router } from 'expo-router'
 import JLink from './components/JLink'
 import { showToast } from './util/comms'
 import * as Clipboard from 'expo-clipboard'
+import { HomescreenComponnent } from './components/homescreen/homescreenComponnent'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -203,7 +204,11 @@ const HomePage = () => {
             <Card elevation={1} style={{ flexGrow: 1, margin: 30 }} >
                 {/* <Card.Title title="Dashboard" />
                 <Card.Content> */}
-                <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} />
+
+                {/* <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} /> */}
+
+                <HomescreenComponnent />
+
                 {/* </Card.Content> */}
             </Card>
             {/* <TestComponent elementList={dashboardList} /> */}
