@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { GenericTile } from '../tiles/GenericTile';
 
 export type ItemProps = {
    id: number
@@ -22,9 +23,13 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
    const translateY = useSharedValue<number>(0);
    const itemWidth = useSharedValue<number>(width);
    const itemHeight = useSharedValue<number>(height);
+   const [isDragging, setIsDragging] = useState(false);
 
    // Drag-Gesture für Bewegung
    const dragGesture = Gesture.Pan()
+      .onStart(() => {
+         runOnJS(setIsDragging)(true);
+      })
       .onUpdate((event) => {
          translateX.value = withSpring(snapToNearestGridPoint(event.translationX))
          translateY.value = withSpring(snapToNearestGridPoint(event.translationY))
@@ -41,6 +46,7 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
          translateY.value = 0
          itemX.value = snapToNearestGridPoint(newX);
          itemY.value = snapToNearestGridPoint(newY);
+         runOnJS(setIsDragging)(false);
       });
 
    // Stile
@@ -49,18 +55,22 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
       height: itemHeight.value,
       transform: [
          { translateX: translateX.value },
-         { translateY: translateY.value }
+         { translateY: translateY.value },
       ] as any,
       left: itemX.value,
       top: itemY.value,
+      borderColor: isDragging ? 'red' : 'transparent',
+      borderWidth: 2
    }));
 
    return (
       <GestureDetector gesture={dragGesture}>
          <Animated.View style={[styles.item, animatedStyle]} >
-            <Text>ID: {id}</Text>
-            <Text>x:{Math.floor(x)} y:{Math.floor(y)}</Text>
-            <Text>w:{Math.floor(width)} h:{Math.floor(height)}</Text>
+            <View>
+               <Text>ID: {id}</Text>
+               <Text>x:{Math.floor(x)} y:{Math.floor(y)}</Text>
+               <Text>w:{Math.floor(width)} h:{Math.floor(height)}</Text>
+            </View>
          </Animated.View>
       </GestureDetector>
    );
