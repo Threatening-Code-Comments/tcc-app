@@ -3,6 +3,7 @@ import { Dimensions, StyleSheet, View } from 'react-native';
 import { IconButton } from '../IconButton';
 import Item from './item'; // Einzelnes Item, das vom Handler gesteuert wird
 import { ValueOf } from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import ShakingModifier from './shakingModifier';
 
 // Basierend auf Bildschirmgröße
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -123,8 +124,8 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
         const movedItemPoints = getPointsOfTile(movedItem, true)
 
         const movedPlacementGrid = [
-            ...placementGrid.filter(p => p.item.id !== movedItem.id), 
-            ...movedItemPoints.map(p => ({...p, item: movedItem}))
+            ...placementGrid.filter(p => p.item.id !== movedItem.id),
+            ...movedItemPoints.map(p => ({ ...p, item: movedItem }))
         ]
 
         const blockingItemsTemp = placementGrid
@@ -319,17 +320,19 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
             ))}
 
             {tempItems.map((item) => (
-                <Item
-                    key={item.id}
-                    id={item.id}
-                    x={item.x * GRID_UNIT}
-                    y={item.y * GRID_UNIT}
-                    width={item.width * GRID_UNIT}
-                    height={item.height * GRID_UNIT}
-                    handleDragEnd={handleDragEnd}
-                    snapToNearestGridPoint={snapPxToGridAsPx}
-                    makeSpaceForItem={makeSpaceForItem}
-                />
+                <ShakingModifier
+                    key={item.id} >
+                    <Item
+                        id={item.id}
+                        x={item.x * GRID_UNIT}
+                        y={item.y * GRID_UNIT}
+                        width={item.width * GRID_UNIT}
+                        height={item.height * GRID_UNIT}
+                        handleDragEnd={handleDragEnd}
+                        snapToNearestGridPoint={snapPxToGridAsPx}
+                        makeSpaceForItem={makeSpaceForItem}
+                    />
+                </ShakingModifier>
             ))}
         </View>
     );
