@@ -3,20 +3,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { GenericTile } from '../tiles/GenericTile';
+import { HomescreenItem } from './homescreenHandler';
 
-export type ItemProps = {
-   id: number
-   x: number
-   y: number
-   width: number
-   height: number
+export type ItemProps = HomescreenItem & {
    handleDragEnd: (id: number, x: number, y: number) => void
    snapToNearestGridPoint: (value: number) => number
-   makeSpaceForItem: (item: { id: number, x: number, y: number, width: number, height: number }) => void
-   blockingItems: Set<number>
-   pxToGrid: (value: number) => number
+   makeSpaceForItem: (item: HomescreenItem) => void
 }
-const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, makeSpaceForItem, blockingItems, pxToGrid }: ItemProps) => {
+const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, makeSpaceForItem }: ItemProps) => {
    const itemX = useSharedValue<number>(x);
    const itemY = useSharedValue<number>(y);
    const translateX = useSharedValue<number>(0);
