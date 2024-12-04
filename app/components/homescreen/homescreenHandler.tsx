@@ -21,7 +21,14 @@ const gridToPx = (value: number) => {
     return value * GRID_UNIT;
 }
 
-type GridPlacementList = { x: number, y: number, items: HomescreenItem[] }[]
+const isSamePoint = (point1, point2) => point1.x === point2.x && point1.y === point2.y
+const getCoordinateDiff = (movedItemCoordinate: number, blockingItemCoordinate: number, blockingItemSize: number) => {
+    const diff1 = movedItemCoordinate - blockingItemCoordinate
+    const diff2 = movedItemCoordinate - blockingItemCoordinate + blockingItemSize
+    return Math.abs(diff1) < Math.abs(diff2) ? diff1 : diff2
+}
+
+type GridPlacementList = { x: number, y: number, item: HomescreenItem }[]
 type Point = {
     x: number;
     y: number;
@@ -41,9 +48,9 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
     const addToGridIfPossible = (item: HomescreenItem, grid: GridPlacementList, point: Point) => {
         const valueFromList = grid.find((pointFromGrid) => pointFromGrid.x === point.x && pointFromGrid.y === point.y)
         if (valueFromList) {
-            valueFromList.items.push(item)
+            valueFromList.item = item
         } else {
-            grid.push({ x: point.x, y: point.y, items: [item] })
+            grid.push({ x: point.x, y: point.y, item: item })
         }
     }
     useEffect(() => {
@@ -75,8 +82,6 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
         }))
     };
 
-    const isSamePoint = (point1, point2) => point1.x === point2.x && point1.y === point2.y
-
     const makeSpaceForItem = (movedItem: { id: number, x: number, y: number, width: number, height: number }) => {
         const movedItemToCoordinate = { x: pxToGrid(movedItem.x), y: pxToGrid(movedItem.y) }
 
@@ -93,22 +98,15 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
                 isSamePoint(point, movedOriginOnGrid) ||
                 pointsOnGrid.some((pointOnGrid) => isSamePoint(point, pointOnGrid))
             )
-            .flatMap((point) => point.items)
+            .flatMap((point) => point.item)
             .filter((item) => item.id !== movedItem.id)
 
         // console.log("Blocking Items: ", blockingItemsTemp.map((item) => ({ _id: item.id, ...item })))
-
-        const getCoordinateDiff = (movedItemCoordinate: number, blockingItemCoordinate: number, blockingItemSize: number) => {
-            const diff1 = movedItemCoordinate - blockingItemCoordinate
-            const diff2 = movedItemCoordinate - blockingItemCoordinate + blockingItemSize
-            return Math.abs(diff1) < Math.abs(diff2) ? diff1 : diff2
-        }
-
         const checkIfSpaceIsFree = (x: number, y: number, itemIdToExclude?: number) => {
             if (x < 0 || y < 0 || x >= GRID_COLUMNS || y >= GRID_ROWS) return false
 
             const point = placementGrid.find((point) => point.x === x && point.y === y)
-            return !point || point?.items.length === 0 || point?.items.length === 1 && (point.items[0].id === movedItem.id || point.items[0].id === itemIdToExclude)
+            return !point || !point?.item || (point.item.id === movedItem.id || point.item.id === itemIdToExclude)
         }
 
         for (let item of blockingItemsTemp) {
@@ -134,11 +132,9 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
                                 ? checkIfSpaceIsFree(mainCoordinate, crossCoordinate, itemId)
                                 : checkIfSpaceIsFree(crossCoordinate, mainCoordinate, itemId)
 
-                            if (!isFree) break
+                            if (!isFree) return false
                         }
-                        if (!isFree) break
                     }
-                    if (!isFree) break
                 }
                 return isFree
             }
@@ -153,11 +149,10 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
                             isFree = (vIsX)
                                 ? checkIfSpaceIsFree(mainCoordinate, crossCoordinate, itemId)
                                 : checkIfSpaceIsFree(crossCoordinate, mainCoordinate, itemId)
-                            if (!isFree) break
+
+                            if (!isFree) return false
                         }
-                        if (!isFree) break
                     }
-                    if (!isFree) break
                 }
                 return isFree
             }
