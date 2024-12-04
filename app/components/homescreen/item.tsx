@@ -3,10 +3,10 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { GenericTile } from '../tiles/GenericTile';
-import { HomescreenItem } from './homescreenHandler';
+import { HomescreenItem, PixelPoint } from './homescreenHandler';
 
 export type ItemProps = HomescreenItem & {
-   handleDragEnd: (id: number, x: number, y: number) => void
+   handleDragEnd: (id: number, pixel: PixelPoint) => void
    snapToNearestGridPoint: (value: number) => number
    makeSpaceForItem: (item: HomescreenItem) => void
 }
@@ -34,7 +34,7 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
          const newX = x + translateX.value;
          const newY = y + translateY.value;
 
-         runOnJS(handleDragEnd)(id, newX, newY);
+         runOnJS(handleDragEnd)(id, {x: newX, y: newY });
          runOnJS(makeSpaceForItem)({ id, x: newX, y: newY, width, height });
          translateX.value = 0
          translateY.value = 0
