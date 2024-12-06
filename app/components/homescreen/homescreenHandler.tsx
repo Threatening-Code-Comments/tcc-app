@@ -3,7 +3,7 @@ import { Dimensions, StyleSheet, View } from 'react-native';
 import { IconButton } from '../IconButton';
 import Item from './item'; // Einzelnes Item, das vom Handler gesteuert wird
 import { ValueOf } from 'react-native-gesture-handler/lib/typescript/typeUtils';
-import ShakingModifier from './shakingModifier';
+import { PlacementGrid } from './placementGrid';
 
 // Basierend auf Bildschirmgröße
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -22,32 +22,10 @@ const gridToPx = (value: number) => {
     return value * GRID_UNIT;
 }
 
-const isSamePoint = (point1: GridPoint, point2: GridPoint) => point1.x === point2.x && point1.y === point2.y
-
 const getCoordinateDiff = (movedItemCoordinate: number, blockingItemCoordinate: number, blockingItemSize: number) => {
     const diff1 = movedItemCoordinate - blockingItemCoordinate
     const diff2 = movedItemCoordinate - blockingItemCoordinate + blockingItemSize
     return Math.abs(diff1) < Math.abs(diff2) ? diff1 : diff2
-}
-
-const addItem = (grid: GridPlacementList, item: HomescreenItem) => {
-
-    const addPoint = (item: HomescreenItem, grid: GridPlacementList, point: GridPoint) => {
-        const valueFromList = grid.find((pointFromGrid) => pointFromGrid.x === point.x && pointFromGrid.y === point.y)
-
-        if (valueFromList) {
-            valueFromList.item = item
-            console.log("duplicate homescreen item at", point, ": ", item)
-        } else {
-            grid.push({ x: point.x, y: point.y, item: item })
-        }
-    }
-
-    for (let i = item.x; i < item.x + item.width; i++) {
-        for (let j = item.y; j < item.y + item.height; j++) {
-            addPoint(item, grid, { x: i, y: j })
-        }
-    }
 }
 
 const pixelToGrid = (pixel: PixelPoint) => ({ x: pxToGrid(pixel.x), y: pxToGrid(pixel.y) })
@@ -86,7 +64,7 @@ export type PixelTile = PixelPoint & {
     height: number
 }
 
-export type GridPlacementList = (GridPoint & { item: HomescreenItem })[]
+export type GridPlacementList = PlacementGrid //(GridPoint & { item: HomescreenItem })[]
 
 export type HomescreenItem = GridTile & {
     id: number
@@ -95,12 +73,12 @@ export type HomescreenItem = GridTile & {
 export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
     const [items, setItems] = useState(props.items);
     const [tempItems, setTempItems] = useState<HomescreenItem[]>([])
-    const [placementGrid, setPlacementGrid] = useState<GridPlacementList>([])
+    const [placementGrid, setPlacementGrid] = useState<GridPlacementList>(new PlacementGrid(GRID_COLUMNS, GRID_ROWS))
 
     useEffect(() => {
         setPlacementGrid(() => {
-            const grid: GridPlacementList = []
-            items.forEach((item) => addItem(grid, item))
+            const grid = new PlacementGrid(GRID_COLUMNS, GRID_ROWS)
+            items.forEach((item) => grid.addItem(item))
             return grid
         })
     }, [items])
@@ -120,28 +98,25 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
     };
 
     const makeSpaceForItem = (movedItem: PixelTile & { id: number }) => {
-        const movedItemToCoordinate = pixelToGrid(movedItem)
         const movedItemPoints = getPointsOfTile(movedItem, true)
 
-        const movedPlacementGrid = [
-            ...placementGrid.filter(p => p.item.id !== movedItem.id),
-            ...movedItemPoints.map(p => ({ ...p, item: movedItem }))
-        ]
+        const blockingItemsTemp = movedItemPoints
+            .map((point) => placementGrid.getItemAtPosition(point))
+            .filter((entry) => entry && entry.id !== movedItem.id)
 
-        const blockingItemsTemp = placementGrid
-            .filter((point) =>
-                isSamePoint(point, movedItemToCoordinate) || movedItemPoints.some((pointOnGrid) => isSamePoint(point, pointOnGrid))
-            )
-            .flatMap((point) => point.item)
-            .filter((item) => item.id !== movedItem.id)
-
-        // console.log("Blocking Items: ", blockingItemsTemp.map((item) => ({ _id: item.id, ...item })))
-        const checkIfSpaceIsFree = (x: number, y: number, itemIdToExclude?: number) => {
-            if (x < 0 || y < 0 || x >= GRID_COLUMNS || y >= GRID_ROWS) return false
-
-            const point = movedPlacementGrid.find((point) => point.x === x && point.y === y)
-            return !point || !point?.item || point.item.id === itemIdToExclude
+        //if no items are blocking:
+        if (blockingItemsTemp.length === 0) {
+            setTempItems([])
+            return
         }
+
+        const movedItemToCoordinate = pixelToGrid(movedItem)
+        const movedPlacementGrid = placementGrid.getCopyWithItemReplaced({
+            id: movedItem.id,
+            ...movedItemToCoordinate,
+            width: pxToGrid(movedItem.width),
+            height: pxToGrid(movedItem.height)
+        })
 
         for (let item of blockingItemsTemp) {
             const itemPoints = getPointsOfTile(item, false)
@@ -153,59 +128,21 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
             const xDiff = getCoordinateDiff(movedItem.x, itemX, itemWidth)  //movedItem.x - gridToPx(item.x)
             const yDiff = getCoordinateDiff(movedItem.y, itemY, itemHeight)  //movedItem.y - gridToPx(item.y)
 
-            const checkLeftBorder = (variableCoordinate: number, fixedCoordinate: number, size: number, crossSize: number, itemId: number,
-                vIsX: boolean,
-                offset: number,) => {
-                const startMain = variableCoordinate - (size - 1)
-                const startCross = Math.max(fixedCoordinate + (crossSize - 1), fixedCoordinate - (crossSize - 1))
-
-                let isFree = false
-                for (let i = 1; i <= offset; i++) {
-                    for (let crossCoordinate = startCross; crossCoordinate <= fixedCoordinate; crossCoordinate++) {
-                        for (let mainCoordinate = startMain - i; mainCoordinate < variableCoordinate; mainCoordinate++) {
-                            isFree = (vIsX)
-                                ? checkIfSpaceIsFree(mainCoordinate, crossCoordinate, itemId)
-                                : checkIfSpaceIsFree(crossCoordinate, mainCoordinate, itemId)
-                            if (!isFree) return false
-                        }
-                    }
-                }
-                return isFree
-            }
-            const checkRightBorder = (variableCoordinate: number, fixedCoordinate: number, size: number, crossSize: number, itemId: number,
-                vIsX: boolean,
-                offset: number,
-            ) => {
-                let isFree = false
-
-                for (let i = 1; i <= offset; i++) {
-                    for (let crossCoordinate = fixedCoordinate; crossCoordinate < fixedCoordinate + crossSize; crossCoordinate++) {
-                        for (let mainCoordinate = variableCoordinate; mainCoordinate < variableCoordinate + i + size; mainCoordinate++) {
-                            isFree = (vIsX)
-                                ? checkIfSpaceIsFree(mainCoordinate, crossCoordinate, itemId)
-                                : checkIfSpaceIsFree(crossCoordinate, mainCoordinate, itemId)
-                            if (!isFree) return false
-                        }
-                    }
-                }
-                return isFree
-            }
-
-            const intersectingPoints = itemPoints.filter(p => movedItemPoints.some(p2 => isSamePoint(p, p2)))
+            const intersectingPoints = itemPoints.filter(p => movedItemPoints.some(p2 => PlacementGrid.isSamePoint(p, p2)))
             const intersectionSizeX = new Set(intersectingPoints.map(p => p.x)).size
             const intersectionSizeY = new Set(intersectingPoints.map(p => p.y)).size
             // console.log(item, movedItemPoints, itemPoints)
             // console.log(intersectingPoints, intersectionSizeX, intersectionSizeY)
 
             const intersectionMinX = itemPoints.reduce((prev, cur) => Math.min(prev, cur.x), Number.MAX_VALUE)
-            const intersectionMaxX = itemPoints.reduce((prev, cur) => Math.max(prev, cur.x), Number.MAX_VALUE)
+            const intersectionMaxX = itemPoints.reduce((prev, cur) => Math.max(prev, cur.x), Number.MIN_VALUE)
             const intersectionMinY = itemPoints.reduce((prev, cur) => Math.min(prev, cur.y), Number.MAX_VALUE)
-            const intersectionMaxY = itemPoints.reduce((prev, cur) => Math.max(prev, cur.y), Number.MAX_VALUE)
+            const intersectionMaxY = itemPoints.reduce((prev, cur) => Math.max(prev, cur.y), Number.MIN_VALUE)
 
-            const checkLeft = () => checkLeftBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
-            const checkUp = () => checkLeftBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
-            const checkRight = () => checkRightBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
-            const checkDown = () => checkRightBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
+            const checkLeft = () => movedPlacementGrid.checkLeftBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
+            const checkUp = () => movedPlacementGrid.checkLeftBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
+            const checkRight = () => movedPlacementGrid.checkRightBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
+            const checkDown = () => movedPlacementGrid.checkRightBorder(intersectionMaxY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
 
             const checkAll = () => {
                 const left = checkLeft()
@@ -219,31 +156,36 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
                 }
             }
 
+            // console.log("Check all: ", checkAll())
+
             const getPreferredDirection = () => {
+                const checks = checkAll()
+
                 if (Math.abs(xDiff) > Math.abs(yDiff)) {
                     if (xDiff > 0) {
-                        if (checkAll().left)
+                        if (checks.left)
                             return { x: -intersectionSizeX, y: 0 } // left
-                        else
+                        else if (checks.right)
                             return { x: intersectionSizeX, y: 0 } // right
                     } else {
-                        if (checkAll().right)
+                        if (checks.right)
                             return { x: intersectionSizeX, y: 0 } // right
-                        else
+                        else if (checks.left)
                             return { x: -intersectionSizeX, y: 0 } // left
                     }
+                }
+
+                // check horizontal
+                if (yDiff > 0) {
+                    if (checks.up)
+                        return { x: 0, y: -intersectionSizeY } // up
+                    else if (checks.down)
+                        return { x: 0, y: intersectionSizeY } // down
                 } else {
-                    if (yDiff > 0) {
-                        if (checkAll().up)
-                            return { x: 0, y: -intersectionSizeY } // up
-                        else
-                            return { x: 0, y: intersectionSizeY } // down
-                    } else {
-                        if (checkAll().down)
-                            return { x: 0, y: intersectionSizeY } // down
-                        else
-                            return { x: 0, y: -intersectionSizeY } // up
-                    }
+                    if (checks.down)
+                        return { x: 0, y: intersectionSizeY } // down
+                    else if (checks.up)
+                        return { x: 0, y: -intersectionSizeY } // up
                 }
             }
 
@@ -255,7 +197,7 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
                     y: item.y + dir.y
                 }
                 return [
-                    ...oldTempItems.filter(i => i.id !== item.id),
+                    ...oldTempItems.filter(i => i.id !== item.id && blockingItemsTemp.some(b => b.id === i.id)),
                     newItem
                 ]
             })
@@ -320,19 +262,19 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
             ))}
 
             {tempItems.map((item) => (
-                <ShakingModifier
-                    key={item.id} >
-                    <Item
-                        id={item.id}
-                        x={item.x * GRID_UNIT}
-                        y={item.y * GRID_UNIT}
-                        width={item.width * GRID_UNIT}
-                        height={item.height * GRID_UNIT}
-                        handleDragEnd={handleDragEnd}
-                        snapToNearestGridPoint={snapPxToGridAsPx}
-                        makeSpaceForItem={makeSpaceForItem}
-                    />
-                </ShakingModifier>
+
+                <Item
+                    key={item.id}
+                    id={item.id}
+                    x={item.x * GRID_UNIT}
+                    y={item.y * GRID_UNIT}
+                    width={item.width * GRID_UNIT}
+                    height={item.height * GRID_UNIT}
+                    isShaking={true}
+                    handleDragEnd={handleDragEnd}
+                    snapToNearestGridPoint={snapPxToGridAsPx}
+                    makeSpaceForItem={makeSpaceForItem}
+                />
             ))}
         </View>
     );

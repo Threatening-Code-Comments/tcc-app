@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { GenericTile } from '../tiles/GenericTile';
 import { HomescreenItem, PixelPoint } from './homescreenHandler';
+import { PlacementGrid } from './placementGrid';
+
+const SHAKE_OFFSET = 5;
 
 export type ItemProps = HomescreenItem & {
    handleDragEnd: (id: number, pixel: PixelPoint) => void
    snapToNearestGridPoint: (value: number) => number
    makeSpaceForItem: (item: HomescreenItem) => void
+   isShaking?: boolean
 }
-const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, makeSpaceForItem }: ItemProps) => {
+const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, makeSpaceForItem, isShaking = false }: ItemProps) => {
    const itemX = useSharedValue<number>(x);
    const itemY = useSharedValue<number>(y);
    const translateX = useSharedValue<number>(0);
@@ -18,6 +22,43 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
    const itemWidth = useSharedValue<number>(width);
    const itemHeight = useSharedValue<number>(height);
    const [isDragging, setIsDragging] = useState(false);
+   const translationYShakeOffset = useSharedValue<number>(0);
+   const lastCheckedCoordinate = useSharedValue<PixelPoint>({ x: x, y: y });
+
+   const shakeEffect = () => {
+      if (!isShaking) {
+         translationYShakeOffset.value = 0
+         return
+      };
+
+      translationYShakeOffset.value = withRepeat(
+         withSequence(
+            withTiming(SHAKE_OFFSET, { duration: 500 }),
+            withTiming(-SHAKE_OFFSET, { duration: 500 })
+         ),
+         -1,
+         true
+      );
+   }
+
+   const checkCoordinate = (item: HomescreenItem) => {
+      "worklet"
+      const coordinate = {
+         x: snapToNearestGridPoint(item.x),
+         y: snapToNearestGridPoint(item.y)
+      };
+
+      if (coordinate.x === lastCheckedCoordinate.value.x && coordinate.y === lastCheckedCoordinate.value.y) {
+         return;
+      }
+
+      lastCheckedCoordinate.value = coordinate;
+      runOnJS(makeSpaceForItem)(item)
+   }
+
+   useEffect(() => {
+      shakeEffect()
+   }, [isShaking])
 
    // Drag-Gesture für Bewegung
    const dragGesture = Gesture.Pan()
@@ -25,21 +66,25 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
          runOnJS(setIsDragging)(true);
       })
       .onUpdate((event) => {
-         translateX.value = withSpring(snapToNearestGridPoint(event.translationX))
-         translateY.value = withSpring(snapToNearestGridPoint(event.translationY))
+         const newTranslateX = snapToNearestGridPoint(event.translationX);
+         const newTranslateY = snapToNearestGridPoint(event.translationY);
 
-         runOnJS(makeSpaceForItem)({ id, x: x + event.translationX, y: y + event.translationY, width, height });
+         translateX.value = withSpring(newTranslateX)
+         translateY.value = withSpring(newTranslateY)
+
+         checkCoordinate({ id, x: x + newTranslateX, y: y + newTranslateY, width, height })
       })
       .onEnd(() => {
-         const newX = x + translateX.value;
-         const newY = y + translateY.value;
+         const newX = snapToNearestGridPoint(x + translateX.value);
+         const newY = snapToNearestGridPoint(y + translateY.value);
 
-         runOnJS(handleDragEnd)(id, {x: newX, y: newY });
-         runOnJS(makeSpaceForItem)({ id, x: newX, y: newY, width, height });
+         runOnJS(handleDragEnd)(id, { x: newX, y: newY });
+         checkCoordinate({ id, x: newX, y: newY, width, height });
+
          translateX.value = 0
          translateY.value = 0
-         itemX.value = snapToNearestGridPoint(newX);
-         itemY.value = snapToNearestGridPoint(newY);
+         itemX.value = newX;
+         itemY.value = newY;
          runOnJS(setIsDragging)(false);
       });
 
@@ -49,7 +94,7 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
       height: itemHeight.value,
       transform: [
          { translateX: translateX.value },
-         { translateY: translateY.value },
+         { translateY: translateY.value + translationYShakeOffset.value },
       ] as any,
       left: itemX.value,
       top: itemY.value,
