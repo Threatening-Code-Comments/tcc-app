@@ -11,7 +11,7 @@ const SHAKE_OFFSET = 5;
 export type ItemProps = HomescreenItem & {
    handleDragEnd: (id: number, pixel: PixelPoint) => void
    snapToNearestGridPoint: (value: number) => number
-   makeSpaceForItem: (item: HomescreenItem) => void
+   makeSpaceForItem: (item: HomescreenItem, contactPoint?: PixelPoint) => void
    isShaking?: boolean
 }
 const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, makeSpaceForItem, isShaking = false }: ItemProps) => {
@@ -41,7 +41,7 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
       );
    }
 
-   const checkCoordinate = (item: HomescreenItem) => {
+   const checkCoordinate = (item: HomescreenItem, point: PixelPoint) => {
       "worklet"
       const coordinate = {
          x: snapToNearestGridPoint(item.x),
@@ -53,7 +53,7 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
       }
 
       lastCheckedCoordinate.value = coordinate;
-      runOnJS(makeSpaceForItem)(item)
+      runOnJS(makeSpaceForItem)(item, point)
    }
 
    useEffect(() => {
@@ -72,14 +72,14 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
          translateX.value = withSpring(newTranslateX)
          translateY.value = withSpring(newTranslateY)
 
-         checkCoordinate({ id, x: x + newTranslateX, y: y + newTranslateY, width, height })
+         checkCoordinate({ id, x: x + newTranslateX, y: y + newTranslateY, width, height, }, { x: x + event.translationX, y: y + event.translationY });
       })
       .onEnd(() => {
          const newX = snapToNearestGridPoint(x + translateX.value);
          const newY = snapToNearestGridPoint(y + translateY.value);
 
          runOnJS(handleDragEnd)(id, { x: newX, y: newY });
-         checkCoordinate({ id, x: newX, y: newY, width, height });
+         checkCoordinate({ id, x: newX, y: newY, width, height }, { x: x + translateX.value, y: y + translateY.value });
 
          translateX.value = 0
          translateY.value = 0

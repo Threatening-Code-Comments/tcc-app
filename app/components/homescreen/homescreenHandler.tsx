@@ -22,12 +22,6 @@ const gridToPx = (value: number) => {
     return value * GRID_UNIT;
 }
 
-const getCoordinateDiff = (movedItemCoordinate: number, blockingItemCoordinate: number, blockingItemSize: number) => {
-    const diff1 = movedItemCoordinate - blockingItemCoordinate
-    const diff2 = movedItemCoordinate - blockingItemCoordinate + blockingItemSize
-    return Math.abs(diff1) < Math.abs(diff2) ? diff1 : diff2
-}
-
 const pixelToGrid = (pixel: PixelPoint) => ({ x: pxToGrid(pixel.x), y: pxToGrid(pixel.y) })
 
 const getPointsOfTile = (tile: PixelTile | GridTile, isPixelTile: boolean) => {
@@ -97,7 +91,7 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
         setTempItems([])
     };
 
-    const makeSpaceForItem = (movedItem: PixelTile & { id: number }) => {
+    const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactPoint: PixelPoint) => {
         const movedItemPoints = getPointsOfTile(movedItem, true)
 
         const blockingItemsTemp = movedItemPoints
@@ -125,24 +119,20 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
             const itemWidth = gridToPx(item.width)
             const itemHeight = gridToPx(item.height)
 
-            const xDiff = getCoordinateDiff(movedItem.x, itemX, itemWidth)  //movedItem.x - gridToPx(item.x)
-            const yDiff = getCoordinateDiff(movedItem.y, itemY, itemHeight)  //movedItem.y - gridToPx(item.y)
+            const xDiff = ((contactPoint.x < itemX) ? 1 : -1) * Math.abs(contactPoint.x - itemX);
+            const yDiff = ((contactPoint.y < itemY) ? -1 : 1) * Math.abs(contactPoint.y - itemY);
 
             const intersectingPoints = itemPoints.filter(p => movedItemPoints.some(p2 => PlacementGrid.isSamePoint(p, p2)))
             const intersectionSizeX = new Set(intersectingPoints.map(p => p.x)).size
             const intersectionSizeY = new Set(intersectingPoints.map(p => p.y)).size
-            // console.log(item, movedItemPoints, itemPoints)
-            // console.log(intersectingPoints, intersectionSizeX, intersectionSizeY)
 
             const intersectionMinX = itemPoints.reduce((prev, cur) => Math.min(prev, cur.x), Number.MAX_VALUE)
-            const intersectionMaxX = itemPoints.reduce((prev, cur) => Math.max(prev, cur.x), Number.MIN_VALUE)
             const intersectionMinY = itemPoints.reduce((prev, cur) => Math.min(prev, cur.y), Number.MAX_VALUE)
-            const intersectionMaxY = itemPoints.reduce((prev, cur) => Math.max(prev, cur.y), Number.MIN_VALUE)
 
             const checkLeft = () => movedPlacementGrid.checkLeftBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
             const checkUp = () => movedPlacementGrid.checkLeftBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
             const checkRight = () => movedPlacementGrid.checkRightBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
-            const checkDown = () => movedPlacementGrid.checkRightBorder(intersectionMaxY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
+            const checkDown = () => movedPlacementGrid.checkRightBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
 
             const checkAll = () => {
                 const left = checkLeft()
@@ -156,37 +146,56 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
                 }
             }
 
-            // console.log("Check all: ", checkAll())
-
             const getPreferredDirection = () => {
                 const checks = checkAll()
 
-                if (Math.abs(xDiff) > Math.abs(yDiff)) {
-                    if (xDiff > 0) {
-                        if (checks.left)
-                            return { x: -intersectionSizeX, y: 0 } // left
-                        else if (checks.right)
-                            return { x: intersectionSizeX, y: 0 } // right
-                    } else {
-                        if (checks.right)
-                            return { x: intersectionSizeX, y: 0 } // right
-                        else if (checks.left)
-                            return { x: -intersectionSizeX, y: 0 } // left
+                const checkHorizontal = (tryPrimary: boolean) => {
+                    const primary = xDiff > 0 ? checks.right : checks.left
+                    const secondary = xDiff > 0 ? checks.left : checks.right
+
+                    if (tryPrimary && primary) {
+                        const sign = xDiff > 0 ? 1 : -1
+
+                        return { x: sign * intersectionSizeX, y: 0 }
+                    } else if (secondary) {
+                        const sign = xDiff > 0 ? -1 : 1
+
+                        return { x: sign * intersectionSizeX, y: 0 }
                     }
                 }
 
-                // check horizontal
-                if (yDiff > 0) {
-                    if (checks.up)
-                        return { x: 0, y: -intersectionSizeY } // up
-                    else if (checks.down)
-                        return { x: 0, y: intersectionSizeY } // down
-                } else {
-                    if (checks.down)
-                        return { x: 0, y: intersectionSizeY } // down
-                    else if (checks.up)
-                        return { x: 0, y: -intersectionSizeY } // up
+                const checkVertical = (tryPrimary: boolean) => {
+                    const primary = yDiff > 0 ? checks.up : checks.down
+                    const secondary = yDiff > 0 ? checks.down : checks.up
+
+                    if (tryPrimary && primary) {
+                        const sign = yDiff > 0 ? -1 : 1
+                        console.log({ sign, intersectionSizeY })
+
+                        return { x: 0, y: sign * intersectionSizeY }
+                    } else if (secondary) {
+                        const sign = yDiff > 0 ? 1 : -1
+
+                        return { x: 0, y: sign * intersectionSizeY }
+                    }
                 }
+
+                if (Math.abs(xDiff) > Math.abs(yDiff)) {
+                    const horizontal = checkHorizontal(true)
+                    if (horizontal) return horizontal
+                } else {
+                    const vertical = checkVertical(true)
+                    if (vertical) return vertical
+                }
+
+                const horizontal = checkHorizontal(false)
+                if (horizontal) return horizontal
+
+                const vertical = checkVertical(false)
+                if (vertical) return vertical
+
+                console.error("No direction found (getPreferredDirection)")
+                return { x: 0, y: 0 }
             }
 
             setTempItems(oldTempItems => {
@@ -201,41 +210,6 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
                     newItem
                 ]
             })
-            // console.log("Preferred direction: ", getPreferredDirection(xDiff, yDiff))
-            // console.log(checkLeft())
-
-
-            // halt wenn abs(xDiff) > abs(yDiff)
-            // um width verschieben
-
-            // let solution = null
-
-            // while (!solution) {
-            //     if (Math.abs(xDiff) > Math.abs(yDiff)) {// check if to move right or left
-            //         if (xDiff > 0) {
-            //             // if move left: check if > 0 & placementGrid[x-1][y] is empty
-            //             const isFree = checkIfSpaceIsFree(itemX, itemY)
-            //             if (isFree) {
-            //                 solution = { x: itemX, y: itemY }
-            //             }
-
-            //             console.log("Move left")
-            //         } else {
-            //             // if move right: check if < GRID_COLUMNS & placementGrid[x+width][y] is empty
-            //             console.log("Move right")
-            //         }
-            //     } else {// check if to move up or down
-            //         if (yDiff > 0) {
-            //             // if move up: check if > 0 & placementGrid[x][y-1] is empty
-            //             console.log("Move up")
-            //         } else {
-            //             // if move down: check if < GRID_ROWS & placementGrid[x][y+height] is empty
-            //             console.log("Move down")
-            //         }
-            //     }
-            // }
-
-            // console.log("Item momved: ", movedItem.id, "Item blocking: ", item.id, "xDiff: ", xDiff, "yDiff: ", yDiff)
         }
     }
 

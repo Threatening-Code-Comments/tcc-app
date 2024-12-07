@@ -1,3 +1,4 @@
+import { ConsoleLogWriter } from "drizzle-orm"
 import { HomescreenItem } from "./homescreenHandler"
 
 type GridPoint = { x: number, y: number }
@@ -7,9 +8,6 @@ export class PlacementGrid {
     private _grid: GridPlacementList = []
     private _NUM_COLUMNS: number
     private _NUM_ROWS: number
-
-    // TODO overwritten here
-
 
     constructor(numColumns: number, numRows: number, grid?: GridPlacementList) {
         this._grid = grid ? grid : []
@@ -42,7 +40,6 @@ export class PlacementGrid {
         }
 
         if (entryFromPlacementGrid.item.id != item.id) {
-            console.log("duplicate homescreen item at", point, ": ", item.id, entryFromPlacementGrid.item.id)
             entryFromPlacementGrid.item = item
         }
     }
@@ -50,8 +47,9 @@ export class PlacementGrid {
     getCopyWithItemReplaced(item: HomescreenItem): PlacementGrid {
         const gridWithoutItem = this._grid.filter(point => point.item.id !== item.id).map(point => ({ ...point }))
 
-        const newGrid = new PlacementGrid(this._NUM_COLUMNS, this._NUM_ROWS, [...gridWithoutItem])
+        const newGrid = new PlacementGrid(this._NUM_COLUMNS, this._NUM_ROWS, [])
         newGrid.addItem(item)
+        gridWithoutItem.forEach(point => newGrid.addPoint(point, point.item))
 
         return newGrid
     }
@@ -91,7 +89,7 @@ export class PlacementGrid {
 
         for (let i = 1; i <= offset; i++) {
             for (let crossCoordinate = fixedCoordinate; crossCoordinate < fixedCoordinate + crossSize; crossCoordinate++) {
-                for (let mainCoordinate = variableCoordinate; mainCoordinate < variableCoordinate + i + size; mainCoordinate++) {
+                for (let mainCoordinate = variableCoordinate + i + (size - 1); mainCoordinate > variableCoordinate; mainCoordinate--) {
                     isFree = (vIsX)
                         ? this.checkIfSpaceIsFree({ x: mainCoordinate, y: crossCoordinate }, itemId)
                         : this.checkIfSpaceIsFree({ x: crossCoordinate, y: mainCoordinate }, itemId)
