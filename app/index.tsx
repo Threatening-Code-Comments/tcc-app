@@ -184,7 +184,7 @@ const HomePage = () => {
 
     const padding = 5
     return (
-        <View style={{ display: "flex", height: "100%" }}>
+        <View style={{ display: "flex", height: "100%", width: '100%' }}>
             <TitleDisplay text='Welcome!' secondaryText={`You have ${pages.length} pages.`} height={100} />
 
             <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
@@ -201,15 +201,12 @@ const HomePage = () => {
             {migrationModal.component}
 
             {/* <View style={{  }}> */}
-            <Card elevation={1} style={{ flexGrow: 1, margin: 30 }} >
-                {/* <Card.Title title="Dashboard" />
-                <Card.Content> */}
+            <Card elevation={1} style={{ flexGrow: 1, margin: '5%', width: '90%' }} >
 
                 {/* <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} /> */}
 
                 <HomescreenComponent />
 
-                {/* </Card.Content> */}
             </Card>
             {/* <TestComponent elementList={dashboardList} /> */}
             {/* </View> */}

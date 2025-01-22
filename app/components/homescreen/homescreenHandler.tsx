@@ -9,7 +9,7 @@ import { PlacementGrid } from './placementGrid';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const GRID_COLUMNS = 4;
 const GRID_ROWS = 5;
-const GRID_UNIT = Math.min(SCREEN_WIDTH / GRID_COLUMNS, SCREEN_HEIGHT / GRID_ROWS);
+const GRID_UNIT = Math.min((SCREEN_WIDTH * 0.9) / GRID_COLUMNS, SCREEN_HEIGHT / GRID_ROWS);
 
 const snapPxToGridAsPx = (value: number) => {
     "worklet"
@@ -81,11 +81,14 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
         const newPosition = pixelToGrid(pixel);
 
         setItems((prevItems) => prevItems.map((item) => {
+            const tempItem = tempItems.find(i => i.id === item.id)
+
             if (item.id === id) {
                 const updatedItem = { ...item, ...newPosition };
                 return updatedItem;
             }
-            return item;
+
+            return !!tempItem ? tempItem : item;
         }))
 
         setTempItems([])
@@ -214,7 +217,7 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
     }
 
     return (
-        <View style={styles.container}>
+        <>
             <View
                 style={{ height: 50, marginTop: -100, justifyContent: 'flex-start' }}
             >
@@ -250,14 +253,14 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
                     makeSpaceForItem={makeSpaceForItem}
                 />
             ))}
-        </View>
+        </>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        backgroundColor: '#f2f2f2',
+        justifyContent: 'flex-start',
+        // backgroundColor: '#f2f2f2',
     }
 });

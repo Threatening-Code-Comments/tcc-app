@@ -12,9 +12,9 @@ export const HomescreenComponent = () => {
   ]
 
   return (
-    // <View style={styles.grid}>
-    <HomeScreenHandler items={items} />
-    // </View>
+    <View style={styles.grid}>
+      <HomeScreenHandler items={items} />
+    </View>
   )
 }
 
