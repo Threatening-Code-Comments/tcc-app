@@ -3,6 +3,25 @@ import { HomescreenItem } from "@app/components/homescreen/homescreenHandler";
 import { PlacementGrid } from '@app/components/homescreen/placementGrid';
 
 
+// Tests to add:
+// check moving items:
+// - 3 auf 1
+// 	- tempItems: 1 einen runter
+// - 2 auf 1
+// 	- tempItems: 1 einen runter
+
+
+// - 1 auf 2
+// 	- tempItems: 2 einen nach rechts
+// - 3 auf 2l
+// 	- tempItems: 2 einen rechts / runter
+// - 3 auf 2r
+// 	- tempItems: 2 einen runter
+
+
+// - 2 auf 3
+// 	- tempItems: 3 rechts / runter
+
 const item1 = { id: 2, x: 1, y: 0, width: 2, height: 1 }
 const item2 = { id: 1, x: 0, y: 0, width: 1, height: 1 }
 const item3 = { id: 3, x: 2, y: 1, width: 1, height: 1 }
