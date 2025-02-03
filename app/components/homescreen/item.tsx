@@ -11,7 +11,7 @@ const SHAKE_OFFSET = 5;
 export type ItemProps = HomescreenItem & {
    handleDragEnd: (id: number, pixel: PixelPoint) => void
    snapToNearestGridPoint: (value: number) => number
-   makeSpaceForItem: (item: HomescreenItem, contactPoint?: PixelPoint) => void
+   makeSpaceForItem: (item: HomescreenItem, contactPoint: PixelPoint) => void
    isShaking?: boolean
 }
 const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, makeSpaceForItem, isShaking = false }: ItemProps) => {
