@@ -1,8 +1,9 @@
 import { Dimensions } from "react-native";
 import { PixelTile, PixelPoint, GridPoint, GridTile, HomescreenItem } from "./homescreenHandler"
 import { PlacementGrid } from "./placementGrid"
+import { ItemToString as itemToString, PointToString as pointToString } from "@app/util/logging";
 
-export const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions?.get('window') ?? { width: 1080, height: 2400 };
+export const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions?.get('window') ?? { width: 411, height: 890 };
 export const GRID_COLUMNS = 4;
 export const GRID_ROWS = 5;
 export const GRID_UNIT = Math.min((SCREEN_WIDTH * 0.9) / GRID_COLUMNS, SCREEN_HEIGHT / GRID_ROWS);
@@ -35,7 +36,7 @@ const getPointsOfTile = (tile: PixelTile | GridTile, isPixelTile: boolean) => {
 }
 
 export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactPoint: PixelPoint, placementGrid: PlacementGrid) => {
-    console.log("input: ", { movedItem, contactPoint, placementGrid })
+    console.log("input: ", { movedItem: itemToString(movedItem, 2), contactPoint: pointToString(contactPoint, 2) })
 
     let tempTempItems = []
     const movedItemPoints = getPointsOfTile(movedItem, true)
