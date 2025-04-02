@@ -2,10 +2,10 @@ const IS_DEV = process.env.APP_VARIANT === 'development';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
 
 const APP_NAME = "TCC-App";
-const PACKAGE_NAME = "com.threateningcodecomments.tcc_app";
+const PACKAGE_NAME = "com.threateningcodecomments.tcc-app";
 
-const APP_VERSION = "1.2.2";
-const VERSION_NUMBER = 5
+const APP_VERSION = "1.2.3";
+const VERSION_NUMBER = 6
 
 const getAppName = () => {
   if (IS_DEV) {
