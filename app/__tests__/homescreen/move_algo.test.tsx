@@ -46,12 +46,11 @@ const getItem = ({ x, y, id = 1, w = 1, isPixel = false }: { x: number, y: numbe
 describe('Move-Algo', () => {
     // it('should run', () => { }),
     it('moves 1 for 3 correctly | (0,0) one down', () => {
-        const movedItem = getItem({ x: 0, y: 0, id: 3, isPixel: true })
-        const placementGrid = getPlacementGridWithItems(mockItems)
+        const movedItem = getItem({ x: 0, y: 0, id: 3, isPixel: true }) // moves Item 3 on top of 1 (0,0) =>{id:3,x:0,y:0...}
+        const placementGrid = getPlacementGridWithItems(mockItems) // create placement grid (other situation commented below)
 
-        //moves Item 3 on top of 1 (0,0)
-        const res = makeSpaceForItem(movedItem, { x: 17.93, y: 42.3 }, placementGrid)
-        expect(res).toEqual([{ ...item1, y: item1.y + 1 }])
+        const res = makeSpaceForItem(movedItem, { x: 17.93, y: 42.3 }, placementGrid) // evaluates collisions with Item 3, should return {id:1,x:0,y:+=1...}
+        expect(res).toEqual([{ ...item1, y: item1.y + 1 }]) // expect item 1 to be moved one down
     }),
         it('moves 1 for 2 correctly | (0,0) one down', () => {
             const movedItem = getItem({ x: 0, y: 0, id: 2, w: 2, isPixel: true })
@@ -71,10 +70,16 @@ describe('Move-Algo', () => {
         // 3 auf 2L
         it('should move 2L for 3 | (1,0) one right or one down', () => {
             const movedItem = getItem({ x: 1, y: 0, id: 3, isPixel: true })
-            const placementGrid = getPlacementGridWithItems([...mockItems.filter(i => i.id !== movedItem.id), { ...item3, x: 1, y: 1 }]) // 3 starts from (1,1)
+            // 3 starts from (1,1), because it's not there normally
+            const placementGrid = getPlacementGridWithItems([...mockItems.filter(i => i.id !== movedItem.id), { ...item3, x: 1, y: 1 }])
 
             const res = makeSpaceForItem(movedItem, { x: 96, y: 45.84 }, placementGrid)
-            expect(res).toEqual([{ ...item2, x: item2.x + 1 }])
+            const answers = [
+                [{ ...item2, x: item2.x + 1 }], // right
+                [{ ...item2, y: item2.y + 1 }], // down
+            ]
+
+            expect(answers).toContainEqual(res)
         }),
         // 3 auf 2R
         it('should move 2R for 3 | (2,0) one down', () => {

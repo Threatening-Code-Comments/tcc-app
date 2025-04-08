@@ -48,8 +48,8 @@ export class PlacementGrid {
         const gridWithoutItem = this._grid.filter(point => point.item.id !== item.id).map(point => ({ ...point }))
 
         const newGrid = new PlacementGrid(this._NUM_COLUMNS, this._NUM_ROWS, [])
-        newGrid.addItem(item)
         gridWithoutItem.forEach(point => newGrid.addPoint(point, point.item))
+        newGrid.addItem(item) // the new item was getting overridden 💀💀💀
 
         return newGrid
     }
@@ -81,22 +81,56 @@ export class PlacementGrid {
         return isFree
     }
 
+
     checkRightBorder(variableCoordinate: number, fixedCoordinate: number, size: number, crossSize: number, itemId: number,
         vIsX: boolean,
         offset: number,
     ) {
-        let isFree = false
+        const startX = (vIsX) ? variableCoordinate + offset : fixedCoordinate
+        const startY = (vIsX) ? fixedCoordinate : variableCoordinate + offset
+        const width = (vIsX) ? size : crossSize
+        const height = (vIsX) ? crossSize : size
 
-        for (let i = 1; i <= offset; i++) {
-            for (let crossCoordinate = fixedCoordinate; crossCoordinate < fixedCoordinate + crossSize; crossCoordinate++) {
-                for (let mainCoordinate = variableCoordinate + i + (size - 1); mainCoordinate > variableCoordinate; mainCoordinate--) {
-                    isFree = (vIsX)
-                        ? this.checkIfSpaceIsFree({ x: mainCoordinate, y: crossCoordinate }, itemId)
-                        : this.checkIfSpaceIsFree({ x: crossCoordinate, y: mainCoordinate }, itemId)
-                    if (!isFree) return false
+        for (let x = startX; x < startX + width; x++) {
+            for (let y = startY; y < startY + height; y++) {
+                if (!this.checkIfSpaceIsFree({ x, y }, itemId)) {
+                    return false
                 }
             }
         }
-        return isFree
+        return true
     }
+
+    checkWithOffset(item: { x: number, y: number, width: number, height: number, id: number }, offset: { x?: number, y?: number }) {
+        const itemX = item.x + (offset.x || 0)
+        const itemY = item.y + (offset.y || 0)
+
+        for (let x = itemX; x < itemX + item.width; x++) {
+            for (let y = itemY; y < itemY + item.height; y++) {
+                if (!this.checkIfSpaceIsFree({ x, y }, item.id)) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    // checkRightBorder(variableCoordinate: number, fixedCoordinate: number, size: number, crossSize: number, itemId: number,
+    //     vIsX: boolean,
+    //     offset: number,
+    // ) {
+    //     let isFree = false
+
+    //     for (let i = 1; i <= offset; i++) {
+    //         for (let crossCoordinate = fixedCoordinate; crossCoordinate < fixedCoordinate + crossSize; crossCoordinate++) {
+    //             for (let mainCoordinate = variableCoordinate + i + (size - 1); mainCoordinate > variableCoordinate; mainCoordinate--) {
+    //                 isFree = (vIsX)
+    //                     ? this.checkIfSpaceIsFree({ x: mainCoordinate, y: crossCoordinate }, itemId)
+    //                     : this.checkIfSpaceIsFree({ x: crossCoordinate, y: mainCoordinate }, itemId)
+    //                 if (!isFree) return false
+    //             }
+    //         }
+    //     }
+    //     return isFree
+    // }
 }   

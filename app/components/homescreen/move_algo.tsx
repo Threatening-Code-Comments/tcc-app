@@ -76,10 +76,10 @@ export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactP
         const intersectionMinX = itemPoints.reduce((prev, cur) => Math.min(prev, cur.x), Number.MAX_VALUE)
         const intersectionMinY = itemPoints.reduce((prev, cur) => Math.min(prev, cur.y), Number.MAX_VALUE)
 
-        const checkLeft = () => movedPlacementGrid.checkLeftBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
-        const checkUp = () => movedPlacementGrid.checkLeftBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
-        const checkRight = () => movedPlacementGrid.checkRightBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
-        const checkDown = () => movedPlacementGrid.checkRightBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
+        const checkLeft = () => movedPlacementGrid.checkWithOffset(item, { x: -1, })   //movedPlacementGrid.checkLeftBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
+        const checkUp = () => movedPlacementGrid.checkWithOffset(item, { y: -1 })  //movedPlacementGrid.checkLeftBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
+        const checkRight = () => movedPlacementGrid.checkWithOffset(item, { x: +1 })   //movedPlacementGrid.checkRightBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
+        const checkDown = () => movedPlacementGrid.checkWithOffset(item, { y: +1 })  //movedPlacementGrid.checkRightBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
 
         const checkAll = () => {
             const left = checkLeft()
