@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, GestureUpdateEvent, PanGestureHandlerEventPayload } from 'react-native-gesture-handler';
 import Animated, { runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { GenericTile } from '../tiles/GenericTile';
 import { HomescreenItem, PixelPoint } from './homescreenHandler';
@@ -24,6 +24,7 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
    const [isDragging, setIsDragging] = useState(false);
    const translationYShakeOffset = useSharedValue<number>(0);
    const lastCheckedCoordinate = useSharedValue<PixelPoint>({ x: x, y: y });
+   const updateTimeout = useSharedValue<NodeJS.Timeout | null>(null);
 
    const shakeEffect = () => {
       if (!isShaking) {
@@ -53,12 +54,43 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
       }
 
       lastCheckedCoordinate.value = coordinate;
-      runOnJS(makeSpaceForItem)(item, point)
+
+      // makes space for item after a delay
+      // if this works for folders will be revisited
+      if (!updateTimeout.value) {
+         updateTimeout.value = setTimeout(() => {
+            updateTimeout.value = null;
+            runOnJS(makeSpaceForItem)(item, point);
+         }, 300);
+      }
    }
 
    useEffect(() => {
       shakeEffect()
    }, [isShaking])
+
+   const onDragUpdate = (event: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
+      const newTranslateX = snapToNearestGridPoint(event.translationX);
+      const newTranslateY = snapToNearestGridPoint(event.translationY);
+
+      translateX.value = withSpring(newTranslateX)
+      translateY.value = withSpring(newTranslateY)
+
+      checkCoordinate({ id, x: x + newTranslateX, y: y + newTranslateY, width, height, }, { x: x + event.translationX, y: y + event.translationY });
+   }
+   const onDragEnd = () => {
+      const newX = snapToNearestGridPoint(x + translateX.value);
+      const newY = snapToNearestGridPoint(y + translateY.value);
+
+      runOnJS(handleDragEnd)(id, { x: newX, y: newY });
+      checkCoordinate({ id, x: newX, y: newY, width, height }, { x: x + translateX.value, y: y + translateY.value });
+
+      translateX.value = 0
+      translateY.value = 0
+      itemX.value = newX;
+      itemY.value = newY;
+      runOnJS(setIsDragging)(false);
+   }
 
    // Drag-Gesture für Bewegung
    const dragGesture = Gesture.Pan()
@@ -66,26 +98,10 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
          runOnJS(setIsDragging)(true);
       })
       .onUpdate((event) => {
-         const newTranslateX = snapToNearestGridPoint(event.translationX);
-         const newTranslateY = snapToNearestGridPoint(event.translationY);
-
-         translateX.value = withSpring(newTranslateX)
-         translateY.value = withSpring(newTranslateY)
-
-         checkCoordinate({ id, x: x + newTranslateX, y: y + newTranslateY, width, height, }, { x: x + event.translationX, y: y + event.translationY });
+         runOnJS(onDragUpdate)(event)
       })
       .onEnd(() => {
-         const newX = snapToNearestGridPoint(x + translateX.value);
-         const newY = snapToNearestGridPoint(y + translateY.value);
-
-         runOnJS(handleDragEnd)(id, { x: newX, y: newY });
-         checkCoordinate({ id, x: newX, y: newY, width, height }, { x: x + translateX.value, y: y + translateY.value });
-
-         translateX.value = 0
-         translateY.value = 0
-         itemX.value = newX;
-         itemY.value = newY;
-         runOnJS(setIsDragging)(false);
+         runOnJS(onDragEnd)()
       });
 
    // Stile
