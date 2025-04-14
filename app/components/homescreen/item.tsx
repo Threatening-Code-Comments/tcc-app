@@ -13,8 +13,9 @@ export type ItemProps = HomescreenItem & {
    snapToNearestGridPoint: (value: number) => number
    makeSpaceForItem: (item: HomescreenItem, contactPoint: PixelPoint) => void
    isShaking?: boolean
+   isPreview?: boolean
 }
-const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, makeSpaceForItem, isShaking = false }: ItemProps) => {
+const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, makeSpaceForItem, isShaking = false, isPreview = false }: ItemProps) => {
    const itemX = useSharedValue<number>(x);
    const itemY = useSharedValue<number>(y);
    const translateX = useSharedValue<number>(0);
@@ -27,7 +28,7 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
    const updateTimeout = useSharedValue<NodeJS.Timeout | null>(null);
 
    const shakeEffect = () => {
-      if (!isShaking) {
+      if (!isShaking || isPreview) {
          translationYShakeOffset.value = 0
          return
       };
@@ -70,8 +71,10 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
    }, [isShaking])
 
    const onDragUpdate = (event: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
-      const newTranslateX = snapToNearestGridPoint(event.translationX);
-      const newTranslateY = snapToNearestGridPoint(event.translationY);
+      // const newTranslateX = snapToNearestGridPoint(event.translationX);
+      // const newTranslateY = snapToNearestGridPoint(event.translationY);
+      const newTranslateX = event.translationX;
+      const newTranslateY = event.translationY;
 
       translateX.value = withSpring(newTranslateX)
       translateY.value = withSpring(newTranslateY)
@@ -93,16 +96,19 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
    }
 
    // Drag-Gesture für Bewegung
-   const dragGesture = Gesture.Pan()
-      .onStart(() => {
-         runOnJS(setIsDragging)(true);
-      })
-      .onUpdate((event) => {
-         runOnJS(onDragUpdate)(event)
-      })
-      .onEnd(() => {
-         runOnJS(onDragEnd)()
-      });
+   const dragGesture =
+      isShaking || isPreview
+         ? Gesture.Tap()
+         : Gesture.Pan()
+            .onStart(() => {
+               runOnJS(setIsDragging)(true);
+            })
+            .onUpdate((event) => {
+               runOnJS(onDragUpdate)(event)
+            })
+            .onEnd(() => {
+               runOnJS(onDragEnd)()
+            });
 
    // Stile
    const animatedStyle = useAnimatedStyle(() => ({
@@ -117,6 +123,13 @@ const Item = ({ id, x, y, width, height, handleDragEnd, snapToNearestGridPoint, 
       borderColor: isDragging ? 'red' : 'transparent',
       borderWidth: 2
    }));
+
+   if (isPreview)
+      return (
+         <Animated.View style={[styles.previewItem, animatedStyle]} >
+
+         </Animated.View>
+      )
 
    return (
       <GestureDetector gesture={dragGesture}>
@@ -137,5 +150,12 @@ const styles = StyleSheet.create({
    item: {
       backgroundColor: '#4A90E2',
       position: 'absolute'
+   },
+   previewItem: {
+      backgroundColor: '#00000000',
+      position: 'absolute',
+      borderColor: '#4A90E2',
+      borderWidth: 2,
+      elevation: 1,
    }
 });

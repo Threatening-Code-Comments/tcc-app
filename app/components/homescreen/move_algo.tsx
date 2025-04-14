@@ -1,5 +1,5 @@
 import { Dimensions } from "react-native";
-import { PixelTile, PixelPoint, GridPoint, GridTile, HomescreenItem } from "./homescreenHandler"
+import { PixelTile, PixelPoint, GridPoint, GridTile, HomescreenItem, TempItem } from "./homescreenHandler"
 import { PlacementGrid } from "./placementGrid"
 import { ItemToString as itemToString, PointToString as pointToString } from "@app/util/logging";
 
@@ -36,9 +36,10 @@ const getPointsOfTile = (tile: PixelTile | GridTile, isPixelTile: boolean) => {
 }
 
 export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactPoint: PixelPoint, placementGrid: PlacementGrid) => {
-    console.log("input: ", { movedItem: itemToString(movedItem, 2), contactPoint: pointToString(contactPoint, 2) })
+    // console.log("input: ", { movedItem: itemToString(movedItem, 2), contactPoint: pointToString(contactPoint, 2) })
 
-    let tempTempItems = []
+    let tempTempItems: TempItem[] = []
+    const toTempItem = (item: HomescreenItem): TempItem => ({ ...item, isPreview: item.id === movedItem.id })
     const movedItemPoints = getPointsOfTile(movedItem, true)
 
     const blockingItemsTemp = movedItemPoints
@@ -52,12 +53,8 @@ export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactP
     }
 
     const movedItemToCoordinate = pixelToGrid(movedItem)
-    const movedPlacementGrid = placementGrid.getCopyWithItemReplaced({
-        id: movedItem.id,
-        ...movedItemToCoordinate,
-        width: pxToGrid(movedItem.width),
-        height: pxToGrid(movedItem.height)
-    })
+    const movedItemInGrid: typeof movedItem = ({ ...movedItem, ...movedItemToCoordinate, width: pxToGrid(movedItem.width), height: pxToGrid(movedItem.height) })
+    const movedPlacementGrid = placementGrid.getCopyWithItemReplaced(movedItemInGrid)
 
     for (let item of blockingItemsTemp) {
         const itemPoints = getPointsOfTile(item, false)
@@ -155,11 +152,14 @@ export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactP
         }
 
         tempTempItems = [
-            ...tempTempItems.filter(i => i.id !== item.id && blockingItemsTemp.some(b => b.id === i.id)),
-            newItem
+            ...tempTempItems.filter(i => i.id !== item.id && blockingItemsTemp.some(b => b.id === i.id))
+                .map(i => toTempItem(i)),
+            toTempItem(newItem),
+            toTempItem(movedItemInGrid)
         ]
     }
 
-    // console.log("output: ", tempTempItems)
+    console.log("block: ", blockingItemsTemp.map(i => ({ id: i.id, x: i.x, y: i.y })))
+    console.log("output: ", tempTempItems.map(i => ({ id: i.id, isPreview: i.isPreview, x: i.x, y: i.y })))
     return tempTempItems
 }

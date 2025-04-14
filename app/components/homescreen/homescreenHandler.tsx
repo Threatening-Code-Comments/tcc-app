@@ -34,9 +34,13 @@ export type HomescreenItem = GridTile & {
     id: number
 }
 
+export type TempItem = HomescreenItem & {
+    isPreview: boolean
+}
+
 export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
     const [items, setItems] = useState(props.items);
-    const [tempItems, setTempItems] = useState<HomescreenItem[]>([])
+    const [tempItems, setTempItems] = useState<TempItem[]>([])
     const [placementGrid, setPlacementGrid] = useState<GridPlacementList>(new PlacementGrid(GRID_COLUMNS, GRID_ROWS))
 
     useEffect(() => {
@@ -77,7 +81,7 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
                 <IconButton iconName='save' text='Save' />
             </View>
 
-            {items.filter(item => !tempItems.some(other => other.id === item.id)).map((item) => (
+            {items.filter(item => !tempItems.some(other => other.id === item.id && !other.isPreview)).map((item) => (
                 <Item
                     key={item.id}
                     id={item.id}
@@ -92,7 +96,6 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
             ))}
 
             {tempItems.map((item) => (
-
                 <Item
                     key={item.id}
                     id={item.id}
@@ -104,6 +107,7 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
                     handleDragEnd={handleDragEnd}
                     snapToNearestGridPoint={snapPxToGridAsPx}
                     makeSpaceForItem={makeSpaceForItem2}
+                    isPreview={item.isPreview}
                 />
             ))}
         </>
