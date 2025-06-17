@@ -13,7 +13,8 @@ export const iconNames = {
     clockOutline: 'clock-outline',
     arrowUp: 'arrow-up',
     arrowDown: 'arrow-down',
-    close: 'close'
+    close: 'close',
+    refresh: 'restart',
 } as const
 
 // valueof => T[keyof T]

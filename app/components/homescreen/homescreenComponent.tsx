@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { HomeScreenHandler } from './homescreenHandler';
+import HomescreenHandlerNew from './homescreenHandler2'
 
 export const HomescreenComponent = () => {
   const items = [
@@ -13,7 +14,8 @@ export const HomescreenComponent = () => {
 
   return (
     <View style={styles.grid}>
-      <HomeScreenHandler items={items} />
+      {/* <HomeScreenHandler items={items} /> */}
+      <HomescreenHandlerNew items={items} />
     </View>
   )
 }
