@@ -66,6 +66,7 @@ export default {
           "compileSdkVersion": 34,
           "targetSdkVersion": 34,
           "buildToolsVersion": "34.0.0",
+          "kotlinVersion": "22",
           "enableProguardInReleaseBuilds": true,
           "enableShrinkResourcesInReleaseBuilds": true
 
