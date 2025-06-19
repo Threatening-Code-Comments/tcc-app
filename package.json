@@ -8,12 +8,15 @@
     "normal": "cross-env APP_VARIANT=development expo start --clear --go --android",
     "dev": "cross-env APP_VARIANT=development npx expo start",
     "build": "npx eas build --platform android --local",
-    "buildeas": "npx eas build --platform android",
+    "buildeas": "npx eas build --platform android --profile development",
+    "sudobuild": "cross-env APP_VARIANT=development sudo -E cmd /k 'npm run buildeas && pause'",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
     "update": "eas update --branch preview -p android",
-    "pnpm": "cross-env APP_VARIANT=development pnpm exec expo start"
+    "pnpm": "cross-env APP_VARIANT=development pnpm exec expo start",
+    "emulator:list": "emulator -list-avds",
+    "emulator:start": "emulator Pixel7Pro -no-audio -no-window &"
   },
   "dependencies": {
     "@react-native-community/slider": "^4.5.2",
@@ -23,7 +26,7 @@
     "@types/rn-material-ui-textfield": "^1.0.7",
     "babel-plugin-inline-import": "^3.0.0",
     "drizzle-orm": "^0.31.2",
-    "eas-cli": "^14.2.0",
+    "eas-cli": "^16.11.0",
     "expo": "^51.0.21",
     "expo-build-properties": "~0.12.5",
     "expo-constants": "~16.0.2",
@@ -46,7 +49,8 @@
     "rn-material-ui-textfield": "^1.0.9",
     "ts-node": "^10.9.2",
     "typescript": "~5.3.3",
-    "expo-clipboard": "~6.0.3"
+    "expo-clipboard": "~6.0.3",
+    "expo-haptics": "~13.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
