@@ -94,14 +94,14 @@ export const HomeScreenHandler = (props: { items: HomescreenItem[] }) => {
         // }else{
         //     console.log('distance high')
         // }
-        console.log('makeSpace', diffX, diffY)
+        // console.log('makeSpace', diffX, diffY)
 
         // if(!!folderIcon){
         //     console.log('xDiff:', item.x - contactPoint.x, 'yDiff:', item.y - contactPoint.y)
         // }
         folderCreateItem.value = null
         folderCreateItem.value = folderIcon
-        console.log('folderIcon', folderIcon)
+        // console.log('folderIcon', folderIcon)
 
         if (!updateTimeout.value && newTempItems !== tempItems) {
             const afterTimeout = () => {

@@ -7,6 +7,7 @@ import {
   GRID_UNIT,
   makeSpaceForItem,
   pixelToGrid,
+  snapPxToGridAsPx,
 } from "./move_algo";
 import Item2 from "./item2";
 import { View } from "react-native";
@@ -72,17 +73,17 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
     // }
   };
 
-  const onDragEnd = (item: HomescreenItem, pixel: PixelPoint) => {
+  const onDragEnd = (id: number, pixel: PixelPoint) => {
     const newCoordinate = pixelToGrid(pixel);
-    //if folder create state exists, HHHHHHHHHH
+    // console.log("onDragEnd", id, pixel, newCoordinate);
 
-    const newItem = { ...items.findLast((i) => i.id === item.id) };
+    // //if folder create state exists, HHHHHHHHHH
 
-    setItems((prevItems) =>
-      prevItems.map((i) => (i.id !== item.id ? i : newItem))
-    );
+    const newItem = { ...items.findLast((i) => i.id === id), ...newCoordinate };
 
-    
+    const itemsCopy = items.map((i) => (i.id !== id ? i : newItem))
+    // setItems([])
+    setItems(itemsCopy);
   };
 
   const itemComponent = (
@@ -105,6 +106,8 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
           height={item.height * GRID_UNIT}
           updatePreviewItem={updatePreviewItem}
           onDragUpdate={onDragUpdate.bind(null, item)}
+          handleDragEnd={onDragEnd}
+          snapToNearestGridPoint={snapPxToGridAsPx}
         />
       ));
 
@@ -134,6 +137,8 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
             height={item.height * GRID_UNIT}
             updatePreviewItem={updatePreviewItem}
             onDragUpdate={onDragUpdate.bind(null, item)}
+            handleDragEnd={onDragEnd}
+            snapToNearestGridPoint={snapPxToGridAsPx}
           />
         ))}
     </>
