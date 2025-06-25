@@ -1,5 +1,6 @@
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from "react";
-import { HomescreenItem, PixelPoint } from "./types";
+import { StyleSheet } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -10,13 +11,9 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withReanimatedTimer,
-  withSpring,
+  withSpring
 } from "react-native-reanimated";
-import { StyleSheet } from "react-native";
-import { makeSpaceForItem, pixelToGrid } from "./move_algo";
-import * as Haptics from 'expo-haptics';
-import { Text } from "react-native-paper";
+import { HomescreenItem, PixelPoint } from "./types";
 
 export type ItemProps = HomescreenItem & {
   updatePreviewItem: (item: HomescreenItem) => void;
@@ -60,10 +57,6 @@ const Item2 = ({
     itemY.value = y;
   }, [x, y]);
 
-
-  // useEffect(() => runOnJS(console.log)("isSticky:", isSticky), [isSticky.value]);
-
-
   const onDragStart = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     setIsDragging(true);
@@ -76,50 +69,18 @@ const Item2 = ({
       initialDistance.value += (Math.abs(event.translationX) + Math.abs(event.translationY));
 
       if (initialDistance.value > 300) {
-        // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
         isSticky.value = false;
-        // console.log("DEACTIVE");
       }
 
       return;
     }
 
     // hier muss drag (preview) item aktualisiert werden weil flüssig
-    translateX.value = withSpring(event.translationX); //currentPos.x);
-    translateY.value = withSpring(event.translationY); //currentPos.y);
+    translateX.value = withSpring(event.translationX);
+    translateY.value = withSpring(event.translationY);
 
-    // const currentX = itemX.value + translateX.value;
-    // const currentY = itemY.value + translateY.value;
-    // const currentPos: PixelPoint = { x: currentX, y: currentY };
-
-    // const isAddFolder = (point: PixelPoint) =>
-    //   point.x > currentX + width / 2 &&
-    //   point.x < currentX + width / 2 &&
-    //   point.y > currentY + itemHeight.value / 2 &&
-    //   point.y < currentY + itemHeight.value / 2;
-
-    // isAddFolder
-    // if (isAddFolder(currentPos, makeSpaceForItem ScreenStackHeaderCenterView.??????????)) {
-    //   // create folder
-    //   // output ll
-
-    //   // stop furter processing..?
-    //   return;
-    // }
-
-    // move threshold for checking positioning..?
-    // const threshold = 10; // px ??????????
-    // const isInRange = (number: number, from: number, to: number) =>
-    //   from <= number && number <= to;
-    // if (
-    //   isInRange(currentPos.x, x - threshold, x + threshold) &&
-    //   isInRange(currentPos.y, y - threshold, y + threshold)
-    // ) {
-    //   // stop further processing
-    //   return;
-    // }
-
-    // onDragUpdateParam?.(currentPos);
+    runOnJS(onDragUpdateParam)({ x: itemX.value + translateX.value, y: itemY.value + translateY.value });
   }; const onDragEnd = () => {
     setIsDragging(false);
     isSticky.value = true;
@@ -169,9 +130,6 @@ const Item2 = ({
       { translateX: translateX.value },
       { translateY: translateY.value },
     ] as any,
-    // position: 'absolute',
-    // left: itemX.value + translateX.value,
-    // top: itemY.value + translateY.value,
     left: itemX.value,
     top: itemY.value,
     backgroundColor: "#4A90E2",
@@ -179,8 +137,7 @@ const Item2 = ({
   return (
     <GestureDetector gesture={dragGesture}>
       <Animated.View style={[styles.item, animatedStyle]}>
-        {/* <Text style={{ color: "white" }}>({itemX.value},{itemY.value})</Text>
-        <Text style={{ color: "white" }}> + {translateX.value},{translateY.value}</Text> */}
+
       </Animated.View>
     </GestureDetector>
   );

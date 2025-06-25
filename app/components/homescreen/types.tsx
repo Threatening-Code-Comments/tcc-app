@@ -26,3 +26,6 @@ export type GridPlacementList = PlacementGrid //(GridPoint & { item: HomescreenI
 export type HomescreenItem = GridTile & {
     id: number
 }
+export type PixelItem = PixelTile & {
+    id: number
+}

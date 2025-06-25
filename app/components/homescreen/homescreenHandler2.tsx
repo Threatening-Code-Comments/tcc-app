@@ -1,19 +1,19 @@
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { GridPlacementList, HomescreenItem, PixelPoint } from "./types";
-import { PlacementGrid } from "./placementGrid";
+import { View } from "react-native";
+import { useSharedValue } from "react-native-reanimated";
+import { IconButton } from "../IconButton";
+import Item2 from "./item2";
 import {
   GRID_COLUMNS,
   GRID_ROWS,
   GRID_UNIT,
-  makeSpaceForItem,
   pixelToGrid,
-  snapPxToGridAsPx,
+  snapPxToGridAsPx
 } from "./move_algo";
-import Item2 from "./item2";
-import { View } from "react-native";
-import { IconButton } from "../IconButton";
-import { useRouter } from "expo-router";
-import { id } from "react-native-paper-dates";
+import { PlacementGrid } from "./placementGrid";
+import { PreviewItem } from "./previewItem";
+import { GridPlacementList, GridPoint, HomescreenItem, PixelPoint } from "./types";
 
 const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
   const [placementGrid, setPlacementGrid] = useState<GridPlacementList>(
@@ -22,8 +22,11 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
   const router = useRouter();
   const [items, setItems] = useState<HomescreenItem[]>(props.items);
   const [movedItems, setMovedItems] = useState<HomescreenItem[]>([]);
-  const [previewItem, setPreviewItem] = useState<HomescreenItem | null>(null);
-  const [lastCheckedCoordinate, setLastCheckedCoordinate] = useState<{
+  const [previewItem, setPreviewItem] = useState<HomescreenItem | null>(
+    // { id: -1, x: 3, y: 3, width: 1, height: 1 })
+    null);
+
+  const lastCheckedCheckedCoordinate = useSharedValue<{
     x: number;
     y: number;
   }>({ x: 0, y: 0 });
@@ -32,9 +35,9 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
     setItems(props.items);
   }, [props.items]);
 
-  const updatePreviewItem = (item: HomescreenItem) => {
-    setPreviewItem(item);
-  };
+  const isSamePoint = (p1: GridPoint, p2: GridPoint) => {
+    return p1.x === p2.x && p1.y === p2.y;
+  }
 
   const onDragUpdate = (
     item: HomescreenItem,
@@ -42,26 +45,19 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
   ) => {
     const gridCoordinate = pixelToGrid(pixel);
 
-    if (gridCoordinate === lastCheckedCoordinate) {
+    if (isSamePoint(gridCoordinate, lastCheckedCheckedCoordinate.value)) {
       return;
     }
-    setLastCheckedCoordinate(gridCoordinate);
-    console.log("onDragUpdate", item.id, gridCoordinate);
 
-    setPreviewItem(null);
+    lastCheckedCheckedCoordinate.value = gridCoordinate;
 
-    const itemsToBeMoved = makeSpaceForItem(
-      item,
-      gridCoordinate,
-      placementGrid
-    );
-    if (itemsToBeMoved.length > 0) {
-      setMovedItems(itemsToBeMoved);
-    }
+    const newItem = {
+      ...item, x: gridCoordinate.x, y: gridCoordinate.y
+    };
+    setPreviewItem(null)
+    setPreviewItem(newItem);
 
-    setPreviewItem({ ...item, x: gridCoordinate.x, y: gridCoordinate.y });
 
-    // hier wird preview item bewegt
     // if(lastCoordinate != currentPos){
     //     setPreviewItem(null)
     //     const itemsToMoveToPlacePreviewItem =
@@ -75,9 +71,9 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
 
   const onDragEnd = (id: number, pixel: PixelPoint) => {
     const newCoordinate = pixelToGrid(pixel);
-    // console.log("onDragEnd", id, pixel, newCoordinate);
 
     // //if folder create state exists, HHHHHHHHHH
+    setPreviewItem(null);
 
     const newItem = { ...items.findLast((i) => i.id === id), ...newCoordinate };
 
@@ -104,7 +100,7 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
           y={item.y * GRID_UNIT}
           width={item.width * GRID_UNIT}
           height={item.height * GRID_UNIT}
-          updatePreviewItem={updatePreviewItem}
+          updatePreviewItem={setPreviewItem}
           onDragUpdate={onDragUpdate.bind(null, item)}
           handleDragEnd={onDragEnd}
           snapToNearestGridPoint={snapPxToGridAsPx}
@@ -125,6 +121,18 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
         />
       </View>
 
+      {!previewItem
+        ? null
+        : <PreviewItem
+          key={'preview' + previewItem.id}
+          id={previewItem.id}
+          x={previewItem.x * GRID_UNIT}
+          y={previewItem.y * GRID_UNIT}
+          width={previewItem.width * GRID_UNIT}
+          height={previewItem.height * GRID_UNIT}
+        />
+      }
+
       {items
         .filter((item) => !movedItems.some((mI) => mI.id === item.id))
         .map((item) => (
@@ -135,7 +143,7 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
             y={item.y * GRID_UNIT}
             width={item.width * GRID_UNIT}
             height={item.height * GRID_UNIT}
-            updatePreviewItem={updatePreviewItem}
+            updatePreviewItem={setPreviewItem}
             onDragUpdate={onDragUpdate.bind(null, item)}
             handleDragEnd={onDragEnd}
             snapToNearestGridPoint={snapPxToGridAsPx}

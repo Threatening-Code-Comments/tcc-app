@@ -1,7 +1,6 @@
 import { Dimensions } from "react-native";
-import { PixelTile, PixelPoint, GridPoint, GridTile, HomescreenItem } from "./homescreenHandler"
-import { PlacementGrid } from "./placementGrid"
-import { ItemToString as itemToString, PointToString as pointToString } from "@app/util/logging";
+import { PlacementGrid } from "./placementGrid";
+import { GridPoint, GridTile, HomescreenItem, PixelPoint, PixelTile } from "./types";
 
 export const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions?.get('window') ?? { width: 411, height: 890 };
 export const GRID_COLUMNS = 4;
