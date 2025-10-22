@@ -211,15 +211,15 @@ const HomePage = () => {
             {/* <TestComponent elementList={dashboardList} /> */}
             {/* </View> */}
 
-            <View style={{ height: 200, marginTop: "auto" }}>
-                <PageDisplay
-                    isEditMode={isEditMode}
-                    pages={pages}
-                    doAfterEdit={updatePage}
-                    onPressDelete={(item) => removePage(item)}
-                    dashboardList={{ list: dashboardList, setList: setDashboardList }}
-                />
-            </View>
+            {/*<View style={{ height: 200, marginTop: "auto" }}>*/}
+            {/*    <PageDisplay*/}
+            {/*        isEditMode={isEditMode}*/}
+            {/*        pages={pages}*/}
+            {/*        doAfterEdit={updatePage}*/}
+            {/*        onPressDelete={(item) => removePage(item)}*/}
+            {/*        dashboardList={{ list: dashboardList, setList: setDashboardList }}*/}
+            {/*    />*/}
+            {/*</View>*/}
         </View>
     )
 }

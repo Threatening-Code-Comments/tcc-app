@@ -8,12 +8,13 @@ import {
   PanGestureHandlerEventPayload,
 } from "react-native-gesture-handler";
 import Animated, {
-  runOnJS,
+  runOnJS, runOnRuntime, runOnUI,
   useAnimatedStyle,
   useSharedValue,
   withSpring
 } from "react-native-reanimated";
 import { HomescreenItem, PixelPoint } from "./types";
+import {runOnUIImmediately} from "react-native-reanimated/lib/typescript/reanimated2/threads";
 
 export type ItemProps = HomescreenItem & {
   updatePreviewItem: (item: HomescreenItem) => void;
@@ -79,6 +80,7 @@ const Item2 = ({
     // hier muss drag (preview) item aktualisiert werden weil flüssig
     translateX.value = withSpring(event.translationX);
     translateY.value = withSpring(event.translationY);
+
 
     runOnJS(onDragUpdateParam)({ x: itemX.value + translateX.value, y: itemY.value + translateY.value });
   }; const onDragEnd = () => {
