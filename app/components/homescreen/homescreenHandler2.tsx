@@ -160,22 +160,22 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
             {/*    />*/}
             {/*}*/}
 
-            {/*{items*/}
-            {/*    .filter((item) => !movedItems.some((mI) => mI.id === item.id))*/}
-            {/*    .map((item) => (*/}
-            {/*        <Item2*/}
-            {/*            key={item.id}*/}
-            {/*            id={item.id}*/}
-            {/*            x={item.x * GRID_UNIT}*/}
-            {/*            y={item.y * GRID_UNIT}*/}
-            {/*            width={item.width * GRID_UNIT}*/}
-            {/*            height={item.height * GRID_UNIT}*/}
-            {/*            updatePreviewItem={setPreviewItem}*/}
-            {/*            onDragUpdate={onDragUpdate.bind(null, item)}*/}
-            {/*            handleDragEnd={onDragEnd}*/}
-            {/*            snapToNearestGridPoint={snapPxToGridAsPx}*/}
-            {/*        />*/}
-            {/*    ))}*/}
+            {items
+                .filter((item) => !movedItems.some((mI) => mI.id === item.id))
+                .map((item) => (
+                    <Item2
+                        key={item.id}
+                        id={item.id}
+                        x={item.x * GRID_UNIT}
+                        y={item.y * GRID_UNIT}
+                        width={item.width * GRID_UNIT}
+                        height={item.height * GRID_UNIT}
+                        updatePreviewItem={setPreviewItem}
+                        onDragUpdate={onDragUpdate.bind(null, item)}
+                        handleDragEnd={onDragEnd}
+                        snapToNearestGridPoint={snapPxToGridAsPx}
+                    />
+                ))}
 
             {/*<View style={{display: 'flex', flexWrap: "wrap", width: '100%', backgroundColor: 'red', height: '100%'}}>*/}
             {/*    /!*{getFullList(items.filter((i) => !movedItems.some((i2) => i2.id === i.id)))*!/*/}
@@ -192,14 +192,14 @@ const homescreenHandlerNew = (props: { items: HomescreenItem[] }) => {
 
             {/*</View>*/}
 
-            <View style={{}}>
-                <FlatList
-                    data={items}
-                    renderItem={({item}) => <Item3 item={item}/>}
-                    keyExtractor={(item, index) => !!item ? index + "" + item.id : index + ""}
-                    numColumns={maxCoordinates.x}
-                />
-            </View>
+            {/*<View style={{}}>*/}
+            {/*    <FlatList*/}
+            {/*        data={items}*/}
+            {/*        renderItem={({item}) => <Item3 item={item}/>}*/}
+            {/*        keyExtractor={(item, index) => !!item ? index + "" + item.id : index + ""}*/}
+            {/*        numColumns={maxCoordinates.x}*/}
+            {/*    />*/}
+            {/*</View>*/}
 
         </>
     );

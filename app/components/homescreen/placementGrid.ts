@@ -1,8 +1,9 @@
-import { ConsoleLogWriter } from "drizzle-orm"
-import { HomescreenItem } from "./homescreenHandler"
+import {HomescreenItem} from "@components/homescreen/types";
 
 type GridPoint = { x: number, y: number }
-type GridPlacementList = (GridPoint & { item: HomescreenItem })[]
+type GridPlacementList = (GridPoint &
+    { item: HomescreenItem }
+    )[]
 
 export class PlacementGrid {
     private _grid: GridPlacementList = []
@@ -27,15 +28,16 @@ export class PlacementGrid {
     addItem(item: HomescreenItem): void {
         for (let i = item.x; i < item.x + item.width; i++) {
             for (let j = item.y; j < item.y + item.height; j++) {
-                this.addPoint({ x: i, y: j }, item)
+                this.addPoint({x: i, y: j}, item)
             }
         }
     }
 
     private addPoint(point: GridPoint, item: HomescreenItem): void {
-        const entryFromPlacementGrid = this._grid.find(p => PlacementGrid.isSamePoint(point, p))
+        const entryFromPlacementGrid =
+            this._grid.find(p => PlacementGrid.isSamePoint(point, p))
         if (!entryFromPlacementGrid) {
-            this._grid.push({ x: point.x, y: point.y, item: item })
+            this._grid.push({x: point.x, y: point.y, item: item})
             return
         }
 
@@ -45,7 +47,7 @@ export class PlacementGrid {
     }
 
     getCopyWithItemReplaced(item: HomescreenItem): PlacementGrid {
-        const gridWithoutItem = this._grid.filter(point => point.item.id !== item.id).map(point => ({ ...point }))
+        const gridWithoutItem = this._grid.filter(point => point.item.id !== item.id).map(point => ({...point}))
 
         const newGrid = new PlacementGrid(this._NUM_COLUMNS, this._NUM_ROWS, [])
         gridWithoutItem.forEach(point => newGrid.addPoint(point, point.item))
@@ -62,8 +64,8 @@ export class PlacementGrid {
     }
 
     checkLeftBorder(variableCoordinate: number, fixedCoordinate: number, size: number, crossSize: number, itemId: number,
-        vIsX: boolean,
-        offset: number,) {
+                    vIsX: boolean,
+                    offset: number,) {
         const startMain = variableCoordinate - (size - 1)
         const startCross = Math.max(fixedCoordinate + (crossSize - 1), fixedCoordinate - (crossSize - 1))
 
@@ -72,8 +74,8 @@ export class PlacementGrid {
             for (let crossCoordinate = startCross; crossCoordinate <= fixedCoordinate; crossCoordinate++) {
                 for (let mainCoordinate = startMain - i; mainCoordinate < variableCoordinate; mainCoordinate++) {
                     isFree = (vIsX)
-                        ? this.checkIfSpaceIsFree({ x: mainCoordinate, y: crossCoordinate }, itemId)
-                        : this.checkIfSpaceIsFree({ x: crossCoordinate, y: mainCoordinate }, itemId)
+                        ? this.checkIfSpaceIsFree({x: mainCoordinate, y: crossCoordinate}, itemId)
+                        : this.checkIfSpaceIsFree({x: crossCoordinate, y: mainCoordinate}, itemId)
                     if (!isFree) return false
                 }
             }
@@ -83,8 +85,8 @@ export class PlacementGrid {
 
 
     checkRightBorder(variableCoordinate: number, fixedCoordinate: number, size: number, crossSize: number, itemId: number,
-        vIsX: boolean,
-        offset: number,
+                     vIsX: boolean,
+                     offset: number,
     ) {
         const startX = (vIsX) ? variableCoordinate + offset : fixedCoordinate
         const startY = (vIsX) ? fixedCoordinate : variableCoordinate + offset
@@ -93,7 +95,7 @@ export class PlacementGrid {
 
         for (let x = startX; x < startX + width; x++) {
             for (let y = startY; y < startY + height; y++) {
-                if (!this.checkIfSpaceIsFree({ x, y }, itemId)) {
+                if (!this.checkIfSpaceIsFree({x, y}, itemId)) {
                     return false
                 }
             }
@@ -101,13 +103,16 @@ export class PlacementGrid {
         return true
     }
 
-    checkWithOffset(item: { x: number, y: number, width: number, height: number, id: number }, offset: { x?: number, y?: number }) {
+    checkWithOffset(item: { x: number, y: number, width: number, height: number, id: number }, offset: {
+        x?: number,
+        y?: number
+    }) {
         const itemX = item.x + (offset.x || 0)
         const itemY = item.y + (offset.y || 0)
 
         for (let x = itemX; x < itemX + item.width; x++) {
             for (let y = itemY; y < itemY + item.height; y++) {
-                if (!this.checkIfSpaceIsFree({ x, y }, item.id)) {
+                if (!this.checkIfSpaceIsFree({x, y}, item.id)) {
                     return false
                 }
             }

@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import {HomeScreenHandler} from './homescreenHandler';
 import HomescreenHandlerNew from './homescreenHandler2'
 import {AppDrawer} from "@components/homescreen/AppDrawer/AppDrawer";
+import HomescreenHandler3 from "@components/homescreen/3_homescreenHandler";
 
 export const HomescreenComponent = () => {
     const items = [
@@ -19,7 +20,11 @@ export const HomescreenComponent = () => {
         <View style={styles.grid}>
             {/* <HomeScreenHandler items={items} /> */}
             {/*<HomescreenHandlerNew items={items}/>*/}
-            <HomescreenHandlerNew items={items} />
+            <HomescreenHandler3 items={items.map((i)=>({
+                layout: {x: i.x, y: i.y, width: i.width, height: i.height},
+                itemId: i.id,
+                parentId: undefined
+            }))} />
             <AppDrawer items={items} isOpen={appDrawerOpen} onToggle={() => null} onDragEnd={() => null} onDrop={() => null}/>
         </View>
     )

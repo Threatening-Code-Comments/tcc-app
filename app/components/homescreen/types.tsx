@@ -1,6 +1,9 @@
 import { getAllJSDocTagsOfKind } from "typescript";
 import { PlacementGrid } from "./placementGrid";
 
+export type PixelValue = number;
+export type GridValue = number
+
 export type GridPoint = {
     x: number
     y: number

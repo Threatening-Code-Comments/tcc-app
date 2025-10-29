@@ -1,8 +1,8 @@
-import { Dimensions } from "react-native";
-import { PlacementGrid } from "./placementGrid";
-import { GridPoint, GridTile, HomescreenItem, PixelPoint, PixelTile } from "./types";
+import {Dimensions} from "react-native";
+import {PlacementGrid} from "./placementGrid";
+import {GridPoint, GridTile, GridValue, HomescreenItem, PixelPoint, PixelTile, PixelValue} from "./types";
 
-export const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions?.get('window') ?? { width: 411, height: 890 };
+export const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions?.get('window') ?? {width: 411, height: 890};
 export const GRID_COLUMNS = 4;
 export const GRID_ROWS = 5;
 export const GRID_UNIT = Math.min((SCREEN_WIDTH * 0.9) / GRID_COLUMNS, SCREEN_HEIGHT / GRID_ROWS);
@@ -11,14 +11,23 @@ export const snapPxToGridAsPx = (value: number) => {
     "worklet"
     return Math.round(value / GRID_UNIT) * GRID_UNIT;
 }
-export const pxToGrid = (value: number) => {
+export const pxToGrid: (value: PixelValue) => GridValue = (value: number) => {
+    "worklet"
     return Math.round(value / GRID_UNIT);
 }
 export const gridToPx = (value: number) => {
+    "worklet"
     return value * GRID_UNIT;
 }
 
-export const pixelToGrid = (pixel: PixelPoint) => ({ x: pxToGrid(pixel.x), y: pxToGrid(pixel.y) })
+export const pixelToGrid = (pixel: PixelPoint) => {
+    "worklet"
+    return ({x: pxToGrid(pixel.x), y: pxToGrid(pixel.y)})
+}
+export const gridPointToPixel = (point: GridPoint)=>{
+    "worklet"
+    return ({x: gridToPx(point.x), y: gridToPx(point.y)})
+}
 
 const getPointsOfTile = (tile: PixelTile | GridTile, isPixelTile: boolean) => {
     const movedItemToCoordinate = isPixelTile ? pixelToGrid(tile) : tile
@@ -28,13 +37,15 @@ const getPointsOfTile = (tile: PixelTile | GridTile, isPixelTile: boolean) => {
     const movedItemPoints: GridPoint[] = []
     for (let i = movedItemToCoordinate.x; i < movedItemToCoordinate.x + Math.max(1, width); i++) {
         for (let j = movedItemToCoordinate.y; j < movedItemToCoordinate.y + Math.max(1, height); j++) {
-            movedItemPoints.push({ x: i, y: j })
+            movedItemPoints.push({x: i, y: j})
         }
     }
     return movedItemPoints
 }
 
-export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactPoint: PixelPoint, placementGrid: PlacementGrid) => {
+export const makeSpaceForItem = (movedItem: PixelTile & {
+    id: number
+}, contactPoint: PixelPoint, placementGrid: PlacementGrid) => {
     // console.log("input: ", { movedItem: itemToString(movedItem, 2), contactPoint: pointToString(contactPoint, 2) })
 
     let tempTempItems: HomescreenItem[] = []
@@ -51,7 +62,11 @@ export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactP
     }
 
     const movedItemToCoordinate = pixelToGrid(movedItem)
-    const movedItemInGrid: typeof movedItem = ({ ...movedItem, ...movedItemToCoordinate, width: pxToGrid(movedItem.width), height: pxToGrid(movedItem.height) })
+    const movedItemInGrid: typeof movedItem = ({
+        ...movedItem, ...movedItemToCoordinate,
+        width: pxToGrid(movedItem.width),
+        height: pxToGrid(movedItem.height)
+    })
     const movedPlacementGrid = placementGrid.getCopyWithItemReplaced(movedItemInGrid)
 
     for (let item of blockingItemsTemp) {
@@ -71,10 +86,10 @@ export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactP
         const intersectionMinX = itemPoints.reduce((prev, cur) => Math.min(prev, cur.x), Number.MAX_VALUE)
         const intersectionMinY = itemPoints.reduce((prev, cur) => Math.min(prev, cur.y), Number.MAX_VALUE)
 
-        const checkLeft = () => movedPlacementGrid.checkWithOffset(item, { x: -1, })   //movedPlacementGrid.checkLeftBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
-        const checkUp = () => movedPlacementGrid.checkWithOffset(item, { y: -1 })  //movedPlacementGrid.checkLeftBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
-        const checkRight = () => movedPlacementGrid.checkWithOffset(item, { x: +1 })   //movedPlacementGrid.checkRightBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
-        const checkDown = () => movedPlacementGrid.checkWithOffset(item, { y: +1 })  //movedPlacementGrid.checkRightBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
+        const checkLeft = () => movedPlacementGrid.checkWithOffset(item, {x: -1,})   //movedPlacementGrid.checkLeftBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
+        const checkUp = () => movedPlacementGrid.checkWithOffset(item, {y: -1})  //movedPlacementGrid.checkLeftBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
+        const checkRight = () => movedPlacementGrid.checkWithOffset(item, {x: +1})   //movedPlacementGrid.checkRightBorder(intersectionMinX, item.y, item.width, item.height, item.id, true, intersectionSizeX);
+        const checkDown = () => movedPlacementGrid.checkWithOffset(item, {y: +1})  //movedPlacementGrid.checkRightBorder(intersectionMinY, item.x, item.height, item.width, item.id, false, intersectionSizeY);
 
         const checkAll = () => {
             const left = checkLeft()
@@ -98,11 +113,11 @@ export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactP
                 if (tryPrimary && primary) {
                     const sign = xDiff > 0 ? 1 : -1
 
-                    return { x: sign * intersectionSizeX, y: 0 }
+                    return {x: sign * intersectionSizeX, y: 0}
                 } else if (secondary) {
                     const sign = xDiff > 0 ? -1 : 1
 
-                    return { x: sign * intersectionSizeX, y: 0 }
+                    return {x: sign * intersectionSizeX, y: 0}
                 }
             }
 
@@ -112,13 +127,13 @@ export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactP
 
                 if (tryPrimary && primary) {
                     const sign = yDiff > 0 ? -1 : 1
-                    console.log({ sign, intersectionSizeY })
+                    console.log({sign, intersectionSizeY})
 
-                    return { x: 0, y: sign * intersectionSizeY }
+                    return {x: 0, y: sign * intersectionSizeY}
                 } else if (secondary) {
                     const sign = yDiff > 0 ? 1 : -1
 
-                    return { x: 0, y: sign * intersectionSizeY }
+                    return {x: 0, y: sign * intersectionSizeY}
                 }
             }
 
@@ -137,7 +152,7 @@ export const makeSpaceForItem = (movedItem: PixelTile & { id: number }, contactP
             if (vertical) return vertical
 
             console.error("No direction found (getPreferredDirection)")
-            return { x: 0, y: 0 }
+            return {x: 0, y: 0}
         }
 
         // tempTempItems = tempTempItems.map(tempItem => {
