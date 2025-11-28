@@ -1,6 +1,13 @@
 import React, {useEffect} from "react";
 import {StyleSheet} from "react-native";
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withSpring} from "react-native-reanimated";
+import Animated, {
+    cancelAnimation,
+    runOnJS,
+    useAnimatedReaction,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring
+} from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import {
     Gesture,
@@ -9,7 +16,7 @@ import {
     GestureUpdateEvent,
     PanGestureHandlerEventPayload
 } from "react-native-gesture-handler";
-import {HS3Item} from "@components/homescreen/3_homescreenHandler";
+import {HS3Item} from "@components/homescreen/3-homescreen/3_homescreenHandler";
 import {PixelPoint} from "@components/homescreen/types";
 import {Text} from "react-native-paper";
 import {gridPointToPixel, gridToPx, pxToGrid} from "@components/homescreen/move_algo";
@@ -20,7 +27,7 @@ export const FOLDER_HOVER_OVERLAY_INSET = 0.65
 type Props = HS3Item & {
     onDragUpdate?: (point: PixelPoint) => void,
     snapToNearestGridPoint: (value: number) => number,
-    handleDragEnd: (pixel: PixelPoint) => void,
+    handleDragEnd: (pixel?: PixelPoint) => void,
     gridUnit: number,
 }
 const Item3 = ({
@@ -44,10 +51,29 @@ const Item3 = ({
     const itemWidth = useSharedValue<number>(width * gridUnit);
     const itemHeight = useSharedValue<number>(height * gridUnit);
 
+    useAnimatedReaction(() => ({tx: translateX.value, ty: translateY.value}),
+        (c, p) => {
+            if (c !== p) {
+                console.log("current tx/ty for", itemId, ":", c, {x: itemX.value, y: itemY.value});
+
+            }
+        }, [translateX, translateY]);
+
     const isDragging = useSharedValue<boolean>(false);
     useEffect(() => {
         itemX.value = x * gridUnit;
         itemY.value = y * gridUnit;
+        translateX.value = 0;
+        translateY.value = 0;
+        console.log("UPDATE in ", itemId,)
+        console.log("NEW xy FOR ", itemId, ", xy:", {
+            a_gX: x,
+            a_gY: y,
+            b_x: x * gridUnit,
+            b_y: y * gridUnit,
+            c_tx: translateX.value,
+            c_ty: translateY.value
+        });
     }, [x, y]);
 
     const onDragStart = (e: GestureStateChangeEvent<PanGestureHandlerEventPayload>) => {
@@ -77,51 +103,69 @@ const Item3 = ({
         translateX.value = withSpring(event.translationX)
         translateY.value = withSpring(event.translationY)
 
+        // console.log("dragUpdate")
+
         runOnJS(onDragUpdateP)({
             x: itemX.value + translateX.value + itemWidth.value / 2, //center the 'aiming point'
             y: itemY.value + translateY.value + itemHeight.value / 2,
         });
     };
     const onDragEnd = () => {
+        console.log("onDragEnd");
+        cancelAnimation(translateX)
+        cancelAnimation(translateY)
         isDragging.value = false;
-
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-
-        const currentX = itemX.value + translateX.value;
-        const currentY = itemY.value + translateY.value;
-        const newX = snapToNearestGridPoint(currentX);
-        const newY = snapToNearestGridPoint(currentY);
-
         translateY.value = 0
         translateX.value = 0
 
-        handleDragEndP(({x: newX, y: newY}));
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+
+        // const currentX = itemX.value + translateX.value;
+        // const currentY = itemY.value + translateY.value;
+        // const newX = snapToNearestGridPoint(currentX);
+        // const newY = snapToNearestGridPoint(currentY);
+
+        handleDragEndP();
         return
 
         // Calculate the final translate values needed to reach the snapped position
-        const oldX = itemX.value
-        const oldY = itemY.value
-        const finalTranslateX = newX - itemX.value;
-        const finalTranslateY = newY - itemY.value;
-
-        translateX.value = withSpring(finalTranslateX, {duration: 0.5}, (finished) => {
-            itemX.value = oldX + finalTranslateX
-            if (finished) {
-                itemX.value = newX;
-                translateX.value = 0;
-            }
-        });
-
-        translateY.value = withSpring(finalTranslateY, {duration: 0.5}, (finished) => {
-            itemY.value = oldY + finalTranslateY
-            if (finished) {
-                itemY.value = newY;
-                translateY.value = 0;
-            }
-        });
-
-        handleDragEndP(({x: newX, y: newY}));
+        // const oldX = itemX.value
+        // const oldY = itemY.value
+        // const finalTranslateX = newX - itemX.value;
+        // const finalTranslateY = newY - itemY.value;
+        //
+        // translateX.value = withSpring(finalTranslateX, {duration: 0.5}, (finished) => {
+        //     itemX.value = oldX + finalTranslateX
+        //     if (finished) {
+        //         itemX.value = newX;
+        //         translateX.value = 0;
+        //     }
+        // });
+        //
+        // translateY.value = withSpring(finalTranslateY, {duration: 0.5}, (finished) => {
+        //     itemY.value = oldY + finalTranslateY
+        //     if (finished) {
+        //         itemY.value = newY;
+        //         translateY.value = 0;
+        //     }
+        // });
+        //
+        // handleDragEndP(({x: newX, y: newY}));
     };
+
+    // useAnimatedReaction(
+    //     () => isDragging.value,
+    //     (c, p) => (c != p) ? console.log("isDrag", isDragging.value) : {},
+    //     [isDragging]
+    // )
+    // useAnimatedReaction(
+    //     () => ({iD: isDragging.value, x: translateX.value, y: translateY.value}),
+    //     (c, p) => {
+    //         if (JSON.stringify(c) !== JSON.stringify(p)) {
+    //             console.log("values", JSON.stringify(p));
+    //         }
+    //     }, [isDragging, translateX, translateY]
+    // )
 
     const dragGesture = Gesture.Pan()
         .onStart((e) => runOnJS(onDragStart)(e))
@@ -134,14 +178,14 @@ const Item3 = ({
         width: itemWidth.value * (isDragging.value ? n : 1),
         height: itemHeight.value * (isDragging.value ? n : 1),
         transform: [
-            {translateX: translateX.value},
-            {translateY: translateY.value},
+            {translateX: isDragging.value ? translateX.value : 0},
+            {translateY: isDragging.value ? translateY.value : 0},
         ] as any,
         left: itemX.value + (isDragging.value ? itemWidth.value * n / 2 : 0),
         top: itemY.value + (isDragging.value ? itemHeight.value * n / 2 : 0),
         elevation: isDragging.value ? 8 : 0,
         zIndex: isDragging.value ? 8 : 1,
-    }));
+    }), [isDragging, itemWidth, itemHeight, translateX, translateY]);
 
     // const folderTargetStyle = useAnimatedStyle(() => ({
     //     position: "absolute",
@@ -201,7 +245,7 @@ export const checkDirectionsForItem: (item: HS3Item, point: PixelPoint, doesColl
     "worklet"
 
     if (!doesCollide)
-        return { dirs: [], isAddFolder: false }
+        return {dirs: [], isAddFolder: false}
 
     const {x, y} = point
     const n = FOLDER_HOVER_OVERLAY_INSET;

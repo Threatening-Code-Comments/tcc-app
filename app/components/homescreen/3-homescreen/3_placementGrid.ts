@@ -1,5 +1,4 @@
-import {HS3Element} from "@components/homescreen/3_homescreenHandler";
-import {HomescreenItem} from "@components/homescreen/types";
+import {HS3Element} from "@components/homescreen/3-homescreen/3_homescreenHandler";
 
 type GridPoint = { x: number, y: number }
 type GridPlacementList3 = (GridPoint &

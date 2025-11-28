@@ -1,25 +1,17 @@
-import { desc, eq } from 'drizzle-orm'
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
-import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator'
+import {desc, eq} from 'drizzle-orm'
+import {useLiveQuery} from 'drizzle-orm/expo-sqlite'
+import {useMigrations} from 'drizzle-orm/expo-sqlite/migrator'
 import migrations from 'drizzle/migrations'
-import React, { useEffect, useState } from 'react'
-import { LogBox, ToastAndroid, View } from 'react-native'
-import { Card, Text } from 'react-native-paper'
-import Dashboard from './Dashboard'
-import PageDisplay from './PageDisplay'
-import { IconButton } from './components/IconButton'
-import TitleDisplay from './components/TitleDisplay'
-import { useModal } from './components/modal/Modal'
-import { DashboardEntry, Page, Tile, TileEvent } from './constants/DbTypes'
-import { globalStyles } from './constants/global'
-import { db, DbExportType, getAllAsObject, initDb } from './db/database'
-import { deletePage, getPages, insertPages } from './db/pages'
+import React, {useEffect, useState} from 'react'
+import {LogBox, ToastAndroid, View} from 'react-native'
+import {Card, Text} from 'react-native-paper'
+import {useModal} from './components/modal/Modal'
+import {DashboardEntry, Page, TileEvent} from './constants/DbTypes'
+import {db, DbExportType, getAllAsObject} from './db/database'
+import {deletePage, getPages, insertPages} from './db/pages'
 import * as schema from './db/schema'
-import { router } from 'expo-router'
-import JLink from './components/JLink'
-import { showToast } from './util/comms'
 import * as Clipboard from 'expo-clipboard'
-import { HomescreenComponent } from './components/homescreen/homescreenComponent'
+import {HomescreenComponent} from './components/homescreen/homescreenComponent'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -28,18 +20,18 @@ const HomePage = () => {
     const [isEditMode, setIsEditMode] = useState(false)
     const [dashboardList, setDashboardList] = useState<DashboardEntry[]>([])
 
-    const { success: migrationSuccess, error: migrationError } = useMigrations(db(), migrations)
-    const { data: dashboardLiveQuery } = useLiveQuery(db().select().from(schema.dashboard).orderBy(desc(schema.dashboard.timeAdded)))
+    const {success: migrationSuccess, error: migrationError} = useMigrations(db(), migrations)
+    const {data: dashboardLiveQuery} = useLiveQuery(db().select().from(schema.dashboard).orderBy(desc(schema.dashboard.timeAdded)))
     useEffect(() => {
         const list = dashboardLiveQuery.sort((a, b) => b.timeAdded.getTime() - a.timeAdded.getTime())
         setDashboardList(list)
     }, [dashboardLiveQuery])
-    const { data: pagesLiveQuery } = useLiveQuery(db().select().from(schema.pages))
+    const {data: pagesLiveQuery} = useLiveQuery(db().select().from(schema.pages))
     useEffect(() => {
         setPages(pagesLiveQuery)
     }, [pagesLiveQuery])
 
-    const { setVisible, component: AddPageModal } = useModal<{
+    const {setVisible, component: AddPageModal} = useModal<{
         "Page Name": "string"
         "Add": "submit",
         "Color": "slider-color"
@@ -71,7 +63,10 @@ const HomePage = () => {
         console.log(JSON.stringify(dataToImport, null, 2))
 
         //JSON doesn't automatically convert the iso dates back into dates....
-        const tileEvents: TileEvent[] = dataToImport.tiles.map(t => t.events.map(te => ({ ...te, timestamp: new Date(te.timestamp) }))).flat()
+        const tileEvents: TileEvent[] = dataToImport.tiles.map(t => t.events.map(te => ({
+            ...te,
+            timestamp: new Date(te.timestamp)
+        }))).flat()
 
         //in testing this needed to be here...
         let changes;
@@ -108,13 +103,13 @@ const HomePage = () => {
         setVisible(false)
 
         insertPages(
-            [{ name: name, color: color }],
+            [{name: name, color: color}],
             (err, res) => {
                 if (err) {
                     console.error("Error inserting page: ", err)
                 } else {
                     console.info("Inserted page: ", res)
-                    setPages([...pages, { id: res[0].lastInsertRowId, name: name, color: color }])
+                    setPages([...pages, {id: res[0].lastInsertRowId, name: name, color: color}])
                 }
             })
     }
@@ -184,28 +179,28 @@ const HomePage = () => {
 
     const padding = 5
     return (
-        <View style={{ display: "flex", height: "100%", width: '100%' }}>
-            <TitleDisplay text='Welcome!' secondaryText={`You have ${pages.length} pages.`} height={100} />
+        <View style={{display: "flex", height: "100%", width: '100%'}}>
+            {/*<TitleDisplay text='Welcome!' secondaryText={`You have ${pages.length} pages.`} height={100} />*/}
 
-            <View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>
-                <IconButton iconName='add' text='Add' onPress={() => setVisible(true)} />
-                <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />
-                {/* <IconButton iconName='question' text='Query' onPress={() => getPagesFromIds([1], (err, res) => console.log("tiles:", res))} />
-                <IconButton iconName='arrow-right' text='Migrate' onPress={migrate} /> */}
-                {/* <IconButton iconName='list-ul' text='Events' /> */}
-                {/* <ModalTester /> */}
-                <IconButton iconName='db' text='Migrate' onPress={migrationButton} />
-            </View>
+            {/*<View style={[globalStyles.iconButtonContainer, { justifyContent: 'flex-end', paddingRight: 20 }]}>*/}
+            {/*    <IconButton iconName='add' text='Add' onPress={() => setVisible(true)} />*/}
+            {/*    <IconButton iconName='edit' text='Edit' onPress={() => setIsEditMode(!isEditMode)} type={isEditMode ? 'secondary' : 'primary'} />*/}
+            {/*    /!* <IconButton iconName='question' text='Query' onPress={() => getPagesFromIds([1], (err, res) => console.log("tiles:", res))} />*/}
+            {/*    <IconButton iconName='arrow-right' text='Migrate' onPress={migrate} /> *!/*/}
+            {/*    /!* <IconButton iconName='list-ul' text='Events' /> *!/*/}
+            {/*    /!* <ModalTester /> *!/*/}
+            {/*    <IconButton iconName='db' text='Migrate' onPress={migrationButton} />*/}
+            {/*</View>*/}
 
             {AddPageModal}
             {migrationModal.component}
 
             {/* <View style={{  }}> */}
-            <Card elevation={1} style={{ flexGrow: 1, margin: '5%', width: '90%' }} >
+            <Card elevation={1} style={{flexGrow: 1, margin: '5%', width: '90%'}}>
 
                 {/* <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} /> */}
 
-                <HomescreenComponent />
+                <HomescreenComponent/>
 
             </Card>
             {/* <TestComponent elementList={dashboardList} /> */}

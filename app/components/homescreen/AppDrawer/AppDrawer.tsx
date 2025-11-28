@@ -1,7 +1,6 @@
 import React, {useState} from "react";
 import {Text, View} from "react-native";
 import {IconButton} from "@components/IconButton";
-import {TextField} from "rn-material-ui-textfield";
 import {Card} from "react-native-paper";
 import {HomescreenItem} from "@components/homescreen/types";
 
@@ -41,7 +40,7 @@ export function AppDrawer({
                 bottom: 0,
                 left: 0,
                 width: "100%",
-                height: isOpen ? 500 : 200,
+                height: isOpen ? 500 : 100,
                 zIndex: 2000
             }}
         >

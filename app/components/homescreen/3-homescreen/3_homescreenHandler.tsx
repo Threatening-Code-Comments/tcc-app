@@ -1,8 +1,14 @@
 import React from "react";
 import {GridPoint, PixelPoint} from "@components/homescreen/types";
-import Item3, {checkDirectionsForItem, Dirs, FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/3_item3";
+import Item3, {
+    checkDirectionsForItem,
+    Dirs,
+    FOLDER_HOVER_OVERLAY_INSET
+} from "@components/homescreen/3-homescreen/3_item3";
 import Animated, {
-    runOnJS, SharedValue,
+    DerivedValue,
+    runOnJS,
+    SharedValue,
     useAnimatedReaction,
     useAnimatedStyle,
     useDerivedValue,
@@ -14,13 +20,19 @@ import {
     GRID_UNIT,
     gridPointToPixel,
     gridToPx,
-    pxToGrid,
     snapPxToGridAsPx
 } from "@components/homescreen/move_algo";
 import {IconButton} from "@components/IconButton";
 import {View} from "react-native";
 import {useRouter} from "expo-router";
-import {PreviewItem3} from "@components/homescreen/3_previewItem";
+import {PreviewItem3} from "@components/homescreen/3-homescreen/3_previewItem";
+import {
+    doRectanglesOverlap,
+    getElementKey,
+    getTargetLayout,
+    isSameElement,
+    isSameElementWorklet
+} from "@components/homescreen/3-homescreen/3_util";
 
 export type HS3LayoutParams = GridPoint & {
     width: number;
@@ -41,40 +53,6 @@ export type HS3Layout = {
     parentId?: number;
 }
 
-export function getElementId(e: HS3Element) {
-    return "itemId" in e ? e.itemId : e.folderId;
-}
-
-export function getElementKey(e: HS3Element) {
-    return "itemId" in e ? "" + e.itemId : "f" + e.folderId;
-}
-
-export function isSameElement(e?: HS3Element, e2?: HS3Element): boolean {
-    if (!e || !e2) return false
-
-    return "itemId" in e
-        ? "itemId" in e2
-            ? e.itemId === e2.itemId
-            : false
-        : "folderId" in e2
-            ? e.folderId === e2.folderId
-            : false
-}
-
-export function isSameElementWorklet(e?: HS3Element, e2?: HS3Element): boolean {
-    "worklet"
-    if (!e || !e2) return false
-
-    return "itemId" in e
-        ? "itemId" in e2
-            ? e.itemId === e2.itemId
-            : false
-        : "folderId" in e2
-            ? e.folderId === e2.folderId
-            : false
-}
-
-
 export type DragState = {
     coordinate: PixelPoint
     draggingItem: HS3Item
@@ -84,12 +62,12 @@ type ItemWithOptions = {
     item: HS3Item
     isAddFolder?: boolean
 }
-
 //sets tempItems
-const checkDirAndMoveIfPossible: (item: HS3Element, targetPosition: {
+
+export const checkDirAndMoveIfPossible: (item: HS3Element, targetPosition: {
     x: number,
     y: number
-}, items: ItemWithOptions[], tempItems: SharedValue<HS3Element[]>) => HS3Element | undefined
+}, items?: ItemWithOptions[], tempItems?: SharedValue<HS3Element[]>) => HS3Element | undefined
     = (item, targetPosition, items, tempItems) => {
     "worklet"
     const {layout} = item
@@ -145,29 +123,60 @@ const checkDirAndMoveIfPossible: (item: HS3Element, targetPosition: {
     // return undefined
 }
 
-export function doRectanglesOverlap(r1: HS3LayoutParams, r2: HS3LayoutParams) {
-    "worklet"
-    if (r1.x >= r2.x + r2.width || r2.x >= r1.x + r1.width)
-        return false
-    if (r1.y >= r2.y + r2.height || r2.y >= r1.y + r1.height)
-        return false
-    return true
-}
-
-export function getTargetLayout(dragState: DragState): HS3LayoutParams {
-    "worklet"
-    const {coordinate: dragCoordinate, draggingItem} = dragState
-    return {
-        x: pxToGrid(snapPxToGridAsPx(dragCoordinate.x - gridToPx(draggingItem.layout.width) / 2)),
-        y: pxToGrid(snapPxToGridAsPx(dragCoordinate.y - gridToPx(draggingItem.layout.height) / 2)),
-        width: draggingItem.layout.width,
-        height: draggingItem.layout.height,
-    }
-}
-
 type Props = {
     items: HS3Item[];
 }
+
+function createTempItems<T>(itemResults: DerivedValue<any[] | {
+    item: ItemWithOptions;
+    dirs: CheckDirsReturnType
+}[]>, targetLayout: DerivedValue<GridPoint & {
+    width: number;
+    height: number
+}>, items: ItemWithOptions[], tempItems: DerivedValue<HS3Element[]>) {
+    const newTempItems: HS3Element[] = []
+    let tempTempItem = undefined
+
+    for (let result of itemResults.value) {
+        const {item, dirs: {dirs}} = result;
+        tempTempItem = undefined
+
+        // targetX + currWidth = targetLayoutX
+        switch (dirs[0]) {
+            case Dirs.moveRight:
+                tempTempItem = checkDirAndMoveIfPossible(item.item, {
+                    x: targetLayout.value.x + targetLayout.value.width,
+                    y: item.item.layout.y
+                }, items, tempItems)
+                break;
+            case Dirs.moveLeft:
+                tempTempItem = checkDirAndMoveIfPossible(item.item, {
+                    x: targetLayout.value.x - item.item.layout.width,
+                    y: item.item.layout.y
+                }, items, tempItems)
+                break;
+            case Dirs.moveUp:
+                tempTempItem = checkDirAndMoveIfPossible(item.item, {
+                    x: item.item.layout.x,
+                    y: targetLayout.value.y + targetLayout.value.width
+                }, items, tempItems)
+                break;
+            case Dirs.moveDown:
+                tempTempItem = checkDirAndMoveIfPossible(item.item, {
+                    x: item.item.layout.x,
+                    y: targetLayout.value.y - item.item.layout.height
+                }, items, tempItems)
+                break;
+        }
+
+        if (!!tempTempItem)
+            newTempItems.push(tempTempItem)
+        else if (dirs.length)
+            console.log("COULD NOT CREATE TEMPTEMPITEM")
+    }
+    return newTempItems;
+}
+
 const HomescreenHandler3 = ({items: itemsP}: Props) => {
     const setItemsFromP = (items: typeof itemsP) =>
         items.map(i => ({item: i, isAddFolder: false}));
@@ -183,19 +192,22 @@ const HomescreenHandler3 = ({items: itemsP}: Props) => {
     // hier item results hin!!!!!!!!!!!!!!!
     const dragState = useSharedValue<DragState | undefined>(undefined);
 
+    const targetLayout = useDerivedValue<HS3LayoutParams>(() => {
+        if (!dragState.value) return undefined;
+        return getTargetLayout(dragState.value)
+    }, [dragState]);
+
     const itemResults = useDerivedValue(() => {
         if (!dragState.value) return []
 
         // alle punkte die das item belegen wird
         // PixelPoint[]
 
-        const targetLayout = getTargetLayout(dragState.value)
-
         const res = items.filter(i => i.item.itemId !== dragState.value.draggingItem.itemId)
             .map(i =>
                 ({
                     item: i,
-                    dirs: checkDirectionsForItem(i.item, dragState.value.coordinate, doRectanglesOverlap(targetLayout, i.item.layout))
+                    dirs: checkDirectionsForItem(i.item, dragState.value.coordinate, doRectanglesOverlap(targetLayout.value, i.item.layout))
                 })
             ).filter(i => (i.dirs.dirs.length > 0 || i.dirs.isAddFolder))
         return res
@@ -215,37 +227,7 @@ const HomescreenHandler3 = ({items: itemsP}: Props) => {
         if (itemResults.value.length == 0 ||
             !!isAddFolder.value) return []
 
-        const newTempItems: HS3Element[] = []
-        let tempTempItem = undefined
-
-        const targetLayout = getTargetLayout(dragState.value)
-
-        for (let result of itemResults.value) {
-            const {item, dirs: {dirs}} = result;
-            tempTempItem = undefined
-
-            // targetX + currWidth = targetLayoutX
-
-            switch (dirs[0]) {
-                case Dirs.moveRight:
-                    tempTempItem = checkDirAndMoveIfPossible(item.item, {x: targetLayout.x + targetLayout.width, y: item.item.layout.y}, items, tempItems)
-                    break;
-                case Dirs.moveLeft:
-                    tempTempItem = checkDirAndMoveIfPossible(item.item, {x: targetLayout.x - item.item.layout.width, y: item.item.layout.y}, items, tempItems)
-                    break;
-                case Dirs.moveUp:
-                    tempTempItem = checkDirAndMoveIfPossible(item.item, {x: item.item.layout.x, y: targetLayout.y + targetLayout.width}, items, tempItems)
-                    break;
-                case Dirs.moveDown:
-                    tempTempItem = checkDirAndMoveIfPossible(item.item, {x: item.item.layout.x, y: targetLayout.y - item.item.layout.height}, items, tempItems)
-                    break;
-            }
-
-            if (!!tempTempItem)
-                newTempItems.push(tempTempItem)
-            else if (dirs.length)
-                console.log("COULD NOT CREATE TEMPTEMPITEM")
-        }
+        const newTempItems = createTempItems(itemResults, targetLayout, items, tempItems);
 
         return newTempItems
     }, [itemResults, isAddFolder, items])
@@ -271,11 +253,14 @@ const HomescreenHandler3 = ({items: itemsP}: Props) => {
         return impossibleItems
     }, [tempItems, items])
 
-    useAnimatedReaction(() => tempItems.value,
+    useAnimatedReaction(() => ({
+            tI: tempItems.value,
+            tL: targetLayout.value,
+        }),
         (current, previous) => {
             if (JSON.stringify(current) != JSON.stringify(previous))
                 runOnJS(setRefresh)(prev => !prev)
-        }, [tempItems])
+        }, [tempItems, targetLayout])
 
     const onDragUpdate = (item: HS3Item, point: PixelPoint) => {
         dragState.value = {
@@ -288,22 +273,24 @@ const HomescreenHandler3 = ({items: itemsP}: Props) => {
 
         dragState.value = undefined
 
-        console.log("ondragend", isImpossible)
+        // console.log("ondragend", isImpossible)
         if (isImpossible) {
+            console.log("IMPOSSIBLE AAAH")
             runOnJS(setRefresh)(prev => !prev)
             return
         }
+
+        console.log("yeah drop::", targetLayout.value)
 
         const modifiedItem: ItemWithOptions = {
             item: {
                 ...item,
                 layout: {
-                    ...item.layout,
-                    x: pxToGrid(newCoordinate.x),
-                    y: pxToGrid(newCoordinate.y),
+                    ...targetLayout.value,
                 }
             }, isAddFolder: false
         }
+        // console.log("ondragend", modifiedItem, tempItems.value)
 
         //set new items
         setItems(prev => prev.map(i => {
@@ -352,6 +339,14 @@ const HomescreenHandler3 = ({items: itemsP}: Props) => {
                 }}
             />
         </View>
+
+        {targetLayout.value && !isAddFolder.value && (
+            <PreviewItem3
+                element={{layout: targetLayout.value, itemId: 66}}
+                impossible={false}
+                isDragElement
+            />
+        )}
 
         {/*Temp Item*/}
         {tempItems.value.map(i => (

@@ -43,7 +43,7 @@ const Item = ({ id, x, y, width, height, updatePreviewItem, handleDragUpdate, ha
       if (!isShaking || isPreview) {
          translationYShakeOffset.value = 0
          return
-      };
+      }
 
       translationYShakeOffset.value = withRepeat(
          withSequence(

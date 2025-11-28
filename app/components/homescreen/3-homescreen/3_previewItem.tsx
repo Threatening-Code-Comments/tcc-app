@@ -1,26 +1,25 @@
 import React, {useEffect} from "react";
-import {HS3Element} from "@components/homescreen/3_homescreenHandler";
+import {HS3Element} from "@components/homescreen/3-homescreen/3_homescreenHandler";
 import Animated, {
-    SharedValue,
-    useAnimatedStyle, useDerivedValue,
+    useAnimatedStyle,
     useSharedValue,
     withRepeat,
     withSequence,
     withTiming
 } from "react-native-reanimated";
 import {GRID_UNIT} from "@components/homescreen/move_algo";
-import {View} from "react-native";
 
 const SHAKE_OFFSET = 5;
 
 export type PreviewItemProps = {
     element?: HS3Element;
     impossible?: boolean;
+    isDragElement?: boolean
 }
 
 // type AnimatedPropsPreviewItem = Partial<PreviewItemProps>;
 export const PreviewItem3 = (props: PreviewItemProps) => {
-    const {element, impossible} = props;
+    const {element, impossible, isDragElement = false} = props;
 
     const {layout: {x, y, width, height}} = element ?? {layout: {x: 0, y: 0, width: 0, height: 0}};
     const translationYShakeOffset = useSharedValue<number>(0);
@@ -53,7 +52,7 @@ export const PreviewItem3 = (props: PreviewItemProps) => {
         width: width * GRID_UNIT,
         height: height * GRID_UNIT,
         backgroundColor: (impossible) ? "#ff000040" : "transparent",
-        borderColor: (impossible) ? "red" : "black",
+        borderColor: (isDragElement) ? "purple" : (impossible) ? "red" : "black",
         borderWidth: 2,
         borderRadius: 4,
         transform: [
