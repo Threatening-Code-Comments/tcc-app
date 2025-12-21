@@ -1,3 +1,5 @@
+//Link for checking new ones:
+//https://pictogrammers.com/library/mdi/
 export const iconNames = {
     edit: "file-edit-outline",
     delete: "delete",
@@ -15,10 +17,12 @@ export const iconNames = {
     arrowDown: 'arrow-down',
     close: 'close',
     refresh: 'restart',
+    createFolder: 'folder-multiple-plus',
+    moveToFolder: 'folder-move',
 } as const
 
 // valueof => T[keyof T]
 export type IconName =
-    // (typeof iconNames)[keyof typeof iconNames] 
-    //FontAwesome.glyphMap
+// (typeof iconNames)[keyof typeof iconNames]
+//FontAwesome.glyphMap
     keyof typeof iconNames

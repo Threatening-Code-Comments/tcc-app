@@ -5,13 +5,13 @@ import migrations from 'drizzle/migrations'
 import React, {useEffect, useState} from 'react'
 import {LogBox, ToastAndroid, View} from 'react-native'
 import {Card, Text} from 'react-native-paper'
-import {useModal} from './components/modal/Modal'
+import {useModal} from '@components/modal/Modal'
 import {DashboardEntry, Page, TileEvent} from './constants/DbTypes'
-import {db, DbExportType, getAllAsObject} from './db/database'
-import {deletePage, getPages, insertPages} from './db/pages'
+import {db, DbExportType, getAllAsObject} from '@db/database'
+import {deletePage, getPages, insertPages} from '@db/pages'
 import * as schema from './db/schema'
 import * as Clipboard from 'expo-clipboard'
-import {HomescreenComponent} from './components/homescreen/homescreenComponent'
+import {HomescreenComponent} from '@components/homescreen/homescreenComponent'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])

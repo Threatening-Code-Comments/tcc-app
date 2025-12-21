@@ -1,10 +1,8 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome'
 import React from 'react'
-import { Animated, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native'
-import { ButtonType, colors, globalStyles } from '../constants/global'
-import { Icon } from './Icon'
-import { IconButton as PaperButton } from 'react-native-paper'
-import { IconName } from '@app/constants/iconNames'
+import {Animated, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle} from 'react-native'
+import {ButtonType, colors, globalStyles} from '../constants/global'
+import {Icon} from './Icon'
+import {IconName} from '@app/constants/iconNames'
 
 type IconButtonProps = {
     iconName: IconName,
@@ -13,10 +11,20 @@ type IconButtonProps = {
     onPress?: () => void,
     type?: ButtonType
     disabled?: boolean
+    iconColor?: keyof typeof colors
 }
-export const IconButton = ({ iconName, text, style, onPress, type, disabled }: IconButtonProps) => {
+export const IconButton = ({
+                               iconName,
+                               text,
+                               style,
+                               onPress,
+                               type,
+                               disabled,
+                               iconColor: iconColorP
+                           }: IconButtonProps) => {
     const buttonType = (type) ? type : "primary"
     const color = disabled ? "gray" : colors[buttonType]
+    const iconColor = (!!iconColorP) ? {color: iconColorP} : {}
 
     // return (
     //     <PaperButton
@@ -27,12 +35,13 @@ export const IconButton = ({ iconName, text, style, onPress, type, disabled }: I
     // )
 
     return (
-        <Animated.View style={{ ...styles.buttonContainer, }}>
-            <Pressable style={[style, styles.button, { backgroundColor: color, }]} disabled={disabled} onPress={onPress} android_ripple={{ color: 'black', foreground: true }}>
-                <View style={{ display: 'flex', flexDirection: 'row', alignContent: 'center', justifyContent: 'center' }}>
-                    <Icon iconName={iconName} iconSize={32} />
+        <Animated.View style={{...styles.buttonContainer,}}>
+            <Pressable style={[style, styles.button, {backgroundColor: color,}]} disabled={disabled} onPress={onPress}
+                       android_ripple={{color: 'black', foreground: true}}>
+                <View style={{display: 'flex', flexDirection: 'row', alignContent: 'center', justifyContent: 'center'}}>
+                    <Icon iconName={iconName} iconSize={32} {...iconColor} />
                     {(text != undefined)
-                        ? <Text style={{ ...globalStyles.text, alignSelf: 'center', fontWeight: '700' }}>{text}</Text>
+                        ? <Text style={{...globalStyles.text, alignSelf: 'center', fontWeight: '700'}}>{text}</Text>
                         : null}
                 </View>
             </Pressable>

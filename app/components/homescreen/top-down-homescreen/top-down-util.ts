@@ -72,7 +72,6 @@ export const getModifiedTempItems = (
                     ? tempElement as HS3Item
                     : i
             )
-            console.log("parent", parent,)
             folders1 = folders1.map(
                 f => f.folderId === parent.folderId
                     ? parent : f

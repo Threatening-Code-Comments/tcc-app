@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from "react";
 import {HS3Element, HS3Folder, HS3Item} from "@components/homescreen/3-homescreen/3_homescreenHandler";
 import {getFoldersFromDb} from "@components/homescreen/top-down-homescreen/db-mock";
-import {Text} from "react-native-paper";
+import {Button, Text} from "react-native-paper";
 import Animated, {
-    runOnJS,
+    runOnJS, useAnimatedProps,
     useAnimatedReaction,
     useAnimatedStyle,
     useDerivedValue,
@@ -31,6 +31,8 @@ import {GRID_UNIT, gridPointToPixel, gridToPx} from "@components/homescreen/move
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/3-homescreen/3_item3";
 import {useItemPopup} from "@components/homescreen/top-down-homescreen/item-popup";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
+import {IconButton} from "@components/IconButton";
+import {FolderOperations, FolderPopover} from "@components/homescreen/top-down-homescreen/folder-popover";
 
 type Props = {}
 
@@ -114,7 +116,7 @@ export const HomescreenManager = (props: Props) => {
         [tempItems, visibleElements, dragState])
 
     //----------- homescreen state
-    const homescreenState = useSharedValue<HomescreenState>("default")
+    const homescreenState = useSharedValue<HomescreenState>("edit")//"default")
 
     type RunnablesForElements<T> = {
         onDragStart: (e: T) => void
@@ -164,6 +166,11 @@ export const HomescreenManager = (props: Props) => {
         }
     };
 
+    const folderOperation = useSharedValue<FolderOperations | undefined>(undefined)
+    const onFolderPopoverChange = (op?: FolderOperations)=>{
+        console.log("bottom surgery", op)
+        folderOperation.value = op
+    }
     const onDragEnd = (element: HS3Element) => {
         const isImpossible = tempItemsImpossible.value.length > 0
         const modifiedElement: HS3Element =
@@ -176,13 +183,20 @@ export const HomescreenManager = (props: Props) => {
         }
 
         if (!!isAddFolder.value) {
-            console.log("adding folder:", modifiedElement, isAddFolder.value)
-            folders.value = addToNewFolder(
-                modifiedElement,
-                {...isAddFolder.value, layout: isAddFolder.value.layout},
-                folders.value,
-                currentLevel.value
-            )
+            const isCreateFolder = "itemId" in isAddFolder.value ||
+                (!!folderOperation.value && folderOperation.value === "create")
+
+            if (isCreateFolder) {
+                console.log("adding folder:", modifiedElement, isAddFolder.value)
+                folders.value = addToNewFolder(
+                    modifiedElement,
+                    {...isAddFolder.value, layout: isAddFolder.value.layout},
+                    folders.value,
+                    currentLevel.value
+                )
+            } else {
+                ToastAndroid.show("moving / creating will happen with the buttons", ToastAndroid.SHORT)
+            }
             dragState.value = undefined
             return
         }
@@ -225,22 +239,6 @@ export const HomescreenManager = (props: Props) => {
         }
     }, [isAddFolder.value]);
 
-    const createFolderPopoverStyle = useAnimatedStyle(() => ({
-        backgroundColor: (!!isAddFolder.value) ? 'white' : 'transparent',
-        elevation: (!!isAddFolder.value) ? 2 : 0,
-        borderRadius: 5,
-        width: 80, height: 45,
-        position: 'absolute',
-        top: -50 + ((isAddFolder.value?.layout.y * GRID_UNIT) || 0),
-        left: (GRID_UNIT - 80) / 2 + ((isAddFolder.value?.layout.x * GRID_UNIT) || 0) + (
-            ((isAddFolder.value?.layout.width || 0) > 1)
-                ? isAddFolder.value.layout.width / 4 * GRID_UNIT
-                : 0
-        ),
-        shadowColor: 'black',
-        zIndex: 20
-    }), [isAddFolder])
-
     const onLongTap = (e: HS3Element, coordinate: PixelPoint) => {
         // contextMenuCoordinates.value = {
         //     element: e,
@@ -265,8 +263,8 @@ export const HomescreenManager = (props: Props) => {
         }, [popupItem]
     )
 
-
     //🔁state refreshing
+    //infrequent updates
     useAnimatedReaction(
         () => ({
             cV: currentLevel.value,
@@ -280,10 +278,26 @@ export const HomescreenManager = (props: Props) => {
         }),
         (current, previous) => {
             if (JSON.stringify(current) !== JSON.stringify(previous)) {
-                console.log(current.itemPopup)
                 runOnJS(refreshState)();
+                return
             }
         }, [currentLevel, previewElement, tempItems, tempItemsImpossible, visibleElements, popupItem, homescreenState]
+    )
+    // !!!!!very frequent updates!!!!
+    const RESOLUTION = 10 //pixels
+    useAnimatedReaction(
+        () => ({
+            cursorX: Math.floor(dragState.value?.coordinate?.x / RESOLUTION),
+            cursorY: Math.floor(dragState.value?.coordinate?.y / RESOLUTION),
+        }),
+        (prepared, previous) => {
+            if (!isAddFolder.value)
+                return //this level of accuracy is only needed when there is no bigger movement
+
+            if (JSON.stringify(prepared) !== JSON.stringify(previous)) {
+                runOnJS(refreshState)();
+            }
+        }, [isAddFolder, dragState]
     )
     //🔁
 
@@ -328,7 +342,8 @@ export const HomescreenManager = (props: Props) => {
             isDragElement={true}
         />)}
         <Animated.View style={folderOverlayStyle}/>
-        <Animated.View style={createFolderPopoverStyle}/>
+        {/*TODO popover*/}
+        <FolderPopover isAddFolder={isAddFolder.value} dragState={dragState.value} onOperationChange={(op)=>onFolderPopoverChange(op)}/>
 
         {itemPopupComponent}
 
