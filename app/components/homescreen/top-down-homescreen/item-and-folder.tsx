@@ -9,7 +9,10 @@ type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
 }
 
 export function Folder4(props: FolderProps) {
-    const {folder, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress} = props
+    const {
+        folder, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
+        onResizeUpdate, onResizeEnd
+    } = props
     const {layout} = folder
 
     return <MovableItem
@@ -20,6 +23,8 @@ export function Folder4(props: FolderProps) {
         onTap={onTap}
         onLongPress={onLongPress}
         isEditMode={props.isEditMode}
+        onResizeUpdate={onResizeUpdate}
+        onResizeEnd={onResizeEnd}
     >
         <View style={{
             backgroundColor: 'red', width: '100%', height: '100%',
@@ -37,7 +42,10 @@ type Item4Props = Omit<MovableItemProps, "children" | "layout"> & {
 }
 
 export function Item4(props: Item4Props) {
-    const {item, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress} = props
+    const {
+        item, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
+        onResizeUpdate, onResizeEnd
+    } = props
 
     return <MovableItem
         layout={item.layout}
@@ -47,6 +55,8 @@ export function Item4(props: Item4Props) {
         onTap={onTap}
         onLongPress={onLongPress}
         isEditMode={props.isEditMode}
+        onResizeUpdate={onResizeUpdate}
+        onResizeEnd={onResizeEnd}
     >
         <View style={{
             backgroundColor: 'blue', width: '100%', height: '100%',

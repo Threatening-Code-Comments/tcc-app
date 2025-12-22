@@ -4,7 +4,7 @@ import {GridPoint, GridTile, GridValue, HomescreenItem, PixelPoint, PixelTile, P
 
 export const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions?.get('window') ?? {width: 411, height: 890};
 export const GRID_COLUMNS = 4;
-export const GRID_ROWS = 5;
+export const GRID_ROWS = 9;
 export const GRID_UNIT = Math.min((SCREEN_WIDTH * 0.9) / GRID_COLUMNS, SCREEN_HEIGHT / GRID_ROWS);
 
 export const snapPxToGridAsPx = (value: number) => {

@@ -4,6 +4,7 @@ import {PixelPoint} from "@components/homescreen/types";
 export type DragState4 = {
     element: HS3Element,
     coordinate: PixelPoint
+    type: "drag" | "resize"
 }
 
 export type FolderDisplayLevel = {

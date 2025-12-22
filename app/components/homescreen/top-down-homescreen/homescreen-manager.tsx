@@ -14,7 +14,7 @@ import {Folder4, Item4} from "@components/homescreen/top-down-homescreen/item-an
 import {useRouter} from "expo-router";
 
 import {PreviewItem3} from "@components/homescreen/3-homescreen/3_previewItem";
-import {PixelPoint} from "@components/homescreen/types";
+import {GridValue, PixelPoint, PixelValue} from "@components/homescreen/types";
 import {
     addToNewFolder,
     createTempElements,
@@ -27,12 +27,13 @@ import {
 } from "@components/homescreen/top-down-homescreen/top-down-util";
 import {DragState4, HomescreenState} from "@components/homescreen/top-down-homescreen/top-down-hs-types";
 import {getElementKey, isSameElement} from "@components/homescreen/3-homescreen/3_util";
-import {GRID_UNIT, gridPointToPixel, gridToPx} from "@components/homescreen/move_algo";
+import {GRID_UNIT, gridPointToPixel, gridToPx, pxToGrid} from "@components/homescreen/move_algo";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/3-homescreen/3_item3";
 import {useItemPopup} from "@components/homescreen/top-down-homescreen/item-popup";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {IconButton} from "@components/IconButton";
 import {FolderOperations, FolderPopover} from "@components/homescreen/top-down-homescreen/folder-popover";
+import {DragPointPosition} from "@components/homescreen/top-down-homescreen/drag-point";
 
 type Props = {}
 
@@ -81,8 +82,10 @@ export const HomescreenManager = (props: Props) => {
         if (!dragState.value) {
             return undefined
         }
-
-        return getTargetLayout4(dragState.value)
+        if (dragState.value.type == 'drag')
+            return getTargetLayout4(dragState.value)
+        else
+            return dragState.value.element
     }, [dragState])
 
     //dragState, currentFolderLevel, previewElement
@@ -162,13 +165,12 @@ export const HomescreenManager = (props: Props) => {
     };
     const onDragUpdate = (element: HS3Element, coordinate: PixelPoint) => {
         dragState.value = {
-            element, coordinate
+            element, coordinate, type: 'drag'
         }
     };
 
     const folderOperation = useSharedValue<FolderOperations | undefined>(undefined)
-    const onFolderPopoverChange = (op?: FolderOperations)=>{
-        console.log("bottom surgery", op)
+    const onFolderPopoverChange = (op?: FolderOperations) => {
         folderOperation.value = op
     }
     const onDragEnd = (element: HS3Element) => {
@@ -215,6 +217,80 @@ export const HomescreenManager = (props: Props) => {
         currentLevel.value = folder.folderId
     }
     ////---------Tile / Folder Events------------
+    const onResizeUpdate = (element: HS3Element, position: DragPointPosition, deltaX: GridValue, deltaY: GridValue) => {
+        const {layout} = element
+        //         width: itemWidth.value * (isDragging ? n : 1) + resizeRight.value - resizeLeft.value,
+        //         height: itemHeight.value * (isDragging ? n : 1) + resizeBottom.value - resizeTop.value,
+        //         left: itemX.value + resizeLeft.value,
+        //         top: itemY.value + resizeTop.value,
+        let newLayout = {}
+        switch (position) {
+            case "left": {
+                newLayout = {
+                    x: layout.x + deltaX,
+                    width: layout.width -deltaX,
+                }
+                break
+            }
+            case "top": {
+                newLayout = {
+                    y: layout.y + deltaY,
+                    height: layout.height - deltaY,
+                }
+                break
+            }
+            case "bottom": {
+                newLayout = {
+                    height: layout.height + deltaY,
+                }
+                break
+            }
+            case "right": {
+                newLayout = {
+                    width: layout.width + (deltaX),
+                }
+                break
+            }
+        }
+
+        const modifiedElement: HS3Element = {
+            ...element,
+            layout: {
+                ...layout,
+                ...newLayout
+            }
+        }
+
+        dragState.value = {
+            element: modifiedElement, coordinate: {x: 0, y: 0}, type: "resize"
+        }
+    }
+    const onResizeEnd = (element: HS3Element, pos: DragPointPosition) => {
+        const modifiedElement = dragState.value.element
+
+        if ("itemId" in modifiedElement) {
+            folders.value = folders.value.map(f =>
+                f.folderId === modifiedElement.parentId
+                    ? {
+                        ...f, items: f.items.map(i =>
+                            i.itemId === modifiedElement.itemId
+                                ? modifiedElement
+                                : i
+                        )
+                    }
+                    : f
+            )
+        } else {
+            folders.value = folders.value.map(f =>
+                f.folderId === modifiedElement.folderId
+                    ? modifiedElement
+                    : f
+            )
+        }
+
+
+        dragState.value = undefined
+    }
     const folderOverlayStyle = useAnimatedStyle(() => {
         if (!isAddFolder.value) return {backgroundColor: 'transparent'};
 
@@ -343,7 +419,8 @@ export const HomescreenManager = (props: Props) => {
         />)}
         <Animated.View style={folderOverlayStyle}/>
         {/*TODO popover*/}
-        <FolderPopover isAddFolder={isAddFolder.value} dragState={dragState.value} onOperationChange={(op)=>onFolderPopoverChange(op)}/>
+        <FolderPopover isAddFolder={isAddFolder.value} dragState={dragState.value}
+                       onOperationChange={(op) => onFolderPopoverChange(op)}/>
 
         {itemPopupComponent}
 
@@ -366,6 +443,8 @@ export const HomescreenManager = (props: Props) => {
                              onTap={() => itemRunnables.onTap(e)}
                              onLongPress={(coordinate) => itemRunnables.onLongTap(e, coordinate)}
                              isEditMode={homescreenState.value === "edit"}
+                             onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
+                             onResizeEnd={(pos) => onResizeEnd(e, pos)}
                     />
                     : <Folder4 key={currentLevel.value + "f" + e.folderId} folder={e}
                                onDragStart={() => folderRunnables.onDragStart(e)}
@@ -374,6 +453,8 @@ export const HomescreenManager = (props: Props) => {
                                onTap={() => folderRunnables.onTap(e)}
                                onLongPress={(coordinate) => folderRunnables.onLongTap(e, coordinate)}
                                isEditMode={homescreenState.value === "edit"}
+                               onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
+                               onResizeEnd={(pos) => onResizeEnd(e, pos)}
                     />
             )
 

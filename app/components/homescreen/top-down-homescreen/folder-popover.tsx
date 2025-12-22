@@ -132,7 +132,7 @@ export const FolderPopover = (props: Props) => {
                 overflow: 'hidden'
             }), [isAddFolder, coordinate])
     const leftOperationAreaStyle = useAnimatedStyle(() => {
-        if (!coordinate.value || !dragState) return ({})
+        if (!coordinate.value || !isAddFolder) return ({})
 
         return ({
             position: 'absolute',
@@ -141,12 +141,12 @@ export const FolderPopover = (props: Props) => {
             left: 0,//coordinate.value.x,
             zIndex: 20,
             backgroundColor: (dragStateStatus.value == "in_left" ? "green" : 'transparent'),
-            height: getOperationAreasHeightWorklet(dragState.element),
+            height: getOperationAreasHeightWorklet(isAddFolder),
             width: POPOVER_WIDTH / 2
         })
     }, [coordinate, dragStateStatus, dragState])
     const rightOperationAreaStyle = useAnimatedStyle(() => {
-        if (!coordinate.value  || !dragState) return ({})
+        if (!coordinate.value  || !isAddFolder) return ({})
 
         return ({
             position: 'absolute',
@@ -155,7 +155,7 @@ export const FolderPopover = (props: Props) => {
             left: POPOVER_WIDTH / 2,
             zIndex: 20,
             backgroundColor: (dragStateStatus.value == "in_right" ? "green" : 'transparent'),
-            height: getOperationAreasHeightWorklet(dragState.element),
+            height: getOperationAreasHeightWorklet(isAddFolder),
             width: POPOVER_WIDTH / 2
         })
     }, [coordinate, dragStateStatus, dragState])

@@ -309,7 +309,7 @@ export function getTargetLayout4(dragState: DragState4): HS3Element {
         ),
         y: clamp(
             pxToGrid(snapPxToGridAsPx(dragCoordinate.y - gridToPx(element.layout.height) / 2)),
-            0, GRID_COLUMNS - element.layout.height
+            0, GRID_ROWS - element.layout.height
         ),
         width: element.layout.width,
         height: element.layout.height,
