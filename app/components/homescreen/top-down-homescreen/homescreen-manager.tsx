@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from "react";
 import {HS3Element, HS3Folder, HS3Item} from "@components/homescreen/3-homescreen/3_homescreenHandler";
 import {getFoldersFromDb} from "@components/homescreen/top-down-homescreen/db-mock";
-import {Button, Text} from "react-native-paper";
+import {FAB, Text} from "react-native-paper";
 import Animated, {
-    runOnJS, useAnimatedProps,
+    runOnJS,
     useAnimatedReaction,
     useAnimatedStyle,
     useDerivedValue,
@@ -14,9 +14,8 @@ import {Folder4, Item4} from "@components/homescreen/top-down-homescreen/item-an
 import {useRouter} from "expo-router";
 
 import {PreviewItem3} from "@components/homescreen/3-homescreen/3_previewItem";
-import {GridValue, PixelPoint, PixelValue} from "@components/homescreen/types";
+import {GridValue, PixelPoint} from "@components/homescreen/types";
 import {
-    addToNewFolder,
     createTempElements,
     generateItemResults,
     generateTempItems,
@@ -25,15 +24,19 @@ import {
     getTargetLayout4,
     goUpLevel
 } from "@components/homescreen/top-down-homescreen/top-down-util";
-import {DragState4, HomescreenState} from "@components/homescreen/top-down-homescreen/top-down-hs-types";
+import {DragState4, HomescreenState} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
 import {getElementKey, isSameElement} from "@components/homescreen/3-homescreen/3_util";
-import {GRID_UNIT, gridPointToPixel, gridToPx, pxToGrid} from "@components/homescreen/move_algo";
+import {gridPointToPixel, gridToPx} from "@components/homescreen/move_algo";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/3-homescreen/3_item3";
 import {useItemPopup} from "@components/homescreen/top-down-homescreen/item-popup";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
-import {IconButton} from "@components/IconButton";
 import {FolderOperations, FolderPopover} from "@components/homescreen/top-down-homescreen/folder-popover";
 import {DragPointPosition} from "@components/homescreen/top-down-homescreen/drag-point";
+import {useCreateTilePopup} from "@components/homescreen/top-down-homescreen/useCreateTileOrFolderPopup";
+import {
+    addToNewFolder,
+    moveElementsToFolder
+} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
 
 type Props = {}
 
@@ -197,7 +200,18 @@ export const HomescreenManager = (props: Props) => {
                     currentLevel.value
                 )
             } else {
-                ToastAndroid.show("moving / creating will happen with the buttons", ToastAndroid.SHORT)
+                ToastAndroid.show("moving / creating will happen with the buttons" + getElementKey(modifiedElement), ToastAndroid.SHORT)
+                const newe = moveElementsToFolder(
+                    [modifiedElement],
+                    folders.value,
+                    isAddFolder.value
+                )
+                folders.value = newe
+                console.log("after updating folders:", JSON.stringify(newe.map(f => ({
+                    fId: f.folderId, parent: f.parentId, items: f.items.map(
+                        i => ({iId: i.itemId, parent: i.parentId})
+                    )
+                }))))
             }
             dragState.value = undefined
             return
@@ -228,7 +242,7 @@ export const HomescreenManager = (props: Props) => {
             case "left": {
                 newLayout = {
                     x: layout.x + deltaX,
-                    width: layout.width -deltaX,
+                    width: layout.width - deltaX,
                 }
                 break
             }
@@ -396,6 +410,15 @@ export const HomescreenManager = (props: Props) => {
         zIndex: 1
     }), [homescreenState]);
 
+    const showCreateFABs = useSharedValue<boolean>(undefined)
+    useAnimatedReaction(() => showCreateFABs.value,
+        (c, p) => {
+            if (c != p)
+                runOnJS(refreshState)()
+        }, [showCreateFABs])
+    // const createTilePopup = useMo
+    const tileCreatePopup = useCreateTilePopup({folders: folders.value, currentLevel: currentLevel.value})
+
 
     //<Loading
     if (!currentFolderLevel.value.main) {
@@ -431,6 +454,50 @@ export const HomescreenManager = (props: Props) => {
                 impossible={tempItemsImpossible.value.some(i2 => isSameElement(i, i2))}
             />
         ))}
+
+        {tileCreatePopup.component}
+        <FAB style={{
+            position: "absolute",
+            right: 20, bottom: 150,
+            zIndex: 100,
+        }} size={"medium"}
+             icon={!!showCreateFABs.value ?
+                 "window-close" : "plus"}
+
+             label={!!showCreateFABs.value ?
+                 "Cancel" : ""}
+             variant={!!showCreateFABs.value ?
+                 "tertiary" : "primary"}
+
+
+             onPress={() => {
+                 showCreateFABs.value = (!showCreateFABs.value)
+             }}
+        />
+
+        {!!showCreateFABs.value
+            ? <View style={{
+                position: 'absolute',
+                bottom: 230, right: 25,
+                width: "100%",
+                display: "flex", flexDirection: "row",
+                justifyContent: "flex-end",
+                gap: 10, zIndex: 100
+            }}>
+                <FAB icon={"rectangle"}
+                     variant={"secondary"}
+                     label={"Tile"}
+                     style={{zIndex: 100}}
+                     onPress={() => tileCreatePopup.setVisible(true)}
+                />
+
+                <FAB icon={"folder"}
+                     variant={"secondary"}
+                     label={"Folder"}
+                     style={{zIndex: 100}}
+                />
+            </View>
+            : null}
 
         {visibleElements.value
             .filter(e => !tempItems.value.some(e2 => isSameElement(e, e2)))

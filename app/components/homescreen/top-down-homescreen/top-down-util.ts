@@ -16,7 +16,7 @@ import {
 } from "@components/homescreen/move_algo";
 import {SharedValue} from "react-native-reanimated";
 import {ToastAndroid} from "react-native";
-import {DragState4, FolderDisplayLevel} from "@components/homescreen/top-down-homescreen/top-down-hs-types";
+import {DragState4, FolderDisplayLevel} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
 import {PixelPoint} from "@components/homescreen/types";
 import {Dirs, FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/3-homescreen/3_item3";
 
@@ -79,103 +79,6 @@ export const getModifiedTempItems = (
         }
     }
 
-    return folders1
-}
-
-export const addToNewFolder = (
-    draggedElement: HS3Element,
-    stationaryElement: HS3Element,
-    folders: HS3Folder[],
-    currentLevel: number
-) => {
-    const highestId: number = folders
-        .reduce(
-            (prev, curr) =>
-                (prev > curr.folderId)
-                    ? prev : curr.folderId,
-            -1
-        )
-
-    const newFolder: HS3Folder = {
-        folderId: highestId + 1,
-        layout: stationaryElement.layout,
-        parentId: currentLevel,
-        items: []
-    }
-
-    let folders1 = [...folders, newFolder]
-
-    const reparentElement =
-        (e: HS3Element, itemsAdded: HS3Element[], folders2: HS3Folder[]) => {
-            // change layout
-            const index = itemsAdded.indexOf(e)
-
-            const newPoint = (index === 0)
-                ? {x: 0, y: 0}
-                : {x: itemsAdded[0].layout.width, y: 0}
-
-
-            e.layout = {
-                ...e.layout,
-                ...newPoint,
-            }
-
-            //if item:
-            if ("itemId" in e) {
-                //     get parent
-                const parent = folders2.find(
-                    f => f.folderId === e.parentId)
-                //     remove item from items
-                parent.items = parent.items.filter(i => i.itemId !== e.itemId)
-
-                //     add to new parent
-                newFolder.items.push(e)
-            } else {
-                folders1 = folders2.map(f =>
-                    (f.folderId === e.folderId)
-                        ? e : f
-                )
-            }
-
-            // ->
-            //     change parentId
-            e.parentId = newFolder.folderId
-
-            console.log("newLayout", e)
-        }
-    const elements = [draggedElement, stationaryElement]
-    for (let e of elements) {
-        reparentElement(e, elements, folders1)
-    }
-
-    // let draggedElementAdded = false
-    // draggedElement.layout = {
-    //     ...draggedElement.layout,
-    //     x: 0, y: 0
-    // }
-    // if ("itemId" in draggedElement) {
-    //     const parent = folders1.find(f => f.folderId === draggedElement.parentId)
-    //     parent.items = parent.items.filter(i => i.itemId !== draggedElement.itemId)
-    //
-    //     newFolder.items.push(draggedElement)
-    // }
-    // draggedElement.parentId = newFolder.folderId
-    //
-    // stationaryElement.layout = {
-    //     ...stationaryElement.layout,
-    //     x: 1,//col,
-    //     y: 0//row,
-    // }
-    // if ("itemId" in stationaryElement) {
-    //     const parent = folders1.find(f => f.folderId === stationaryElement.parentId)
-    //     parent.items = parent.items.filter(i => i.itemId !== stationaryElement.itemId)
-    //
-    //     newFolder.items.push(stationaryElement)
-    // }
-    // draggedElement.parentId = newFolder.folderId
-
-
-    console.log("finished creating!")
     return folders1
 }
 
