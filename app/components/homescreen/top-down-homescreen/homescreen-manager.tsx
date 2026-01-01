@@ -33,10 +33,8 @@ import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {FolderOperations, FolderPopover} from "@components/homescreen/top-down-homescreen/folder-popover";
 import {DragPointPosition} from "@components/homescreen/top-down-homescreen/drag-point";
 import {useCreateTilePopup} from "@components/homescreen/top-down-homescreen/useCreateTileOrFolderPopup";
-import {
-    addToNewFolder,
-    moveElementsToFolder
-} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
+import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
+import {addToNewFolder} from "./model-and-crud/createTileOrFolder";
 
 type Props = {}
 

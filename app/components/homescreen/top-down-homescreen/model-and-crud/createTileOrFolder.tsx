@@ -1,6 +1,18 @@
 import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from "@components/homescreen/3-homescreen/3_homescreenHandler";
 import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
 
+export const addToNewFolder = (
+    draggedElement: HS3Element,
+    stationaryElement: HS3Element,
+    folders: HS3Folder[],
+    currentLevel: number
+) => {
+    return createFolder(
+        [draggedElement, stationaryElement],
+        folders, currentLevel, {x: 2, y: 2, width: 1, height: 1}
+    );
+}
+
 /**
  * Creates a folder in the folders, and returns the new ones
  * @param children items to add to the new folder

@@ -1,6 +1,6 @@
 import {HS3LayoutParams} from "@components/homescreen/3-homescreen/3_homescreenHandler";
 import Animated, {
-    runOnJS,
+    runOnJS, useAnimatedReaction,
     useAnimatedStyle,
     useDerivedValue,
     useSharedValue,
@@ -87,7 +87,8 @@ export function MovableItem(props: MovableItemProps) {
             });
         })
         .onEnd(() => {
-            runOnJS(setDragging)(false);
+            // Moved to reaction of changed layout
+            // runOnJS(setDragging)(false);
             runOnJS(onDragEnd)();
         });
     const tapGesture = Gesture.Tap()
@@ -103,7 +104,11 @@ export function MovableItem(props: MovableItemProps) {
             runOnJS(onLongPress)(coordinate)
         })
 
+    const isResizing = useSharedValue(false);
     const onResizeUpdate = (pos: DragPointPosition, deltaX: number, deltaY: number) => {
+        if (!isResizing.value) {
+            isResizing.value = true
+        }
         switch (pos) {
             case "right": {
                 resizeRight.value = deltaX;
@@ -126,10 +131,10 @@ export function MovableItem(props: MovableItemProps) {
         runOnJS(onResizeUpdateP)(pos, pxToGrid(deltaX), pxToGrid(deltaY))
     }
     const onResizeEnd = (pos: DragPointPosition) => {
-        resizeLeft.value = 0
-        resizeRight.value = 0
-        resizeTop.value = 0
-        resizeBottom.value = 0
+        // resizeLeft.value = 0
+        // resizeRight.value = 0
+        // resizeTop.value = 0
+        // resizeBottom.value = 0
         runOnJS(onResizeEndP)(pos)
     }
     const resizeLeft = useSharedValue(0);
@@ -144,16 +149,29 @@ export function MovableItem(props: MovableItemProps) {
 
     const wrapperViewStyle = useAnimatedStyle(() => ({
         position: "absolute",
-        left: itemX.value + resizeLeft.value,
-        top: itemY.value + resizeTop.value,
+        left: itemX.value + (isResizing.value ? resizeLeft.value : 0),
+        top: itemY.value + (isResizing.value ? resizeTop.value : 0),
         transform: [
             {translateX: isDragging ? translateX.value : 0},
             {translateY: isDragging ? translateY.value : 0},
         ] as any,
-        width: itemWidth.value * (isDragging ? n : 1) + resizeRight.value - resizeLeft.value,
-        height: itemHeight.value * (isDragging ? n : 1) + resizeBottom.value - resizeTop.value,
+        width: itemWidth.value * (isDragging ? n : 1) + (isResizing.value ? resizeRight.value - resizeLeft.value : 0),
+        height: itemHeight.value * (isDragging ? n : 1) + (isResizing.value ? resizeBottom.value - resizeTop.value : 0),
         zIndex: isDragging ? 11 : 1,
-    }), [itemX, itemY, itemHeight, itemWidth, translateX, translateY, isDragging]);
+    }), [itemX, itemY, itemHeight, itemWidth, translateX, translateY, isDragging, isResizing.value]);
+
+    useAnimatedReaction(() => ({layout}),
+        (c, p) => {
+            if (JSON.stringify(c) !== JSON.stringify(p)) {
+                console.log(c, p)
+                runOnJS(setDragging)(false)
+                isResizing.value = false
+                resizeLeft.value = 0
+                resizeRight.value = 0
+                resizeTop.value = 0
+                resizeBottom.value = 0
+            }
+        }, [layout])
 
     return <Animated.View
         style={wrapperViewStyle}

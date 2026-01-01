@@ -1,5 +1,4 @@
 import {HS3Element, HS3Folder, HS3Item} from "@components/homescreen/3-homescreen/3_homescreenHandler";
-import {createFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/createTileOrFolder";
 
 export function moveElementsToFolder(elements: HS3Element[], folders: HS3Folder[], newParentFolder: HS3Folder) {
     let folders1 = folders
@@ -44,16 +43,4 @@ export function moveElementsToFolder(elements: HS3Element[], folders: HS3Folder[
         )
     }))))
     return folders1;
-}
-
-export const addToNewFolder = (
-    draggedElement: HS3Element,
-    stationaryElement: HS3Element,
-    folders: HS3Folder[],
-    currentLevel: number
-) => {
-    return createFolder(
-        [draggedElement, stationaryElement],
-        folders, currentLevel, {x: 2, y: 2, width: 1, height: 1}
-    );
 }
