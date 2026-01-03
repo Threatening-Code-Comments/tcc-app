@@ -19,6 +19,7 @@ export const iconNames = {
     refresh: 'restart',
     createFolder: 'folder-multiple-plus',
     moveToFolder: 'folder-move',
+    folder: 'folder'
 } as const
 
 // valueof => T[keyof T]

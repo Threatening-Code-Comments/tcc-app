@@ -3,6 +3,8 @@ import {Text} from "react-native-paper";
 import React from "react";
 import {MovableItem, MovableItemProps} from "@components/homescreen/top-down-homescreen/movable-item";
 import {View} from "react-native";
+import {Icon} from "@components/Icon";
+import {GRID_COLUMNS} from "@components/homescreen/move_algo";
 
 type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     folder: HS3Folder
@@ -27,14 +29,90 @@ export function Folder4(props: FolderProps) {
         onResizeEnd={onResizeEnd}
     >
         <View style={{
-            backgroundColor: 'red', width: '100%', height: '100%',
-            borderColor: 'black', borderWidth: 2,
-            alignItems: 'center', justifyContent: 'center'
+            // backgroundColor: 'white',
+            width: '100%', height: '100%',
+            // borderRadius: 20,
+            // borderColor: 'red', borderWidth: 2,
+            alignItems: 'center', justifyContent: 'center',
+            elevation: 8,
         }}>
-            <Text>f{folder.folderId}</Text>
-            <Text>{stringyfyLayout(layout)}</Text>
+            {/*Folder background*/}
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%', height: '100%',
+                backgroundColor: 'transparent',
+                margin: -2,
+                alignContent: 'center', justifyContent: 'center',
+                opacity: 0.7
+            }}>
+                <Icon iconName={"folder"} iconSize={115} color={"red"}/>
+            </View>
+
+            {/*Name at top left*/}
+            <View style={{
+                position: 'absolute', top: 0, left: 0, margin: 2, marginTop: 5,
+                backgroundColor: '#ffffff99', paddingHorizontal: 2,
+                zIndex: 10, minWidth: '30%'
+            }}>
+                <Text style={{
+                    color: 'black', zIndex: 3, elevation: 3,
+                    alignSelf: 'center'
+                }}>f{folder.folderId}</Text>
+            </View>
+
+
+            {/*<Text>{stringyfyLayout(layout)}</Text>*/}
+
+            {/*{props.folder.items.map((item, index) => {*/}
+            {/*    const {itemId, layout: {x, y}} = item*/}
+
+            {/*    return (<Text key={index}>{item.itemId}: x{x} y{y}</Text>)*/}
+            {/*})}*/}
+
+            <ViewPort folderToView={props.folder}/>
+
         </View>
     </MovableItem>
+}
+
+
+export const ViewPort = (props: { folderToView: HS3Folder }) => {
+    const {folderToView} = props
+    const {items} = folderToView
+
+    const maxWidth = GRID_COLUMNS
+    const maxHeight = 3
+
+    const getPercentageString = (gridValue: number, maxV: number) => {
+        const percentage = gridValue / maxV * 100
+
+        return percentage.toFixed(2) + '%'
+    }
+
+    return (
+        <View style={{width: '90%', height: '65%', marginTop: 15, marginBottom: 2, marginLeft: -2}}>
+
+            {items.map((item, index) => {
+                    const {layout: {x, y, width, height}} = item
+
+                    return (
+                        //@ts-expect-error
+                        <View key={index} style={{
+                            position: 'absolute',
+                            left: getPercentageString(x, maxWidth), top: getPercentageString(y, maxHeight),
+                            width: getPercentageString(width, maxWidth), height: getPercentageString(height, maxHeight),
+                            borderWidth: 2,
+                            backgroundColor: 'blue'
+                        }}>
+                            <Text>{item.itemId}</Text>
+                        </View>
+                    )
+                }
+            )}
+
+        </View>)
 }
 
 type Item4Props = Omit<MovableItemProps, "children" | "layout"> & {
