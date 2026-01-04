@@ -1,4 +1,4 @@
-import {HS3Folder, HS3Item, HS3LayoutParams} from '../types'
+import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from '../types'
 import {Text} from "react-native-paper";
 import React from "react";
 import {MovableItem, MovableItemProps} from "@components/homescreen/top-down-homescreen/movable-item";
@@ -7,7 +7,8 @@ import {Icon} from "@components/Icon";
 import {GRID_COLUMNS} from "@components/homescreen/move_algo";
 
 type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
-    folder: HS3Folder
+    folder: HS3Folder,
+    children: HS3Folder[]
 }
 
 export function Folder4(props: FolderProps) {
@@ -71,15 +72,15 @@ export function Folder4(props: FolderProps) {
             {/*    return (<Text key={index}>{item.itemId}: x{x} y{y}</Text>)*/}
             {/*})}*/}
 
-            <ViewPort folderToView={props.folder}/>
+            <ViewPort folderToView={props.folder} children={props.children}/>
 
         </View>
     </MovableItem>
 }
 
 
-export const ViewPort = (props: { folderToView: HS3Folder }) => {
-    const {folderToView} = props
+export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[] }) => {
+    const {folderToView, children} = props
     const {items} = folderToView
 
     const maxWidth = GRID_COLUMNS
@@ -91,26 +92,28 @@ export const ViewPort = (props: { folderToView: HS3Folder }) => {
         return percentage.toFixed(2) + '%'
     }
 
+    const getElementLayout = (item: HS3Element, index: number)=>{
+        const {layout: {x, y, width, height}} = item
+
+        return (
+            //@ts-expect-error
+            <View key={index} style={{
+                position: 'absolute',
+                left: getPercentageString(x, maxWidth), top: getPercentageString(y, maxHeight),
+                width: getPercentageString(width, maxWidth), height: getPercentageString(height, maxHeight),
+                borderWidth: 2,
+                backgroundColor: ("itemId" in item)?'blue': "red"
+            }}>
+                <Text style={{fontSize: 10}}>{item.name}</Text>
+            </View>
+        )
+    }
+
     return (
         <View style={{width: '90%', height: '65%', marginTop: 15, marginBottom: 2, marginLeft: -2}}>
 
-            {items.map((item, index) => {
-                    const {layout: {x, y, width, height}} = item
-
-                    return (
-                        //@ts-expect-error
-                        <View key={index} style={{
-                            position: 'absolute',
-                            left: getPercentageString(x, maxWidth), top: getPercentageString(y, maxHeight),
-                            width: getPercentageString(width, maxWidth), height: getPercentageString(height, maxHeight),
-                            borderWidth: 2,
-                            backgroundColor: 'blue'
-                        }}>
-                            <Text style={{fontSize: 10}}>{item.name}</Text>
-                        </View>
-                    )
-                }
-            )}
+            {items.map(getElementLayout)}
+            {children.map(getElementLayout)}
 
         </View>)
 }

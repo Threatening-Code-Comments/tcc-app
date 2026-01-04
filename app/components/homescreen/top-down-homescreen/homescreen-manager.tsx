@@ -520,6 +520,7 @@ export const HomescreenManager = (props: Props) => {
                                isEditMode={homescreenState.value === "edit"}
                                onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
                                onResizeEnd={(pos) => onResizeEnd(e, pos)}
+                               children={folders.value.filter(f=>f.parentId === e.folderId)}
                     />
             )
 
