@@ -1,10 +1,4 @@
-import {
-    Dirs, DragState,
-    HS3Element,
-    HS3Folder,
-    HS3Item,
-    HS3LayoutParams
-} from "../types";
+import {Dirs, DragState, HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from "../types";
 import {
     GRID_COLUMNS,
     GRID_ROWS,
@@ -54,6 +48,69 @@ export function doRectanglesOverlap(r1: HS3LayoutParams, r2: HS3LayoutParams) {
         return false
     return !(r1.y >= r2.y + r2.height || r2.y >= r1.y + r1.height);
 
+}
+
+type ItemWithOptions = {
+    item: HS3Item
+    isAddFolder?: boolean
+}
+export const checkDirAndMoveIfPossible: (item: HS3Element, targetPosition: {
+    x: number,
+    y: number
+}, items?: ItemWithOptions[], tempItems?: SharedValue<HS3Element[]>) => HS3Element | undefined
+    = (item, targetPosition, items, tempItems) => {
+    "worklet"
+    const {layout} = item
+    const itemCoords = {
+        x: targetPosition.x,
+        y: targetPosition.y,
+    }
+    const itemMax = {
+        x: itemCoords.x + layout.width,
+        y: itemCoords.y + layout.height
+    }
+
+    // let success = false
+    // for (let x = itemCoords.x; x < itemCoords.x + layout.width; x++) {
+    //     for (let y = itemCoords.y; y < itemCoords.y + layout.height; y++) {
+    //         if (x < 0 || y < 0 || x + layout.width >= GRID_COLUMNS || y + layout.height >= GRID_ROWS) {
+    //             success = false;
+    //             // break
+    //             return undefined
+    //         }
+    //         const valueAtPoint = items.filter(i =>
+    //             i.item.layout.x >= x && x <= itemMax.x
+    //             && i.item.layout.y >= y && y <= itemMax.y
+    //         )
+    //         if (!valueAtPoint) {
+    //             success = true;
+    //         }
+    //         // success = (dragState.value?.draggingItem.itemId === valueAtPoint[0].item.itemId)
+    //         success = true
+    //         if (!success) {
+    //             // break
+    //             return undefined
+    //         }
+    //     }
+    // }
+
+    const newItem: HS3Element = {
+        ...item,
+        layout: {
+            ...item.layout,
+            ...itemCoords
+        }
+    }
+
+    // const isPossible = tempItems.value.map(i => !isSameElement(i, newItem)).reduce((p, c) => p && c)
+    // console.log("HALO")
+    // if (isPossible) {
+    // tempItem.value = newItem;
+    return newItem
+    // runOnJS(setRefresh)(prev => !prev);
+// }
+
+    // return undefined
 }
 
 export const generateTempItems =
@@ -297,69 +354,6 @@ export function generateItemResults(dragState: DragState4 | undefined, previewEl
         })).filter(e => (e.dirs.dirs.length > 0 || e.dirs.isAddFolder))
 }
 
-type ItemWithOptions = {
-    item: HS3Item
-    isAddFolder?: boolean
-}
-export const checkDirAndMoveIfPossible: (item: HS3Element, targetPosition: {
-    x: number,
-    y: number
-}, items?: ItemWithOptions[], tempItems?: SharedValue<HS3Element[]>) => HS3Element | undefined
-    = (item, targetPosition, items, tempItems) => {
-    "worklet"
-    const {layout} = item
-    const itemCoords = {
-        x: targetPosition.x,
-        y: targetPosition.y,
-    }
-    const itemMax = {
-        x: itemCoords.x + layout.width,
-        y: itemCoords.y + layout.height
-    }
-
-    // let success = false
-    // for (let x = itemCoords.x; x < itemCoords.x + layout.width; x++) {
-    //     for (let y = itemCoords.y; y < itemCoords.y + layout.height; y++) {
-    //         if (x < 0 || y < 0 || x + layout.width >= GRID_COLUMNS || y + layout.height >= GRID_ROWS) {
-    //             success = false;
-    //             // break
-    //             return undefined
-    //         }
-    //         const valueAtPoint = items.filter(i =>
-    //             i.item.layout.x >= x && x <= itemMax.x
-    //             && i.item.layout.y >= y && y <= itemMax.y
-    //         )
-    //         if (!valueAtPoint) {
-    //             success = true;
-    //         }
-    //         // success = (dragState.value?.draggingItem.itemId === valueAtPoint[0].item.itemId)
-    //         success = true
-    //         if (!success) {
-    //             // break
-    //             return undefined
-    //         }
-    //     }
-    // }
-
-    const newItem: HS3Element = {
-        ...item,
-        layout: {
-            ...item.layout,
-            ...itemCoords
-        }
-    }
-
-    // const isPossible = tempItems.value.map(i => !isSameElement(i, newItem)).reduce((p, c) => p && c)
-    // console.log("HALO")
-    // if (isPossible) {
-    // tempItem.value = newItem;
-    return newItem
-    // runOnJS(setRefresh)(prev => !prev);
-// }
-
-    // return undefined
-}
-
 export function getTargetLayout(dragState: DragState): HS3LayoutParams {
     "worklet"
     const {coordinate: dragCoordinate, draggingItem} = dragState
@@ -375,5 +369,40 @@ export function getTargetLayout(dragState: DragState): HS3LayoutParams {
         ),
         width: draggingItem.layout.width,
         height: draggingItem.layout.height,
+    }
+}
+
+export function getItemPath(e: HS3Element, folders: HS3Folder[]) {
+    if (!e) return ""
+    const parentId = e.parentId
+
+    if (parentId === undefined) {
+        return "/"
+    } else {
+        const parent = folders.find(f => f.folderId === parentId)
+        return getItemPath(parent, folders) + getElementKey(parent) + "/"
+    }
+}
+
+export function getNextId(type: "item" | "folder", folders: HS3Folder[]) {
+    if (type == "item") {
+        //e is item
+        const items = folders.flatMap(f => f.items)
+        const highest = items.reduce(
+            (prev, curr) =>
+                (prev > curr.itemId)
+                    ? prev : curr.itemId,
+            -1
+        )
+        return highest + 1
+    } else {
+        //e is folder
+        const highest = folders.reduce(
+            (prev, curr) =>
+                (prev > curr.folderId)
+                    ? prev : curr.folderId,
+            -1
+        )
+        return highest + 1
     }
 }

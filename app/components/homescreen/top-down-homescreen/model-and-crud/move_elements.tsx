@@ -19,14 +19,26 @@ export function moveElementsToFolder(elements: HS3Element[], folders: HS3Folder[
             )
             console.log("new parent id:", newParentFolder.folderId)
             element.parentId = newParentFolder.folderId
+            const newItems =
+                (newParentFolder.items.some(i => i.itemId === (element as HS3Item).itemId)
+                    ? newParentFolder.items
+                    : [...newParentFolder.items, element])
+                    .map(nfItem => nfItem.itemId === (element as HS3Item).itemId
+                        ? {...(element as HS3Item), parentId: newParentFolder.folderId}
+                        : nfItem
+                    )
+
             folders1 = folders1.map(f => f.folderId === newParentFolder.folderId
                 ? {
                     ...newParentFolder,
-                    items: [...newParentFolder.items, element as HS3Item].map(nfItem => nfItem.itemId === (element as HS3Item).itemId
-                        ? {...(element as HS3Item), parentId: newParentFolder.folderId}
-                        : nfItem)
+                    items: newItems
                 }
                 : f)
+            console.log("after:", JSON.stringify(folders1.map(folder => ({
+                id: folder.folderId,
+                folderName: folder.name,
+                items: folder.items.map(i => ({id: i.itemId, p: i.parentId, name: i.name}))
+            }))))
             continue
         } else {
             //so it's a folder so

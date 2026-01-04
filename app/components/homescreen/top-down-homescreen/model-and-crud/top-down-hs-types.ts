@@ -3,7 +3,7 @@ import {HS3Element, HS3Folder, PixelPoint} from "@homescreen/types";
 export type DragState4 = {
     element: HS3Element,
     coordinate: PixelPoint
-    type: "drag" | "resize"
+    type: "drag" | "resize" | "create"
 }
 
 export type FolderDisplayLevel = {

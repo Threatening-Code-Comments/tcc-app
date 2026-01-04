@@ -36,7 +36,7 @@ export const usePopup = (props: Props) => {
         height: 'auto', minHeight: 50,
         backgroundColor: '#2b2a2a',
         borderRadius: 5,
-        padding: 15,
+        padding: 15, zIndex: 60,
     } as const
 
     const component =

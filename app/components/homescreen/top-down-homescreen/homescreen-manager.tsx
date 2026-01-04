@@ -3,7 +3,7 @@ import {HS3Element, HS3Folder, HS3Item} from './../types'
 import {getFoldersFromDb} from "@components/homescreen/top-down-homescreen/db-mock";
 import {FAB, Text} from "react-native-paper";
 import Animated, {
-    runOnJS,
+    runOnJS, SharedValue,
     useAnimatedReaction,
     useAnimatedStyle,
     useDerivedValue,
@@ -32,12 +32,37 @@ import {useItemPopup} from "@components/homescreen/top-down-homescreen/item-popu
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {FolderOperations, FolderPopover} from "@components/homescreen/top-down-homescreen/folder-popover";
 import {DragPointPosition} from "@components/homescreen/top-down-homescreen/drag-point";
-import {useCreateTilePopup} from "@components/homescreen/top-down-homescreen/useCreateTileOrFolderPopup";
+import {
+    useCreateLayoutOverlay,
+    useCreateTilePopup
+} from "@components/homescreen/top-down-homescreen/useCreateTileOrFolderPopup";
 import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
 import {addToNewFolder} from "./model-and-crud/createTileOrFolder";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants";
 
 type Props = {}
+
+function applyModificationToElement(modifiedElement: HS3Element, folders: SharedValue<HS3Folder[]>) {
+    if ("itemId" in modifiedElement) {
+        folders.value = folders.value.map(f =>
+            f.folderId === modifiedElement.parentId
+                ? {
+                    ...f, items: f.items.map(i =>
+                        i.itemId === modifiedElement.itemId
+                            ? modifiedElement
+                            : i
+                    )
+                }
+                : f
+        )
+    } else {
+        folders.value = folders.value.map(f =>
+            f.folderId === modifiedElement.folderId
+                ? modifiedElement
+                : f
+        )
+    }
+}
 
 export const HomescreenManager = (props: Props) => {
     const router = useRouter();
@@ -279,27 +304,7 @@ export const HomescreenManager = (props: Props) => {
     }
     const onResizeEnd = (element: HS3Element, pos: DragPointPosition) => {
         const modifiedElement = dragState.value.element
-
-        if ("itemId" in modifiedElement) {
-            folders.value = folders.value.map(f =>
-                f.folderId === modifiedElement.parentId
-                    ? {
-                        ...f, items: f.items.map(i =>
-                            i.itemId === modifiedElement.itemId
-                                ? modifiedElement
-                                : i
-                        )
-                    }
-                    : f
-            )
-        } else {
-            folders.value = folders.value.map(f =>
-                f.folderId === modifiedElement.folderId
-                    ? modifiedElement
-                    : f
-            )
-        }
-
+        applyModificationToElement(modifiedElement, folders);
 
         dragState.value = undefined
     }
@@ -415,7 +420,61 @@ export const HomescreenManager = (props: Props) => {
                 runOnJS(refreshState)()
         }, [showCreateFABs])
     // const createTilePopup = useMo
-    const tileCreatePopup = useCreateTilePopup({folders: folders.value, currentLevel: currentLevel.value})
+    const createPositionOverlay = useCreateLayoutOverlay({
+        onStart: (layout, coordinate) => {
+            dragState.value = {
+                type: "create",
+                element: layout, coordinate
+            }
+        },
+        onUpdate: (layout, coordinate) => {
+            dragState.value = {
+                type: "create",
+                element: layout, coordinate
+            }
+        },
+        onCancel: () => {
+            dragState.value = undefined
+            showCreateFABs.value = false
+        },
+        onConfirm: (element) => {
+            if(tempItemsImpossible.value.length > 0){
+                ToastAndroid.show("Error......", ToastAndroid.SHORT)
+                dragState.value = undefined
+                showCreateFABs.value = false
+                return
+            }
+            let newFolders = folders.value
+
+            if ("itemId" in element) {
+                const parent = folders.value.find(f=>f.folderId === element.parentId)
+                console.log("old parent", parent)
+                parent.items = [...parent.items, element]
+                console.log("new..?", parent)
+
+                newFolders = folders.value.map(f =>
+                    (f.folderId === element.parentId)
+                        ? parent
+                        : f
+                )
+            } else {
+                newFolders = [...folders.value, element]
+            }
+
+            folders.value = getModifiedTempItems(
+                tempItems.value,
+                newFolders
+            )
+
+            dragState.value = undefined
+            showCreateFABs.value = false
+        }
+    })
+    const tileCreatePopup = useCreateTilePopup({
+        folders: folders.value,
+        currentLevel: currentLevel.value,
+        onSubmit: (item: HS3Item) => createPositionOverlay.setElement(item)
+    })
 
 
     //<Loading
@@ -437,6 +496,7 @@ export const HomescreenManager = (props: Props) => {
             element={previewElement.value}
             impossible={false}
             isDragElement={true}
+            isCreateElement={dragState.value?.type === "create"}
         />)}
         <Animated.View style={folderOverlayStyle}/>
         {/*TODO popover*/}
@@ -453,6 +513,7 @@ export const HomescreenManager = (props: Props) => {
             />
         ))}
 
+        {createPositionOverlay.component}
         {tileCreatePopup.component}
         <FAB style={{
             position: "absolute",
@@ -520,7 +581,7 @@ export const HomescreenManager = (props: Props) => {
                                isEditMode={homescreenState.value === "edit"}
                                onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
                                onResizeEnd={(pos) => onResizeEnd(e, pos)}
-                               children={folders.value.filter(f=>f.parentId === e.folderId)}
+                               children={folders.value.filter(f => f.parentId === e.folderId)}
                     />
             )
 

@@ -36,6 +36,7 @@ export function Folder4(props: FolderProps) {
             // borderColor: 'red', borderWidth: 2,
             alignItems: 'center', justifyContent: 'center',
             elevation: 8,
+            pointerEvents: 'none'
         }}>
             {/*Folder background*/}
             <View style={{
@@ -48,14 +49,15 @@ export function Folder4(props: FolderProps) {
                 alignContent: 'center', justifyContent: 'center',
                 opacity: 0.7
             }}>
-                <Icon iconName={"folder"} iconSize={115} color={"red"}/>
+                <Icon iconName={"folder"} iconSize={115 * Math.min(layout.width, layout.height)} color={"red"}/>
             </View>
 
             {/*Name at top left*/}
             <View style={{
                 position: 'absolute', top: 0, left: 0, margin: 2, marginTop: 5,
                 backgroundColor: '#ffffff99', paddingHorizontal: 2,
-                zIndex: 10, minWidth: '30%'
+                zIndex: 10, minWidth: '30%',
+                pointerEvents: 'none'
             }}>
                 <Text style={{
                     color: 'black', zIndex: 3, elevation: 3,
@@ -71,7 +73,6 @@ export function Folder4(props: FolderProps) {
 
             {/*    return (<Text key={index}>{item.itemId}: x{x} y{y}</Text>)*/}
             {/*})}*/}
-
             <ViewPort folderToView={props.folder} children={props.children}/>
 
         </View>
@@ -92,7 +93,7 @@ export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[]
         return percentage.toFixed(2) + '%'
     }
 
-    const getElementLayout = (item: HS3Element, index: number)=>{
+    const getElementLayout = (item: HS3Element, index: number) => {
         const {layout: {x, y, width, height}} = item
 
         return (
@@ -102,7 +103,7 @@ export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[]
                 left: getPercentageString(x, maxWidth), top: getPercentageString(y, maxHeight),
                 width: getPercentageString(width, maxWidth), height: getPercentageString(height, maxHeight),
                 borderWidth: 2,
-                backgroundColor: ("itemId" in item)?'blue': "red"
+                backgroundColor: ("itemId" in item) ? 'blue' : "red",
             }}>
                 <Text style={{fontSize: 10}}>{item.name}</Text>
             </View>
@@ -110,7 +111,14 @@ export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[]
     }
 
     return (
-        <View style={{width: '90%', height: '65%', marginTop: 15, marginBottom: 2, marginLeft: -2}}>
+        <View style={{
+            width: '90%',
+            height: '65%',
+            marginTop: 15,
+            marginBottom: 2,
+            marginLeft: -2,
+            pointerEvents: 'none'
+        }}>
 
             {items.map(getElementLayout)}
             {children.map(getElementLayout)}
@@ -142,7 +150,8 @@ export function Item4(props: Item4Props) {
         <View style={{
             backgroundColor: 'blue', width: '100%', height: '100%',
             borderColor: 'black', borderWidth: 1,
-            alignItems: 'center', justifyContent: 'center'
+            alignItems: 'center', justifyContent: 'center',
+            pointerEvents: 'none'
         }}>
             <Text>{item.name}</Text>
             <Text>{stringyfyLayout(item.layout)}</Text>

@@ -8,6 +8,7 @@ import Animated, {
     withTiming
 } from "react-native-reanimated";
 import {GRID_UNIT} from "@homescreen/move_algo";
+import {Text} from "react-native-paper";
 
 const SHAKE_OFFSET = 5;
 
@@ -15,6 +16,7 @@ export type PreviewItemProps = {
     element?: HS3Element;
     impossible?: boolean;
     isDragElement?: boolean
+    isCreateElement?: boolean
 }
 
 // type AnimatedPropsPreviewItem = Partial<PreviewItemProps>;
@@ -60,6 +62,7 @@ export const PreviewItem3 = (props: PreviewItemProps) => {
             {translateX: translationXShakeOffset.value}
         ] as any,
         zIndex: 10,
+        justifyContent: "center",
     }))
     const yShakeEffect = () => {
         translationXShakeOffset.value = 0
@@ -78,7 +81,8 @@ export const PreviewItem3 = (props: PreviewItemProps) => {
     }
 
     return (<Animated.View style={itemStyle}>
-
+        {props.isCreateElement &&
+            <Text style={{color: 'black', alignSelf: 'center', justifyContent: 'center',}}>{props.element.name}</Text>}
     </Animated.View>)
 }
 
