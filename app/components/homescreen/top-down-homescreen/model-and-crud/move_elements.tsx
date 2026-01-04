@@ -1,4 +1,4 @@
-import {HS3Element, HS3Folder, HS3Item} from "@components/homescreen/3-homescreen/3_homescreenHandler";
+import {HS3Element, HS3Folder, HS3Item} from "../../types";
 
 export function moveElementsToFolder(elements: HS3Element[], folders: HS3Folder[], newParentFolder: HS3Folder) {
     let folders1 = folders

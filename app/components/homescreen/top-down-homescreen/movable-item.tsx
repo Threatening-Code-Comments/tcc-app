@@ -1,4 +1,4 @@
-import {HS3LayoutParams} from "@components/homescreen/3-homescreen/3_homescreenHandler";
+import {HS3LayoutParams} from "@homescreen/types";
 import Animated, {
     runOnJS, useAnimatedReaction,
     useAnimatedStyle,

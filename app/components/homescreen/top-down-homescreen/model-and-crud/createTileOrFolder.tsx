@@ -1,4 +1,4 @@
-import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from "@components/homescreen/3-homescreen/3_homescreenHandler";
+import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from '../../types'
 import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
 
 export const addToNewFolder = (
@@ -36,6 +36,7 @@ export function createFolder(children: HS3Element[], folders: HS3Folder[], curre
         folderId: highestId + 1,
         layout: location,
         parentId: currentLevel,
+        name: 'New Folder',
         //all items are already added here
         items: children.filter(e => "itemId" in e) as HS3Item[]
     }

@@ -1,5 +1,5 @@
 import React, {useEffect} from "react";
-import {HS3Element} from "@components/homescreen/3-homescreen/3_homescreenHandler";
+import {HS3Element} from "@homescreen/types";
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -7,7 +7,7 @@ import Animated, {
     withSequence,
     withTiming
 } from "react-native-reanimated";
-import {GRID_UNIT} from "@components/homescreen/move_algo";
+import {GRID_UNIT} from "@homescreen/move_algo";
 
 const SHAKE_OFFSET = 5;
 

@@ -1,7 +1,7 @@
 import React from "react";
 import {usePopup} from "@components/hooks/usePopup";
 import {Text} from "react-native-paper";
-import {HS3Folder} from "@components/homescreen/3-homescreen/3_homescreenHandler";
+import {HS3Folder} from "@homescreen/types";
 
 type Props = {
     folders: HS3Folder[],

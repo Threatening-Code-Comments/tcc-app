@@ -1,7 +1,7 @@
 import React from "react";
-import {HS3Element, HS3Folder, HS3Item} from "@components/homescreen/3-homescreen/3_homescreenHandler";
+import {HS3Element, HS3Folder, HS3Item} from '../types'
 import {Text} from 'react-native-paper'
-import {getElementKey} from "@components/homescreen/3-homescreen/3_util";
+import {getElementKey} from "@components/homescreen/top-down-homescreen/top-down-util";
 import {usePopup} from "@components/hooks/usePopup";
 
 type Props = {

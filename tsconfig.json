@@ -12,6 +12,9 @@
       "@components/*": [
         "./app/components/*"
       ],
+      "@homescreen/*": [
+        "./app/components/homescreen/*"
+      ],
       "@mocks/*": [
         "./__mocks__/*"
       ],

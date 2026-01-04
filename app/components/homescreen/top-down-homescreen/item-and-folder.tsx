@@ -1,4 +1,4 @@
-import {HS3Folder, HS3Item, HS3LayoutParams} from "@components/homescreen/3-homescreen/3_homescreenHandler";
+import {HS3Folder, HS3Item, HS3LayoutParams} from '../types'
 import {Text} from "react-native-paper";
 import React from "react";
 import {MovableItem, MovableItemProps} from "@components/homescreen/top-down-homescreen/movable-item";
@@ -59,7 +59,7 @@ export function Folder4(props: FolderProps) {
                 <Text style={{
                     color: 'black', zIndex: 3, elevation: 3,
                     alignSelf: 'center'
-                }}>f{folder.folderId}</Text>
+                }}>{folder.name}</Text>
             </View>
 
 
@@ -106,7 +106,7 @@ export const ViewPort = (props: { folderToView: HS3Folder }) => {
                             borderWidth: 2,
                             backgroundColor: 'blue'
                         }}>
-                            <Text>{item.itemId}</Text>
+                            <Text style={{fontSize: 10}}>{item.name}</Text>
                         </View>
                     )
                 }
@@ -141,7 +141,7 @@ export function Item4(props: Item4Props) {
             borderColor: 'black', borderWidth: 1,
             alignItems: 'center', justifyContent: 'center'
         }}>
-            <Text>i{item.itemId}</Text>
+            <Text>{item.name}</Text>
             <Text>{stringyfyLayout(item.layout)}</Text>
         </View>
     </MovableItem>

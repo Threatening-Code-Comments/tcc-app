@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {HS3Element, HS3Folder, HS3Item} from "@components/homescreen/3-homescreen/3_homescreenHandler";
+import {HS3Element, HS3Folder, HS3Item} from './../types'
 import {getFoldersFromDb} from "@components/homescreen/top-down-homescreen/db-mock";
 import {FAB, Text} from "react-native-paper";
 import Animated, {
@@ -13,21 +13,21 @@ import {BackHandler, ToastAndroid, View} from "react-native";
 import {Folder4, Item4} from "@components/homescreen/top-down-homescreen/item-and-folder";
 import {useRouter} from "expo-router";
 
-import {PreviewItem3} from "@components/homescreen/3-homescreen/3_previewItem";
+import {PreviewItem3} from "@homescreen/top-down-homescreen/3_previewItem";
 import {GridValue, PixelPoint} from "@components/homescreen/types";
 import {
     createTempElements,
     generateItemResults,
     generateTempItems,
+    getElementKey,
     getFoldersForLevel,
     getModifiedTempItems,
     getTargetLayout4,
-    goUpLevel
+    goUpLevel,
+    isSameElement
 } from "@components/homescreen/top-down-homescreen/top-down-util";
 import {DragState4, HomescreenState} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
-import {getElementKey, isSameElement} from "@components/homescreen/3-homescreen/3_util";
 import {gridPointToPixel, gridToPx} from "@components/homescreen/move_algo";
-import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/3-homescreen/3_item3";
 import {useItemPopup} from "@components/homescreen/top-down-homescreen/item-popup";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {FolderOperations, FolderPopover} from "@components/homescreen/top-down-homescreen/folder-popover";
@@ -35,6 +35,7 @@ import {DragPointPosition} from "@components/homescreen/top-down-homescreen/drag
 import {useCreateTilePopup} from "@components/homescreen/top-down-homescreen/useCreateTileOrFolderPopup";
 import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
 import {addToNewFolder} from "./model-and-crud/createTileOrFolder";
+import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants";
 
 type Props = {}
 
@@ -66,11 +67,10 @@ export const HomescreenManager = (props: Props) => {
     const visibleElements = useDerivedValue<HS3Element[]>(() => {
         if (!currentFolderLevel.value.main) return []
         console.log("update!")
-        let newVar = [
+        return [
             ...currentFolderLevel.value.main.items,
             ...currentFolderLevel.value.more
-        ];
-        return newVar
+        ]
     }, [currentFolderLevel])
 
     //drag state
