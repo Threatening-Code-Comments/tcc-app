@@ -223,7 +223,7 @@ export const HomescreenManager = (props: Props) => {
                     currentLevel.value
                 )
             } else {
-                ToastAndroid.show("moving / creating will happen with the buttons" + getElementKey(modifiedElement), ToastAndroid.SHORT)
+                // ToastAndroid.show("moving / creating will happen with the buttons" + getElementKey(modifiedElement), ToastAndroid.SHORT)
                 const newe = moveElementsToFolder(
                     [modifiedElement],
                     folders.value,
