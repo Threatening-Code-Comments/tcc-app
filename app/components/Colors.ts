@@ -10,7 +10,7 @@ export function getColorWithContrast(color?: string): ColorWithContrast {
     return { color: color2, contrastColor: getContrastColor(color2) };
 }
 
-function getContrastColor(hexColor: string): string {
+export function getContrastColor(hexColor: string): string {
     const r = parseInt(hexColor.substr(1, 2), 16);
     const g = parseInt(hexColor.substr(3, 2), 16);
     const b = parseInt(hexColor.substr(5, 2), 16);

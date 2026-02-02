@@ -6,6 +6,7 @@ import {View} from "react-native";
 import {Icon} from "@components/Icon";
 import {GRID_COLUMNS} from "@components/homescreen/move_algo";
 import {ConcreteItemSlot, ItemDisplaySlot} from "@homescreen/top-down-homescreen/item-display-slots";
+import {getRandomColor} from "@homescreen/top-down-homescreen/top-down-util";
 
 type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     folder: HS3Folder,
@@ -149,6 +150,8 @@ export function Item4(props: Item4Props) {
     ]
     const sortedSlotTypes = slotTypes.sort((a, b) => a.index - b.index)
 
+    const color = getRandomColor()
+
     const firstSlot = slotTypes.at(0)
     const firstSlotBottom = slotTypes.at(1)
     const lastSlotBottom = slotTypes.reduce((accumulator, current) =>
@@ -166,12 +169,21 @@ export function Item4(props: Item4Props) {
         onResizeUpdate={onResizeUpdate}
         onResizeEnd={onResizeEnd}
     >
+        {/*<View style={{*/}
+        {/*    ...utilStyles.topLeft, ...utilStyles.full,*/}
+        {/*    backgroundColor: 'black',*/}
+        {/*    borderRadius: 15,*/}
+        {/*    // borderWidth: 1,*/}
+        {/*}}/>*/}
+
         <View style={{
-            backgroundColor: 'blue', width: '100%', height: '100%',
-            // borderColor: 'black', borderWidth: 1,
+            backgroundColor: color,
+            width: '95%', height: '95%',
+            position: 'absolute', top: '1.25%', left: '1.25%',
             alignItems: 'center', justifyContent: 'center',
             pointerEvents: 'none',
             borderRadius: 12, margin: 2,
+            elevation: 12,
             padding: 1
         }}>
             {/*Slot 1*/}
@@ -180,7 +192,7 @@ export function Item4(props: Item4Props) {
                 borderTopLeftRadius: 12, borderTopRightRadius: 12,
                 height: '40%',
             }}>
-                <ItemDisplaySlot orientation={"center"}
+                <ItemDisplaySlot color={color} orientation={"center"}
                                  type={firstSlot.type}
                                  value={firstSlot.valueCallback(item)}/>
             </View>
@@ -198,7 +210,7 @@ export function Item4(props: Item4Props) {
                     height: '100%',
                     borderBottomLeftRadius: 12,
                 }}>
-                    <ItemDisplaySlot orientation={"left"}
+                    <ItemDisplaySlot orientation={"left"} color={color}
                                      type={firstSlotBottom.type}
                                      value={firstSlotBottom.valueCallback(item)}/>
                 </View>
@@ -211,7 +223,7 @@ export function Item4(props: Item4Props) {
                         width: getPercentageString(1, slotAmounts),
                         height: '100%',
                     }}>
-                        <ItemDisplaySlot orientation={"center"}
+                        <ItemDisplaySlot orientation={"center"} color={color}
                                          type={slot.type}
                                          value={slot.valueCallback(item)}/>
                     </View>
@@ -224,7 +236,7 @@ export function Item4(props: Item4Props) {
                     width: getPercentageString(1, slotAmounts), height: '100%',
                     borderBottomRightRadius: 12,
                 }}>
-                    <ItemDisplaySlot orientation={"right"}
+                    <ItemDisplaySlot orientation={"right"} color={color}
                                      type={lastSlotBottom.type}
                                      value={lastSlotBottom.valueCallback(item)}/>
                 </View>

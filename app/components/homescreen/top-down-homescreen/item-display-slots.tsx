@@ -5,6 +5,7 @@ import {Icon} from "@components/Icon";
 import {getDurationFromSecond} from "@components/tiles/TileTile";
 import {utilStyles} from "@components/tiles/styles";
 import {IconName} from "@app/constants/iconNames";
+import {getContrastColor} from "@components/Colors";
 
 export type ConcreteItemSlot = {
     type: ItemDisplaySlotType
@@ -16,36 +17,45 @@ type SlotOrientation = "left" | "right" | "center"
 type ItemDisplaySlotType = "debug" | "name" | "taps_total" | "time_since_last"
 type ItemDisplaySlotValue = string | number | Date
 
-function ItemDisplaySlotName({value, orientation}: { value: string, orientation: SlotOrientation }) {
+function ItemDisplaySlotName({value, orientation, contrastColor}: {
+    value: string,
+    orientation: SlotOrientation,
+    contrastColor: string
+}) {
     return (<View style={{...utilStyles.full, ...utilStyles.centerColumn}}>
         <Text
             variant={(value.length > 9) ? "labelMedium" : "labelLarge"}
-            style={{textAlign: orientation,}}>
+            style={{textAlign: orientation, color: contrastColor}}>
             {value}
         </Text>
     </View>);
 }
 
-function IconWithText({iconName, text, orientation, textOffset = 0}: {
+function IconWithText({iconName, text, orientation, textOffset = 0, contrastColor}: {
     iconName: IconName,
     orientation: SlotOrientation,
     text: string,
-    textOffset?: number
+    contrastColor: string,
+    textOffset?: number,
 }) {
     if (orientation !== "right") {
         return (<>
-            <Icon iconName={iconName} iconSize={15}/>
-            <Text style={{marginLeft: textOffset}} variant={"bodySmall"}>{text}</Text>
+            <Icon iconName={iconName} color={contrastColor} iconSize={15}/>
+            <Text style={{marginLeft: textOffset, color: contrastColor}} variant={"bodySmall"}>{text}</Text>
         </>)
     } else {
         return (<>
-            <Text variant={"bodySmall"}>{text}</Text>
-            <Icon iconName={iconName} iconSize={15}/>
+            <Text variant={"bodySmall"} style={{color: contrastColor,}}>{text}</Text>
+            <Icon iconName={iconName} color={contrastColor} iconSize={15}/>
         </>)
     }
 }
 
-function ItemDisplaySlotTotalTaps({value, orientation}: { value: number | string, orientation: SlotOrientation }) {
+function ItemDisplaySlotTotalTaps({value, orientation, contrastColor}: {
+    value: number | string,
+    orientation: SlotOrientation,
+    contrastColor: string
+}) {
 
     return (<View style={{
         ...utilStyles.full, ...utilStyles.column,
@@ -53,13 +63,14 @@ function ItemDisplaySlotTotalTaps({value, orientation}: { value: number | string
     }}>
 
         <View style={{...utilStyles.centerRow}}>
-            <IconWithText iconName={"tap"} orientation={orientation}
+            <IconWithText contrastColor={contrastColor}
+                          iconName={"tap"} orientation={orientation}
                           text={"Total"} textOffset={-4}
             />
         </View>
 
         <View style={{width: '100%', alignItems: 'center'}}>
-            <Text variant={"bodyMedium"}>
+            <Text style={{color: contrastColor}} variant={"bodyMedium"}>
                 {value}
             </Text>
         </View>
@@ -77,8 +88,8 @@ const getFlexAlignForSlotAlignment = (alignment: SlotOrientation) => {
     }
 }
 
-const ItemDisplaySlotTimeSinceLast: React.FC<{ value: Date, orientation: SlotOrientation }> =
-    ({value, orientation}) => {
+const ItemDisplaySlotTimeSinceLast: React.FC<{ value: Date, orientation: SlotOrientation, contrastColor: string }> =
+    ({value, orientation, contrastColor}) => {
         const getDurationText = (value: Date) => {
             const duration = (Date.now() - value.getTime())
             return getDurationFromSecond(duration / 1000)
@@ -102,13 +113,15 @@ const ItemDisplaySlotTimeSinceLast: React.FC<{ value: Date, orientation: SlotOri
                     width: '100%', ...utilStyles.row,
                     justifyContent: getFlexAlignForSlotAlignment(orientation)
                 }}>
-                    <IconWithText iconName={"clockOutline"} orientation={orientation} text={"Last"}/>
+                    <IconWithText iconName={"clockOutline"}
+                                  contrastColor={contrastColor}
+                                  orientation={orientation} text={"Last"}/>
                 </View>
 
                 <View style={{width: '100%', alignItems: 'center'}}>
                     <Text style={{
                         fontSize: 11,
-                        textAlign: orientation
+                        textAlign: orientation, color: contrastColor,
                     }}>
                         {!!value ? getDurationText(value) : "no events"}
                     </Text>
@@ -119,18 +132,24 @@ const ItemDisplaySlotTimeSinceLast: React.FC<{ value: Date, orientation: SlotOri
 type ItemDisplaySlotProps = {
     type: ItemDisplaySlotType,
     value: ItemDisplaySlotValue,
-    orientation: SlotOrientation
+    orientation: SlotOrientation,
+    color: string
 }
-export const ItemDisplaySlot = ({type, value, orientation}: ItemDisplaySlotProps) => {
+export const ItemDisplaySlot = ({type, value, orientation, color}: ItemDisplaySlotProps) => {
+    const contrastColor = getContrastColor(color)
+
     switch (type) {
         case "debug":
             return (<Text>Debug</Text>)
         case "name":
-            return <ItemDisplaySlotName value={value as string} orientation={orientation}/>
+            return <ItemDisplaySlotName value={value as string} contrastColor={contrastColor}
+                                        orientation={orientation}/>
         case "taps_total":
-            return <ItemDisplaySlotTotalTaps value={value as number | string} orientation={orientation}/>
+            return <ItemDisplaySlotTotalTaps value={value as number | string} contrastColor={contrastColor}
+                                             orientation={orientation}/>
         case "time_since_last":
-            return <ItemDisplaySlotTimeSinceLast value={value as Date} orientation={orientation}/>
+            return <ItemDisplaySlotTimeSinceLast value={value as Date} contrastColor={contrastColor}
+                                                 orientation={orientation}/>
         default:
             throw new Error(`Unknown type "${type}" for ItemDisplaySlotType in Switch-Statement`)
     }
