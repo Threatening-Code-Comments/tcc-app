@@ -40,3 +40,4 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 *.pptx
+/.idea/caches/deviceStreaming.xml
