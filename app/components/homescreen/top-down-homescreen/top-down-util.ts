@@ -140,6 +140,7 @@ export const generateTempItems =
     };
 
 
+
 export const getModifiedTempItems = (
     elementsToModify: HS3Element[],
     folders: HS3Folder[],

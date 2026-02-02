@@ -39,6 +39,7 @@ import {
 import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
 import {addToNewFolder} from "./model-and-crud/createTileOrFolder";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants";
+// import {DotGridBackground} from "@homescreen/top-down-homescreen/dot-grid";
 
 type Props = {}
 
@@ -69,6 +70,7 @@ export const HomescreenManager = (props: Props) => {
 
     //refresh
     const r = useState<boolean>(false);
+    const [mountKey, setMountKey] = useState(0);
     const refreshState = () => r[1](prevState => !prevState);
 
     //from db
@@ -237,6 +239,7 @@ export const HomescreenManager = (props: Props) => {
                 }))))
             }
             dragState.value = undefined
+            runOnJS(setMountKey)(k => k + 1);
             return
         }
 
@@ -245,6 +248,7 @@ export const HomescreenManager = (props: Props) => {
             elementsToModify,
             folders.value
         )
+        runOnJS(setMountKey)(k => k + 1);
         // runOnJS(refreshState)();
     };
     //---------Drag Events------------
@@ -307,6 +311,7 @@ export const HomescreenManager = (props: Props) => {
         applyModificationToElement(modifiedElement, folders);
 
         dragState.value = undefined
+        runOnJS(setMountKey)(k => k + 1);
     }
     const folderOverlayStyle = useAnimatedStyle(() => {
         if (!isAddFolder.value) return {backgroundColor: 'transparent'};
@@ -468,6 +473,7 @@ export const HomescreenManager = (props: Props) => {
 
             dragState.value = undefined
             showCreateFABs.value = false
+            runOnJS(setMountKey)(k => k + 1);
         }
     })
     const tileCreatePopup = useCreateTilePopup({
@@ -489,7 +495,9 @@ export const HomescreenManager = (props: Props) => {
     //<Main
     return <>
         <GestureDetector gesture={longTap}>
-            <Animated.View style={editBackgroundStyle}/>
+            <Animated.View style={editBackgroundStyle}>
+                {/*<DotGridBackground />*/}
+            </Animated.View>
         </GestureDetector>
 
         {!isAddFolder.value && (<PreviewItem3
@@ -562,7 +570,7 @@ export const HomescreenManager = (props: Props) => {
             .filter(e => !tempItems.value.some(e2 => isSameElement(e, e2)))
             .map((e, index) =>
                 ("itemId" in e)
-                    ? <Item4 key={currentLevel.value + "t" + e.itemId} item={e}
+                    ? <Item4 key={`${mountKey}-${currentLevel.value}-t-${e.itemId}`} item={e}
                              onDragStart={() => itemRunnables.onDragStart(e)}
                              onDragUpdate={(coordinate) => itemRunnables.onDragUpdate(e, coordinate)}
                              onDragEnd={() => itemRunnables.onDragEnd(e)}
@@ -572,7 +580,7 @@ export const HomescreenManager = (props: Props) => {
                              onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
                              onResizeEnd={(pos) => onResizeEnd(e, pos)}
                     />
-                    : <Folder4 key={currentLevel.value + "f" + e.folderId} folder={e}
+                    : <Folder4 key={`${mountKey}-${currentLevel.value}-f-${e.folderId}`} folder={e}
                                onDragStart={() => folderRunnables.onDragStart(e)}
                                onDragUpdate={(coordinate) => folderRunnables.onDragUpdate(e, coordinate)}
                                onDragEnd={() => folderRunnables.onDragEnd(e)}

@@ -36,7 +36,7 @@ export function Folder4(props: FolderProps) {
             // borderColor: 'red', borderWidth: 2,
             alignItems: 'center', justifyContent: 'center',
             elevation: 8,
-            pointerEvents: 'none'
+            pointerEvents: 'box-none'
         }}>
             {/*Folder background*/}
             <View style={{
@@ -47,7 +47,8 @@ export function Folder4(props: FolderProps) {
                 backgroundColor: 'transparent',
                 margin: -2,
                 alignContent: 'center', justifyContent: 'center',
-                opacity: 0.7
+                opacity: 0.7,
+                pointerEvents: 'none'
             }}>
                 <Icon iconName={"folder"} iconSize={115 * Math.min(layout.width, layout.height)} color={"red"}/>
             </View>
@@ -104,8 +105,9 @@ export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[]
                 width: getPercentageString(width, maxWidth), height: getPercentageString(height, maxHeight),
                 borderWidth: 2,
                 backgroundColor: ("itemId" in item) ? 'blue' : "red",
+                pointerEvents: 'none'
             }}>
-                <Text style={{fontSize: 10}}>{item.name}</Text>
+                <Text style={{fontSize: 10, pointerEvents: 'none'}}>{item.name}</Text>
             </View>
         )
     }
