@@ -39,7 +39,7 @@ import {
 import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
 import {addToNewFolder} from "./model-and-crud/createTileOrFolder";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants";
-// import {DotGridBackground} from "@homescreen/top-down-homescreen/dot-grid";
+import {DotGridBackground} from "@homescreen/top-down-homescreen/dot-grid";
 
 type Props = {}
 
@@ -414,9 +414,9 @@ export const HomescreenManager = (props: Props) => {
         backgroundColor:
             (homescreenState.value === "default")
                 ? 'transparent'
-                : '#ff00ff55',
+                : 'rgba(163,102,163,0.44)',
         zIndex: 1
-    }), [homescreenState]);
+    }), [homescreenState.value]);
 
     const showCreateFABs = useSharedValue<boolean>(undefined)
     useAnimatedReaction(() => showCreateFABs.value,
@@ -496,7 +496,7 @@ export const HomescreenManager = (props: Props) => {
     return <>
         <GestureDetector gesture={longTap}>
             <Animated.View style={editBackgroundStyle}>
-                {/*<DotGridBackground />*/}
+                 <DotGridBackground mode={homescreenState.value}/>
             </Animated.View>
         </GestureDetector>
 
