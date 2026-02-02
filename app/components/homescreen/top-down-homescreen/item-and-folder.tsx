@@ -5,6 +5,7 @@ import {MovableItem, MovableItemProps} from "@components/homescreen/top-down-hom
 import {View} from "react-native";
 import {Icon} from "@components/Icon";
 import {GRID_COLUMNS} from "@components/homescreen/move_algo";
+import {ItemDisplaySlot} from "@homescreen/top-down-homescreen/item-display-slots";
 
 type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     folder: HS3Folder,
@@ -153,10 +154,45 @@ export function Item4(props: Item4Props) {
             backgroundColor: 'blue', width: '100%', height: '100%',
             borderColor: 'black', borderWidth: 1,
             alignItems: 'center', justifyContent: 'center',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            borderRadius: 12, margin: 3
         }}>
-            <Text>{item.name}</Text>
-            <Text>{stringyfyLayout(item.layout)}</Text>
+            {/*Slot 1*/}
+            <View style={{
+                borderWidth: 1,
+                width: '100%', height: '50%',
+                position: 'absolute', top: 0, left: 0,
+                borderTopLeftRadius: 12, borderTopRightRadius: 12
+            }}>
+                <ItemDisplaySlot type={"name"} value={item.name}/>
+            </View>
+
+            {/*Wrapper für 2/3*/}
+            <View style={{
+                display: 'flex', position: 'absolute', bottom: 0, left: 0,
+                width: '100%', height: '50%'
+            }}>
+                {/*Slot 2*/}
+                <View style={{
+                    width: '50%', height: '100%',
+                    position: 'absolute', top: 0, left: 0,
+                    borderBottomLeftRadius: 12, borderBottomRightRadius: 12
+                }}>
+                    <ItemDisplaySlot type={"taps_total"} value={599}/>
+                </View>
+
+                {/*Slot 3*/}
+                <View style={{
+                    width: '50%', height: '100%',
+                    position: 'absolute', top: 0, right: 0,
+                    borderBottomLeftRadius: 12, borderBottomRightRadius: 12
+                }}>
+                    <ItemDisplaySlot type={"time_since_last"} value={new Date(2026,1,2,17,34)}/>
+                </View>
+            </View>
+
+            {/*<Text>{item.name}</Text>*/}
+            {/*<Text>{stringyfyLayout(item.layout)}</Text>*/}
         </View>
     </MovableItem>
 }

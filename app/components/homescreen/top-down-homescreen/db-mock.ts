@@ -16,7 +16,7 @@ const rootLevel: HS3Folder = {
         },
         {
             itemId: 2, layout: {x: 1, y: 0, width: 2, height: 1},
-            name: "Hallo"
+            name: "Döner oder Pizza gegessen"
         },
         {
             itemId: 3, layout: {x: 2, y: 1, width: 1, height: 1},
