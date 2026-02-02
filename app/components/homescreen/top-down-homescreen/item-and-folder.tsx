@@ -1,11 +1,11 @@
-import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from '../types'
+import {HS3Element, HS3Folder, HS3Item} from '../types'
 import {Text} from "react-native-paper";
 import React from "react";
 import {MovableItem, MovableItemProps} from "@components/homescreen/top-down-homescreen/movable-item";
 import {View} from "react-native";
 import {Icon} from "@components/Icon";
 import {GRID_COLUMNS} from "@components/homescreen/move_algo";
-import {ItemDisplaySlot} from "@homescreen/top-down-homescreen/item-display-slots";
+import {ConcreteItemSlot, ItemDisplaySlot} from "@homescreen/top-down-homescreen/item-display-slots";
 
 type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     folder: HS3Folder,
@@ -81,6 +81,11 @@ export function Folder4(props: FolderProps) {
     </MovableItem>
 }
 
+export const getPercentageString = (gridValue: number, maxV: number) => {
+    const percentage = gridValue / maxV * 100
+
+    return percentage.toFixed(2) + '%'
+}
 
 export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[] }) => {
     const {folderToView, children} = props
@@ -88,12 +93,6 @@ export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[]
 
     const maxWidth = GRID_COLUMNS
     const maxHeight = 3
-
-    const getPercentageString = (gridValue: number, maxV: number) => {
-        const percentage = gridValue / maxV * 100
-
-        return percentage.toFixed(2) + '%'
-    }
 
     const getElementLayout = (item: HS3Element, index: number) => {
         const {layout: {x, y, width, height}} = item
@@ -139,6 +138,23 @@ export function Item4(props: Item4Props) {
         onResizeUpdate, onResizeEnd
     } = props
 
+    const slotAmounts = item.layout.width + 1
+
+    /*hier würde was existierendes aus der db kommmen*/
+    const slotTypes: ConcreteItemSlot[] = [
+        {index: 0, type: "name", valueCallback: () => item.name},
+        {index: 1, type: "time_since_last", valueCallback: () => new Date(2026, 1, 2, 19, 34)},
+        {index: 2, type: "taps_total", valueCallback: () => Math.floor(Math.random() * 599)},
+        {index: 3, type: "taps_total", valueCallback: () => Math.floor(Math.random() * 599)},
+    ]
+    const sortedSlotTypes = slotTypes.sort((a, b) => a.index - b.index)
+
+    const firstSlot = slotTypes.at(0)
+    const firstSlotBottom = slotTypes.at(1)
+    const lastSlotBottom = slotTypes.reduce((accumulator, current) =>
+        (accumulator.index > current.index) ? accumulator : current)
+
+    // @ts-ignore
     return <MovableItem
         layout={item.layout}
         onDragStart={onDragStart}
@@ -152,51 +168,67 @@ export function Item4(props: Item4Props) {
     >
         <View style={{
             backgroundColor: 'blue', width: '100%', height: '100%',
-            borderColor: 'black', borderWidth: 1,
+            // borderColor: 'black', borderWidth: 1,
             alignItems: 'center', justifyContent: 'center',
             pointerEvents: 'none',
-            borderRadius: 12, margin: 3
+            borderRadius: 12, margin: 2,
+            padding: 1
         }}>
             {/*Slot 1*/}
             <View style={{
-                borderWidth: 1,
-                width: '100%', height: '50%',
-                position: 'absolute', top: 0, left: 0,
-                borderTopLeftRadius: 12, borderTopRightRadius: 12
+                position: 'absolute', top: 0, left: 0, width: '100%',
+                borderTopLeftRadius: 12, borderTopRightRadius: 12,
+                height: '40%',
             }}>
-                <ItemDisplaySlot type={"name"} value={item.name}/>
+                <ItemDisplaySlot orientation={"center"}
+                                 type={firstSlot.type}
+                                 value={firstSlot.valueCallback(item)}/>
             </View>
 
-            {/*Wrapper für 2/3*/}
+            {/*Wrapper für unten*/}
             <View style={{
-                display: 'flex', position: 'absolute', bottom: 0, left: 0,
-                width: '100%', height: '50%'
+                display: 'flex', flexDirection: 'row',
+                position: 'absolute', bottom: 0, left: 0, width: '100%',
+                height: '60%'
             }}>
-                {/*Slot 2*/}
+                {/*Slot Unten Start*/}
+                {/*@ts-expect-error*/}
                 <View style={{
-                    width: '50%', height: '100%',
-                    position: 'absolute', top: 0, left: 0,
-                    borderBottomLeftRadius: 12, borderBottomRightRadius: 12
+                    width: getPercentageString(1, slotAmounts),
+                    height: '100%',
+                    borderBottomLeftRadius: 12,
                 }}>
-                    <ItemDisplaySlot type={"taps_total"} value={599}/>
+                    <ItemDisplaySlot orientation={"left"}
+                                     type={firstSlotBottom.type}
+                                     value={firstSlotBottom.valueCallback(item)}/>
                 </View>
 
-                {/*Slot 3*/}
+
+                {/*if slot amounts > 2, dann hier den rest!*/}
+                {slotAmounts > 2 && sortedSlotTypes.slice(2, sortedSlotTypes.length - 1).map((slot, index) => (
+                    //@ts-expect-error
+                    <View key={index} style={{
+                        width: getPercentageString(1, slotAmounts),
+                        height: '100%',
+                    }}>
+                        <ItemDisplaySlot orientation={"center"}
+                                         type={slot.type}
+                                         value={slot.valueCallback(item)}/>
+                    </View>
+                ))
+                }
+
+                {/*Slot Unten Ende*/}
+                {/*@ts-expect-error*/}
                 <View style={{
-                    width: '50%', height: '100%',
-                    position: 'absolute', top: 0, right: 0,
-                    borderBottomLeftRadius: 12, borderBottomRightRadius: 12
+                    width: getPercentageString(1, slotAmounts), height: '100%',
+                    borderBottomRightRadius: 12,
                 }}>
-                    <ItemDisplaySlot type={"time_since_last"} value={new Date(2026,1,2,17,34)}/>
+                    <ItemDisplaySlot orientation={"right"}
+                                     type={lastSlotBottom.type}
+                                     value={lastSlotBottom.valueCallback(item)}/>
                 </View>
             </View>
-
-            {/*<Text>{item.name}</Text>*/}
-            {/*<Text>{stringyfyLayout(item.layout)}</Text>*/}
         </View>
     </MovableItem>
-}
-
-function stringyfyLayout(layout: HS3LayoutParams) {
-    return "x" + layout.x + "y" + layout.y
 }

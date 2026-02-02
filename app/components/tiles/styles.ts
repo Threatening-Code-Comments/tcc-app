@@ -1,4 +1,39 @@
-import { StyleSheet } from 'react-native'
+import {StyleSheet} from 'react-native'
+
+export const utilStyles = StyleSheet.create({
+    full: {
+        width: '100%',
+        height: '100%',
+    },
+
+    column: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    row: {
+        display: 'flex',
+        flexDirection: 'row',
+    },
+
+    center: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignContent: 'center',
+    },
+
+    centerColumn: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    centerRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    }
+})
 
 export const newTileStyles = StyleSheet.create({
     pageTile: {

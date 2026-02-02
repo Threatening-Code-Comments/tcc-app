@@ -19,7 +19,10 @@ export const iconNames = {
     refresh: 'restart',
     createFolder: 'folder-multiple-plus',
     moveToFolder: 'folder-move',
-    folder: 'folder'
+    folder: 'folder',
+    tap: 'gesture-tap',
+    everything: 'all-inclusive',
+    filter: 'filter'
 } as const
 
 // valueof => T[keyof T]

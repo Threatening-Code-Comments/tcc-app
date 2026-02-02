@@ -3,84 +3,134 @@ import {Text} from "react-native-paper";
 import React, {useEffect, useState} from "react";
 import {Icon} from "@components/Icon";
 import {getDurationFromSecond} from "@components/tiles/TileTile";
+import {utilStyles} from "@components/tiles/styles";
+import {IconName} from "@app/constants/iconNames";
 
+export type ConcreteItemSlot = {
+    type: ItemDisplaySlotType
+    index: number
+    valueCallback: (item: any) => ItemDisplaySlotValue;
+}
+
+type SlotOrientation = "left" | "right" | "center"
 type ItemDisplaySlotType = "debug" | "name" | "taps_total" | "time_since_last"
 type ItemDisplaySlotValue = string | number | Date
 
-function ItemDisplaySlotName({value}: { value: string }) {
-    return (<View style={{height: '100%', width: '100%', justifyContent: 'center', alignItems: 'center'}}>
+function ItemDisplaySlotName({value, orientation}: { value: string, orientation: SlotOrientation }) {
+    return (<View style={{...utilStyles.full, ...utilStyles.centerColumn}}>
         <Text
             variant={(value.length > 9) ? "labelMedium" : "labelLarge"}
-            style={{textAlign: 'center',}}>
+            style={{textAlign: orientation,}}>
             {value}
         </Text>
     </View>);
 }
 
-function ItemDisplaySlotTotalTaps({value}: { value: number | string }) {
-    return (<View style={{height: '100%', width: '100%', justifyContent: 'center', alignItems: 'center'}}>
-        <View style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'center'}}>
-            <Text
-                variant={"bodySmall"}
-                style={{textAlign: 'center',}}>
-                Taps total:
-            </Text>
-            <Text
-                variant={"bodyMedium"}
-                style={{textAlign: 'center',}}>
+function IconWithText({iconName, text, orientation, textOffset = 0}: {
+    iconName: IconName,
+    orientation: SlotOrientation,
+    text: string,
+    textOffset?: number
+}) {
+    if (orientation !== "right") {
+        return (<>
+            <Icon iconName={iconName} iconSize={15}/>
+            <Text style={{marginLeft: textOffset}} variant={"bodySmall"}>{text}</Text>
+        </>)
+    } else {
+        return (<>
+            <Text variant={"bodySmall"}>{text}</Text>
+            <Icon iconName={iconName} iconSize={15}/>
+        </>)
+    }
+}
+
+function ItemDisplaySlotTotalTaps({value, orientation}: { value: number | string, orientation: SlotOrientation }) {
+
+    return (<View style={{
+        ...utilStyles.full, ...utilStyles.column,
+        justifyContent: 'flex-start', alignItems: getFlexAlignForSlotAlignment(orientation)
+    }}>
+
+        <View style={{...utilStyles.centerRow}}>
+            <IconWithText iconName={"tap"} orientation={orientation}
+                          text={"Total"} textOffset={-4}
+            />
+        </View>
+
+        <View style={{width: '100%', alignItems: 'center'}}>
+            <Text variant={"bodyMedium"}>
                 {value}
             </Text>
-
         </View>
     </View>);
 }
 
-const ItemDisplaySlotTimeSinceLast: React.FC<{ value: Date }> = ({value}) => {
-    const getDurationText = (value: Date) => {
-        const duration = (Date.now() - value.getTime())
-        return getDurationFromSecond(duration / 1000)
+const getFlexAlignForSlotAlignment = (alignment: SlotOrientation) => {
+    switch (alignment) {
+        case "center":
+            return "center";
+        case "right":
+            return "flex-end";
+        case "left":
+            return "flex-start";
     }
-
-    const [, setTime] = useState(Date.now());
-
-    useEffect(() => {
-        const interval = setInterval(() => setTime(Date.now()), 1000);
-        return () => {
-            clearInterval(interval);
-        };
-    }, []);
-
-    return (
-        <View style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center'
-        }}>
-            <Icon styles={{
-                alignSelf: 'center',
-                justifyContent: 'center',
-            }} iconName={"clockOutline"} iconSize={15}/>
-
-            <Text style={{fontSize: 11}}>
-                {!!value ? getDurationText(value) : "no events"}
-            </Text>
-        </View>
-    )
 }
 
-export const ItemDisplaySlot = ({type, value}: { type: ItemDisplaySlotType, value: ItemDisplaySlotValue }) => {
+const ItemDisplaySlotTimeSinceLast: React.FC<{ value: Date, orientation: SlotOrientation }> =
+    ({value, orientation}) => {
+        const getDurationText = (value: Date) => {
+            const duration = (Date.now() - value.getTime())
+            return getDurationFromSecond(duration / 1000)
+        }
+
+        const [, setTime] = useState(Date.now());
+
+        useEffect(() => {
+            const interval = setInterval(() => setTime(Date.now()), 1000);
+            return () => {
+                clearInterval(interval);
+            };
+        }, []);
+
+        return (
+            <View style={{
+                ...utilStyles.full, ...utilStyles.column,
+                alignContent: 'flex-start',
+            }}>
+                <View style={{
+                    width: '100%', ...utilStyles.row,
+                    justifyContent: getFlexAlignForSlotAlignment(orientation)
+                }}>
+                    <IconWithText iconName={"clockOutline"} orientation={orientation} text={"Last"}/>
+                </View>
+
+                <View style={{width: '100%', alignItems: 'center'}}>
+                    <Text style={{
+                        fontSize: 11,
+                        textAlign: orientation
+                    }}>
+                        {!!value ? getDurationText(value) : "no events"}
+                    </Text>
+                </View>
+            </View>
+        )
+    }
+type ItemDisplaySlotProps = {
+    type: ItemDisplaySlotType,
+    value: ItemDisplaySlotValue,
+    orientation: SlotOrientation
+}
+export const ItemDisplaySlot = ({type, value, orientation}: ItemDisplaySlotProps) => {
     switch (type) {
         case "debug":
-            return (<></>)
+            return (<Text>Debug</Text>)
         case "name":
-            return <ItemDisplaySlotName value={value as string}/>
+            return <ItemDisplaySlotName value={value as string} orientation={orientation}/>
         case "taps_total":
-            return <ItemDisplaySlotTotalTaps value={value as number | string}/>
+            return <ItemDisplaySlotTotalTaps value={value as number | string} orientation={orientation}/>
         case "time_since_last":
-            return <ItemDisplaySlotTimeSinceLast value={value as Date}/>
+            return <ItemDisplaySlotTimeSinceLast value={value as Date} orientation={orientation}/>
         default:
             throw new Error(`Unknown type "${type}" for ItemDisplaySlotType in Switch-Statement`)
     }
