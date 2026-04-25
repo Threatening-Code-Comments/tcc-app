@@ -6,7 +6,7 @@
  * Ausführen mit:  npm run test:integration
  */
 
-import { spawn, ChildProcess } from "child_process";
+import { spawn, ChildProcess, execSync } from "child_process";
 
 jest.setTimeout(300_000);
 
@@ -48,6 +48,12 @@ describe("App-Startup Smoketest", () => {
   });
 
   beforeAll(() => {
+    // Sicherstellen, dass der Metro-Port (8081) nicht belegt ist
+    try {
+      console.log("Bereinige Port 8081...");
+      execSync("npx kill-port 8081", { stdio: "ignore" });
+    } catch (e) { /* Ignorieren, falls Port bereits frei */ }
+
     child = spawn("npm", ["run", "normal"], {
       shell: true,
       // Expo braucht ein Terminal-ähnliches Env; ohne pty bekommen wir trotzdem Logs
@@ -101,6 +107,13 @@ describe("App-Startup Smoketest", () => {
     const metroReady = /Metro waiting on|Starting Metro Bundler|metro.*started/i;
     const line = await waitForLine(outputLines, metroReady, 120_000, portConflict);
     expect(line).toMatch(metroReady);
+
+    // Metro ist bereit -> kurz warten und 'a' drücken, um Android-Start zu erzwingen
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    for (let i = 0; i < 3; i++) {
+      child.stdin?.write("a");
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
   });
 
   it("Phase 2: App bootet auf Emulator (initdb e)", async () => {
