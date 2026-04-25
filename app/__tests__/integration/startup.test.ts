@@ -6,12 +6,13 @@
  * Ausführen mit:  npm run test:integration
  */
 
-import { spawn, ChildProcess } from "child_process";
+import { spawn, execSync, ChildProcess } from "child_process";
 
 jest.setTimeout(300_000);
 
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
 // Wartet, bis eine der gesammelten Stdout-/Stderr-Zeilen auf `pattern` matcht.
-// `lines` wird von außen befüllt, damit beide Ströme in denselben Buffer fließen.
 // `abort` kann von außen vorzeitig rejected werden (z. B. Port-Konflikt).
 function waitForLine(
   lines: string[],
@@ -47,10 +48,18 @@ describe("App-Startup Smoketest", () => {
     rejectPortConflict = reject;
   });
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    // Laufenden Prozess auf 8081 beenden bevor wir starten.
+    // Fehler ignorieren — wenn der Port frei ist, ist das kein Problem.
+    try {
+      execSync("npx kill-port 8081", { stdio: "ignore" });
+      await sleep(1_500); // kurz warten bis der Port wirklich frei ist
+    } catch {
+      // Port war nicht belegt
+    }
+
     child = spawn("npm", ["run", "normal"], {
       shell: true,
-      // Expo braucht ein Terminal-ähnliches Env; ohne pty bekommen wir trotzdem Logs
       env: { ...process.env, FORCE_COLOR: "0" },
     });
 
@@ -58,15 +67,11 @@ describe("App-Startup Smoketest", () => {
 
     const collect = (chunk: Buffer | string) => {
       const text = chunk.toString();
-      // Jede Zeile einzeln speichern, damit Pattern-Matching zuverlässig ist
       text.split(/\r?\n/).forEach((line) => {
-        if (line.trim()) {
-          outputLines.push(line);
-        }
+        if (line.trim()) outputLines.push(line);
       });
 
-      // Port-Konflikt: "n" senden damit Expo nicht auf einem anderen Port weitermacht,
-      // und alle laufenden waitForLine-Promises sofort abbrechen.
+      // Fallback: falls kill-port nicht gereicht hat, sofort abbrechen
       if (PORT_IN_USE.test(text)) {
         child.stdin?.write("n\n");
         rejectPortConflict(
@@ -89,7 +94,6 @@ describe("App-Startup Smoketest", () => {
       return;
     }
     child.once("exit", () => done());
-    // Erst sanft beenden, nach 5 s hart killen
     child.kill("SIGTERM");
     setTimeout(() => {
       if (child.exitCode === null) child.kill("SIGKILL");
@@ -97,17 +101,40 @@ describe("App-Startup Smoketest", () => {
   });
 
   it("Phase 1: Metro-Bundler startet erfolgreich", async () => {
-    // Expo CLI gibt eine dieser Zeilen aus, sobald Metro bereit ist
     const metroReady = /Metro waiting on|Starting Metro Bundler|metro.*started/i;
     const line = await waitForLine(outputLines, metroReady, 120_000, portConflict);
     expect(line).toMatch(metroReady);
   });
 
+  it("Phase 1.5: Android-App öffnen ('a' drücken)", async () => {
+    // Expo braucht nach dem Ready-Signal ein paar Sekunden bevor es
+    // Tasteneingaben verarbeitet. Dann 'a' 3x mit Abstand senden.
+    await sleep(4_000);
+    for (let i = 0; i < 3; i++) {
+      child.stdin?.write("a");
+      await sleep(1_500);
+    }
+    // Kein assert nötig — wenn Expo nicht reagiert, schlägt Phase 2 fehl
+  });
+
   it("Phase 2: App bootet auf Emulator (initdb e)", async () => {
-    // console.log("initdb e") in app/_layout.tsx:25 — erscheint sobald
+    // console.log("initdb e") in app/_layout.tsx — erscheint sobald
     // die DB-Initialisierung abgeschlossen ist und die App rendert
     const appReady = /initdb e/;
-    const line = await waitForLine(outputLines, appReady, 240_000, portConflict);
-    expect(line).toMatch(appReady);
+
+    // Nach 60 s einmal neu laden falls der Emulator hängt
+    const reloadTimer = setTimeout(() => {
+      if (child.stdin?.writable) {
+        console.log("Sende 'r' (Reload) an Expo...");
+        child.stdin.write("r");
+      }
+    }, 60_000);
+
+    try {
+      const line = await waitForLine(outputLines, appReady, 240_000, portConflict);
+      expect(line).toMatch(appReady);
+    } finally {
+      clearTimeout(reloadTimer);
+    }
   });
 });
