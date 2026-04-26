@@ -7,12 +7,15 @@
  */
 
 import { spawn, ChildProcess, execSync } from "child_process";
+import { EventEmitter } from "events";
 
 jest.setTimeout(300_000);
 
-// Wartet, bis eine der gesammelten Stdout-/Stderr-Zeilen auf `pattern` matcht.
-// `lines` wird von außen befüllt, damit beide Ströme in denselben Buffer fließen.
-// `abort` kann von außen vorzeitig rejected werden (z. B. Port-Konflikt).
+const lineEmitter = new EventEmitter();
+
+/**
+ * Wartet auf ein bestimmtes Pattern in den Logs via Events.
+ */
 function waitForLine(
   lines: string[],
   pattern: RegExp,
@@ -20,20 +23,43 @@ function waitForLine(
   abort?: Promise<never>
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    abort?.catch(reject);
+    let finished = false;
+
+    const cleanup = () => {
+      finished = true;
+      lineEmitter.removeListener("line", checkLine);
+    };
+
+    const checkLine = (line: string) => {
+      if (finished) return;
+      if (pattern.test(line)) {
+        cleanup();
+        clearTimeout(deadline);
+        resolve(line);
+      }
+    };
+
+    abort?.catch((err) => {
+      cleanup();
+      reject(err);
+    });
 
     const deadline = setTimeout(() => {
+      cleanup();
       reject(new Error(`Timeout (${timeoutMs / 1000}s): Pattern ${pattern} nie gesehen.\nBisherige Ausgabe:\n${lines.slice(-40).join("\n")}`));
     }, timeoutMs);
 
-    const interval = setInterval(() => {
-      const match = lines.find((l) => pattern.test(l));
-      if (match) {
+    lineEmitter.on("line", checkLine);
+    
+    // Sofort-Check für bereits existierende Zeilen
+    for (const l of lines) {
+      if (pattern.test(l)) {
+        cleanup();
         clearTimeout(deadline);
-        clearInterval(interval);
-        resolve(match);
+        resolve(l);
+        break;
       }
-    }, 500);
+    }
   });
 }
 
@@ -61,14 +87,16 @@ describe("App-Startup Smoketest", () => {
     });
 
     const PORT_IN_USE = /Port \d+ is being used by another process/i;
+    const GENERIC_ERROR = /Error: |Exception |No Android devices or emulators found/i;
 
     const collect = (chunk: Buffer | string) => {
       const text = chunk.toString();
-      // Jede Zeile einzeln speichern, damit Pattern-Matching zuverlässig ist
       text.split(/\r?\n/).forEach((line) => {
-        if (line.trim()) {
-          outputLines.push(line);
-        }
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        
+        outputLines.push(trimmed);
+        lineEmitter.emit("line", trimmed);
       });
 
       // Port-Konflikt: "n" senden damit Expo nicht auf einem anderen Port weitermacht,
@@ -82,6 +110,11 @@ describe("App-Startup Smoketest", () => {
             `Expo-Ausgabe: ${text.trim()}`
           )
         );
+      }
+
+      // Fail-Fast bei anderen Fehlern
+      if (GENERIC_ERROR.test(text) && !text.includes("initdb")) {
+        console.warn("⚠️ Möglicher Fehler im Log erkannt:", text.trim());
       }
     };
 
@@ -108,11 +141,13 @@ describe("App-Startup Smoketest", () => {
     const line = await waitForLine(outputLines, metroReady, 120_000, portConflict);
     expect(line).toMatch(metroReady);
 
-    // Metro ist bereit -> kurz warten und 'a' drücken, um Android-Start zu erzwingen
+    console.log("🚀 Metro ist bereit. Starte Android-Deployment...");
+    
     await new Promise((resolve) => setTimeout(resolve, 5000));
     for (let i = 0; i < 3; i++) {
+      console.log(`Sende 'a' (${i + 1}/3)...`);
       child.stdin?.write("a");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     }
   });
 
@@ -120,7 +155,10 @@ describe("App-Startup Smoketest", () => {
     // console.log("initdb e") in app/_layout.tsx:25 — erscheint sobald
     // die DB-Initialisierung abgeschlossen ist und die App rendert
     const appReady = /initdb e/;
+    console.log("Warte auf App-Initialisierung (initdb e)...");
+    
     const line = await waitForLine(outputLines, appReady, 240_000, portConflict);
     expect(line).toMatch(appReady);
+    console.log("✅ App erfolgreich auf Emulator gestartet!");
   });
 });
