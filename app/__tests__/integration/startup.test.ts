@@ -24,6 +24,7 @@ function waitForLine(
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     let finished = false;
+    console.log(lines.at(lines.length-1))
 
     const cleanup = () => {
       finished = true;
