@@ -12,6 +12,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
+    "test:integration": "jest --testPathPattern=integration --testTimeout=60000 --runInBand",
     "update": "eas update --branch preview -p android"
   },
   "dependencies": {
