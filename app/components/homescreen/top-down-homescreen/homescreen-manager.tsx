@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {HS3Element, HS3Folder, HS3Item} from './../types'
 import {getFoldersFromDb} from "@components/homescreen/top-down-homescreen/db-mock";
-import {FAB, Text} from "react-native-paper";
-import Animated, {
+import {Text} from "react-native-paper";
+import {
     runOnJS, SharedValue,
     useAnimatedReaction,
     useAnimatedStyle,
@@ -10,29 +10,23 @@ import Animated, {
     useSharedValue
 } from "react-native-reanimated";
 import {BackHandler, ToastAndroid, View} from "react-native";
-import {Folder4, Item4} from "@components/homescreen/top-down-homescreen/item-and-folder";
-import {useRouter} from "expo-router";
 
-import {PreviewItem3} from "@homescreen/top-down-homescreen/3_previewItem";
 import {GridValue, PixelPoint} from "@components/homescreen/types";
 import {
     createTempElements,
     generateItemResults,
     generateTempItems,
-    getElementKey,
     getFolderPath,
     getFoldersForLevel,
     getModifiedTempItems,
     getTargetLayout4,
     goUpLevel,
-    isSameElement
 } from "@components/homescreen/top-down-homescreen/top-down-util";
-import {IconButton} from "@components/IconButton";
 import {DragState4, HomescreenState} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
 import {gridPointToPixel, gridToPx} from "@components/homescreen/move_algo";
 import {useItemPopup} from "@components/homescreen/top-down-homescreen/item-popup";
-import {Gesture, GestureDetector} from "react-native-gesture-handler";
-import {FolderOperations, FolderPopover} from "@components/homescreen/top-down-homescreen/folder-popover";
+import {Gesture} from "react-native-gesture-handler";
+import {FolderOperations} from "@components/homescreen/top-down-homescreen/folder-popover";
 import {DragPointPosition} from "@components/homescreen/top-down-homescreen/drag-point";
 import {
     useCreateLayoutOverlay,
@@ -41,7 +35,8 @@ import {
 import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
 import {addToNewFolder} from "./model-and-crud/createTileOrFolder";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants";
-import {DotGridBackground} from "@homescreen/top-down-homescreen/dot-grid";
+import {HomescreenProvider} from "@components/homescreen/top-down-homescreen/homescreen-context";
+import {Homescreen} from "@components/homescreen/top-down-homescreen/homescreen";
 
 type Props = {}
 
@@ -68,8 +63,6 @@ function applyModificationToElement(modifiedElement: HS3Element, folders: Shared
 }
 
 export const HomescreenManager = (props: Props) => {
-    const router = useRouter();
-
     //refresh
     const r = useState<boolean>(false);
     const [mountKey, setMountKey] = useState(0);
@@ -213,6 +206,7 @@ export const HomescreenManager = (props: Props) => {
         const elementsToModify: HS3Element[] = [...tempItems.value, modifiedElement]
         if (isImpossible) {
             dragState.value = undefined
+            folderOperation.value = undefined
             ToastAndroid.show("Couldn't drop", ToastAndroid.SHORT);
             return
         }
@@ -244,11 +238,13 @@ export const HomescreenManager = (props: Props) => {
                 }))))
             }
             dragState.value = undefined
+            folderOperation.value = undefined
             runOnJS(setMountKey)(k => k + 1);
             return
         }
 
         dragState.value = undefined
+        folderOperation.value = undefined
         folders.value = getModifiedTempItems(
             elementsToModify,
             folders.value
@@ -319,7 +315,12 @@ export const HomescreenManager = (props: Props) => {
         runOnJS(setMountKey)(k => k + 1);
     }
     const folderOverlayStyle = useAnimatedStyle(() => {
-        if (!isAddFolder.value) return {backgroundColor: 'transparent'};
+        if (!isAddFolder.value) return {
+            position: 'absolute',
+            left: 0, top: 0, width: 0, height: 0,
+            backgroundColor: 'transparent',
+            zIndex: 7
+        };
 
         const {layout: {x, y, width, height}} = isAddFolder.value
 
@@ -332,7 +333,6 @@ export const HomescreenManager = (props: Props) => {
 
         return {
             position: 'absolute',
-            // position: 'relative',
             left: pxVals.x + (pxVals.width * (1 - n) / 2),
             top: pxVals.y + (pxVals.height * (1 - n) / 2),
             width: pxVals.width * n,
@@ -498,173 +498,17 @@ export const HomescreenManager = (props: Props) => {
     }
 
     //<Main
-    return <>
-        <GestureDetector gesture={longTap}>
-            <Animated.View style={editBackgroundStyle}>
-                 <DotGridBackground mode={homescreenState.value}/>
-            </Animated.View>
-        </GestureDetector>
-
-        {currentLevel.value !== undefined && (
-            <View style={{
-                position: "absolute",
-                top: 0, left: 0, right: 0,
-                zIndex: 100,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                paddingHorizontal: 10,
-                paddingTop: 10,
-            }} pointerEvents="box-none">
-                <IconButton
-                    iconName="back"
-                    onPress={() => goUpLevel(currentLevel, folders)}
-                />
-                <View style={{flexDirection: "row", alignItems: "center", flexWrap: "wrap", flexShrink: 1}}>
-                    <Text
-                        style={{color: "black", fontWeight: "700"}}
-                        onPress={() => {
-                            currentLevel.value = undefined
-                        }}
-                    >
-                        Home
-                    </Text>
-                    {folderPath.value.map((f, index) => (
-                        <View key={f.folderId} style={{flexDirection: "row", alignItems: "center"}}>
-                            <Text style={{color: "black"}}> / </Text>
-                            <Text
-                                style={{
-                                    color: "black",
-                                    fontWeight: index === folderPath.value.length - 1 ? "700" : "400"
-                                }}
-                                onPress={() => {
-                                    currentLevel.value = f.folderId
-                                }}
-                            >
-                                {f.name}
-                            </Text>
-                        </View>
-                    ))}
-                </View>
-            </View>
-        )}
-
-        {!isAddFolder.value && (<PreviewItem3
-            element={previewElement.value}
-            impossible={false}
-            isDragElement={true}
-            isCreateElement={dragState.value?.type === "create"}
-        />)}
-        <Animated.View style={folderOverlayStyle}/>
-        {/*TODO popover*/}
-        <FolderPopover isAddFolder={isAddFolder.value} dragState={dragState.value}
-                       onOperationChange={(op) => onFolderPopoverChange(op)}/>
-
-        {itemPopupComponent}
-
-        {tempItems.value.map(i => (
-            <PreviewItem3
-                key={getElementKey(i)}
-                element={i}
-                impossible={tempItemsImpossible.value.some(i2 => isSameElement(i, i2))}
-            />
-        ))}
-
-        {createPositionOverlay.component}
-        {tileCreatePopup.component}
-        <FAB style={{
-            position: "absolute",
-            right: 20, bottom: 150,
-            zIndex: 100,
-        }} size={"medium"}
-             icon={!!showCreateFABs.value ?
-                 "window-close" : "plus"}
-
-             label={!!showCreateFABs.value ?
-                 "Cancel" : ""}
-             variant={!!showCreateFABs.value ?
-                 "tertiary" : "primary"}
-
-
-             onPress={() => {
-                 showCreateFABs.value = (!showCreateFABs.value)
-             }}
-        />
-
-        {!!showCreateFABs.value
-            ? <View style={{
-                position: 'absolute',
-                bottom: 230, right: 25,
-                width: "100%",
-                display: "flex", flexDirection: "row",
-                justifyContent: "flex-end",
-                gap: 10, zIndex: 100
-            }}>
-                <FAB icon={"rectangle"}
-                     variant={"secondary"}
-                     label={"Tile"}
-                     style={{zIndex: 100}}
-                     onPress={() => tileCreatePopup.setVisible(true)}
-                />
-
-                <FAB icon={"folder"}
-                     variant={"secondary"}
-                     label={"Folder"}
-                     style={{zIndex: 100}}
-                />
-            </View>
-            : null}
-
-        {visibleElements.value
-            .filter(e => !tempItems.value.some(e2 => isSameElement(e, e2)))
-            .map((e, index) =>
-                ("itemId" in e)
-                    ? <Item4 key={`${mountKey}-${currentLevel.value}-t-${e.itemId}`} item={e}
-                             onDragStart={() => itemRunnables.onDragStart(e)}
-                             onDragUpdate={(coordinate) => itemRunnables.onDragUpdate(e, coordinate)}
-                             onDragEnd={() => itemRunnables.onDragEnd(e)}
-                             onTap={() => itemRunnables.onTap(e)}
-                             onLongPress={(coordinate) => itemRunnables.onLongTap(e, coordinate)}
-                             isEditMode={homescreenState.value === "edit"}
-                             onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
-                             onResizeEnd={(pos) => onResizeEnd(e, pos)}
-                    />
-                    : <Folder4 key={`${mountKey}-${currentLevel.value}-f-${e.folderId}`} folder={e}
-                               onDragStart={() => folderRunnables.onDragStart(e)}
-                               onDragUpdate={(coordinate) => folderRunnables.onDragUpdate(e, coordinate)}
-                               onDragEnd={() => folderRunnables.onDragEnd(e)}
-                               onTap={() => folderRunnables.onTap(e)}
-                               onLongPress={(coordinate) => folderRunnables.onLongTap(e, coordinate)}
-                               isEditMode={homescreenState.value === "edit"}
-                               onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
-                               onResizeEnd={(pos) => onResizeEnd(e, pos)}
-                               children={folders.value.filter(f => f.parentId === e.folderId)}
-                    />
-            )
-
-        }
-
-        {/*{currentFolderLevel.value.main.items*/}
-        {/*    .filter(element => !tempItems.value.some(e => isSameElement(element, e)))*/}
-        {/*    .map((item, index) =>*/}
-        {/*        <Item4 key={"t" + item.itemId} item={item}*/}
-        {/*               onDragStart={() => onDragStart(item)}*/}
-        {/*               onDragUpdate={(coordinate) => onDragUpdate(item, coordinate)}*/}
-        {/*               onDragEnd={() => onDragEnd(item)}*/}
-        {/*        />*/}
-        {/*    )*/}
-        {/*}*/}
-        {/*{currentFolderLevel.value.more*/}
-        {/*    .filter(element => !tempItems.value.some(e => isSameElement(element, e)))*/}
-        {/*    .map((folder, index) =>*/}
-        {/*        <Folder4 key={"f" + folder.folderId} folder={folder}*/}
-        {/*                 onDragStart={() => onDragStart(folder)}*/}
-        {/*                 onDragUpdate={(coordinate) => onDragUpdate(folder, coordinate)}*/}
-        {/*                 onDragEnd={() => onDragEnd(folder)}*/}
-        {/*                 onTap={() => onFolderTap(folder)}*/}
-        {/*        />)*/}
-        {/*}*/}
-    </>
+    return <HomescreenProvider value={{
+        mountKey,
+        folders, currentLevel, folderPath, visibleElements,
+        dragState, previewElement, isAddFolder, tempItems, tempItemsImpossible,
+        homescreenState, showCreateFABs,
+        folderRunnables, itemRunnables, onResizeUpdate, onResizeEnd, onFolderPopoverChange,
+        editBackgroundStyle, folderOverlayStyle, longTap,
+        itemPopupComponent, createPositionOverlay, tileCreatePopup,
+    }}>
+        <Homescreen/>
+    </HomescreenProvider>
 }
 
 /*

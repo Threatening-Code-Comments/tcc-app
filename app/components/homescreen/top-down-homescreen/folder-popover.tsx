@@ -68,41 +68,37 @@ export const FolderPopover = (props: Props) => {
 
     const shared = ({
         borderRadius: 12,
-        justifyContent: 'center',
+        justifyContent: 'center' as const,
         elevation: 8,
         shadowColor: 'black'
     })
 
     const leftButtonStyle = useAnimatedStyle(() => {
-        if (!dragStateStatus.value) return ({})
-
-        if (dragStateStatus.value != "in_left") return ({
-            ...shared,
-            backgroundColor: "grey",
-            flex: 1
-        })
-
-        return ({
+        if (dragStateStatus.value === "in_left") return ({
             ...shared,
             backgroundColor: "green",
             flex: 1.5,
             elevation: 18
+        })
+
+        return ({
+            ...shared,
+            backgroundColor: "grey",
+            flex: 1
         })
     }, [dragStateStatus])
     const rightButtonStyle = useAnimatedStyle(() => {
-        if (!dragStateStatus.value) return ({})
-
-        if (dragStateStatus.value != "in_right") return ({
-            ...shared,
-            backgroundColor: "grey",
-            flex: 1
-        })
-
-        return ({
+        if (dragStateStatus.value === "in_right") return ({
             ...shared,
             backgroundColor: "green",
             flex: 1.5,
             elevation: 18
+        })
+
+        return ({
+            ...shared,
+            backgroundColor: "grey",
+            flex: 1
         })
     }, [dragStateStatus])
 
@@ -130,7 +126,10 @@ export const FolderPopover = (props: Props) => {
                 overflow: 'hidden'
             }), [isAddFolder, coordinate])
     const leftOperationAreaStyle = useAnimatedStyle(() => {
-        if (!coordinate.value || !isAddFolder) return ({})
+        if (!coordinate.value || !isAddFolder) return ({
+            position: 'absolute', opacity: 0, top: 0, left: 0, zIndex: 20,
+            backgroundColor: 'transparent', height: 0, width: 0
+        })
 
         return ({
             position: 'absolute',
@@ -144,7 +143,10 @@ export const FolderPopover = (props: Props) => {
         })
     }, [coordinate, dragStateStatus, dragState])
     const rightOperationAreaStyle = useAnimatedStyle(() => {
-        if (!coordinate.value || !isAddFolder) return ({})
+        if (!coordinate.value || !isAddFolder) return ({
+            position: 'absolute', opacity: 0, top: 0, left: 0, zIndex: 20,
+            backgroundColor: 'transparent', height: 0, width: 0
+        })
 
         return ({
             position: 'absolute',
