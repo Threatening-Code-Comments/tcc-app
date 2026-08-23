@@ -3,7 +3,7 @@ import {HS3Element, HS3Folder, HS3Item} from './../types'
 import {getFoldersFromDb} from "@components/homescreen/top-down-homescreen/db-mock";
 import {Text} from "react-native-paper";
 import {
-    runOnJS, SharedValue,
+    runOnJS,
     useAnimatedReaction,
     useAnimatedStyle,
     useDerivedValue,
@@ -11,56 +11,25 @@ import {
 } from "react-native-reanimated";
 import {BackHandler, ToastAndroid, View} from "react-native";
 
-import {GridValue, PixelPoint} from "@components/homescreen/types";
+import {PixelPoint} from "@components/homescreen/types";
 import {
-    createTempElements,
-    generateItemResults,
-    generateTempItems,
     getFolderPath,
     getFoldersForLevel,
     getModifiedTempItems,
-    getTargetLayout4,
     goUpLevel,
 } from "@components/homescreen/top-down-homescreen/top-down-util";
-import {DragState4, HomescreenState} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
-import {gridPointToPixel, gridToPx} from "@components/homescreen/move_algo";
+import {HomescreenState} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
 import {useItemPopup} from "@components/homescreen/top-down-homescreen/item-popup";
 import {Gesture} from "react-native-gesture-handler";
-import {FolderOperations} from "@components/homescreen/top-down-homescreen/folder-popover";
-import {DragPointPosition} from "@components/homescreen/top-down-homescreen/drag-point";
 import {
     useCreateLayoutOverlay,
     useCreateTilePopup
 } from "@components/homescreen/top-down-homescreen/useCreateTileOrFolderPopup";
-import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
-import {addToNewFolder} from "./model-and-crud/createTileOrFolder";
-import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants";
 import {HomescreenProvider} from "@components/homescreen/top-down-homescreen/homescreen-context";
 import {Homescreen} from "@components/homescreen/top-down-homescreen/homescreen";
+import {useHomescreenDragAndDrop} from "@components/homescreen/top-down-homescreen/useHomescreenDragAndDrop";
 
 type Props = {}
-
-function applyModificationToElement(modifiedElement: HS3Element, folders: SharedValue<HS3Folder[]>) {
-    if ("itemId" in modifiedElement) {
-        folders.value = folders.value.map(f =>
-            f.folderId === modifiedElement.parentId
-                ? {
-                    ...f, items: f.items.map(i =>
-                        i.itemId === modifiedElement.itemId
-                            ? modifiedElement
-                            : i
-                    )
-                }
-                : f
-        )
-    } else {
-        folders.value = folders.value.map(f =>
-            f.folderId === modifiedElement.folderId
-                ? modifiedElement
-                : f
-        )
-    }
-}
 
 export const HomescreenManager = (props: Props) => {
     //refresh
@@ -98,51 +67,16 @@ export const HomescreenManager = (props: Props) => {
         ]
     }, [currentFolderLevel])
 
-    //drag state
-    const dragState = useSharedValue<DragState4 | undefined>(undefined);
-    //drag state
-
-    //dragState
-    // ->preview item
-    const previewElement = useDerivedValue<HS3Element>(() => {
-        if (!dragState.value) {
-            return undefined
-        }
-        if (dragState.value.type == 'drag')
-            return getTargetLayout4(dragState.value)
-        else
-            return dragState.value.element
-    }, [dragState])
-
-    //dragState, currentFolderLevel, previewElement
-    // ->item results
-    const itemResults = useDerivedValue(() => {
-        return generateItemResults(dragState.value, previewElement.value, visibleElements.value);
-    }, [dragState, currentFolderLevel, previewElement])
-
-    //itemResults
-    //->isAddFolder
-    const isAddFolder = useDerivedValue(() => {
-        if (!itemResults.value) return undefined
-
-        for (let result of itemResults.value) {
-            const {element, dirs: {isAddFolder: isAddFolderR}} = result
-            if (isAddFolderR) return element
-        }
-        return undefined
-    }, [itemResults])
-
-    //itemResults, previewElement, visibleElements
-    //->TEMP ITEMS
-    const tempItems = useDerivedValue(() => {
-        return createTempElements(itemResults.value, previewElement.value, visibleElements.value, isAddFolder.value)
-    }, [itemResults, previewElement, visibleElements, isAddFolder])
-
-    //tempItems, visibleElements
-    //->tempItemsImpossible
-    const tempItemsImpossible = useDerivedValue(
-        () => generateTempItems(tempItems.value, visibleElements.value, dragState.value),
-        [tempItems, visibleElements, dragState])
+    //----------- drag & drop (drag/resize handlers + the preview/temp-item derivation chain)
+    const {
+        dragState, previewElement, tempItems, tempItemsImpossible, isAddFolder,
+        folderOverlayStyle,
+        onDragStart, onDragUpdate, onDragEnd, onResizeUpdate, onResizeEnd,
+        onFolderPopoverChange,
+    } = useHomescreenDragAndDrop(
+        folders, currentLevel, visibleElements,
+        () => setMountKey(k => k + 1)
+    )
 
     //----------- homescreen state
     const homescreenState = useSharedValue<HomescreenState>("edit")//"default")
@@ -185,162 +119,11 @@ export const HomescreenManager = (props: Props) => {
         return () => backHandler.remove();
     }, []);
 
-    //---------Drag Events------------
-    const onDragStart = (element: HS3Element) => {
-
-    };
-    const onDragUpdate = (element: HS3Element, coordinate: PixelPoint) => {
-        dragState.value = {
-            element, coordinate, type: 'drag'
-        }
-    };
-
-    const folderOperation = useSharedValue<FolderOperations | undefined>(undefined)
-    const onFolderPopoverChange = (op?: FolderOperations) => {
-        folderOperation.value = op
-    }
-    const onDragEnd = (element: HS3Element) => {
-        const isImpossible = tempItemsImpossible.value.length > 0
-        const modifiedElement: HS3Element =
-            {...previewElement.value, layout: {...previewElement.value.layout}}
-        const elementsToModify: HS3Element[] = [...tempItems.value, modifiedElement]
-        if (isImpossible) {
-            dragState.value = undefined
-            folderOperation.value = undefined
-            ToastAndroid.show("Couldn't drop", ToastAndroid.SHORT);
-            return
-        }
-
-        if (!!isAddFolder.value) {
-            const isCreateFolder = "itemId" in isAddFolder.value ||
-                (!!folderOperation.value && folderOperation.value === "create")
-
-            if (isCreateFolder) {
-                console.log("adding folder:", modifiedElement, isAddFolder.value)
-                folders.value = addToNewFolder(
-                    modifiedElement,
-                    {...isAddFolder.value, layout: isAddFolder.value.layout},
-                    folders.value,
-                    currentLevel.value
-                )
-            } else {
-                // ToastAndroid.show("moving / creating will happen with the buttons" + getElementKey(modifiedElement), ToastAndroid.SHORT)
-                const newe = moveElementsToFolder(
-                    [modifiedElement],
-                    folders.value,
-                    isAddFolder.value
-                )
-                folders.value = newe
-                console.log("after updating folders:", JSON.stringify(newe.map(f => ({
-                    fId: f.folderId, parent: f.parentId, items: f.items.map(
-                        i => ({iId: i.itemId, parent: i.parentId})
-                    )
-                }))))
-            }
-            dragState.value = undefined
-            folderOperation.value = undefined
-            runOnJS(setMountKey)(k => k + 1);
-            return
-        }
-
-        dragState.value = undefined
-        folderOperation.value = undefined
-        folders.value = getModifiedTempItems(
-            elementsToModify,
-            folders.value
-        )
-        runOnJS(setMountKey)(k => k + 1);
-        // runOnJS(refreshState)();
-    };
-    //---------Drag Events------------
-
     ////---------Tile / Folder Events------------
     const onFolderTap = (folder: HS3Folder) => {
         currentLevel.value = folder.folderId
     }
     ////---------Tile / Folder Events------------
-    const onResizeUpdate = (element: HS3Element, position: DragPointPosition, deltaX: GridValue, deltaY: GridValue) => {
-        const {layout} = element
-        //         width: itemWidth.value * (isDragging ? n : 1) + resizeRight.value - resizeLeft.value,
-        //         height: itemHeight.value * (isDragging ? n : 1) + resizeBottom.value - resizeTop.value,
-        //         left: itemX.value + resizeLeft.value,
-        //         top: itemY.value + resizeTop.value,
-        let newLayout = {}
-        switch (position) {
-            case "left": {
-                newLayout = {
-                    x: layout.x + deltaX,
-                    width: layout.width - deltaX,
-                }
-                break
-            }
-            case "top": {
-                newLayout = {
-                    y: layout.y + deltaY,
-                    height: layout.height - deltaY,
-                }
-                break
-            }
-            case "bottom": {
-                newLayout = {
-                    height: layout.height + deltaY,
-                }
-                break
-            }
-            case "right": {
-                newLayout = {
-                    width: layout.width + (deltaX),
-                }
-                break
-            }
-        }
-
-        const modifiedElement: HS3Element = {
-            ...element,
-            layout: {
-                ...layout,
-                ...newLayout
-            }
-        }
-
-        dragState.value = {
-            element: modifiedElement, coordinate: {x: 0, y: 0}, type: "resize"
-        }
-    }
-    const onResizeEnd = (element: HS3Element, pos: DragPointPosition) => {
-        const modifiedElement = dragState.value.element
-        applyModificationToElement(modifiedElement, folders);
-
-        dragState.value = undefined
-        runOnJS(setMountKey)(k => k + 1);
-    }
-    const folderOverlayStyle = useAnimatedStyle(() => {
-        if (!isAddFolder.value) return {
-            position: 'absolute',
-            left: 0, top: 0, width: 0, height: 0,
-            backgroundColor: 'transparent',
-            zIndex: 7
-        };
-
-        const {layout: {x, y, width, height}} = isAddFolder.value
-
-        const pxVals = {
-            ...gridPointToPixel({x, y}),
-            width: gridToPx(width), height: gridToPx(height)
-        }
-
-        const n = FOLDER_HOVER_OVERLAY_INSET
-
-        return {
-            position: 'absolute',
-            left: pxVals.x + (pxVals.width * (1 - n) / 2),
-            top: pxVals.y + (pxVals.height * (1 - n) / 2),
-            width: pxVals.width * n,
-            height: pxVals.height * n,
-            backgroundColor: 'green',
-            zIndex: 7
-        }
-    }, [isAddFolder.value]);
 
     const onLongTap = (e: HS3Element, coordinate: PixelPoint) => {
         // contextMenuCoordinates.value = {
