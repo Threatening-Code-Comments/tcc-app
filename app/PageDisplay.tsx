@@ -4,14 +4,6 @@ import { GenericTile } from "./components/tiles/GenericTile"
 import { Page } from "./constants/DbTypes"
 import { DashboardList } from "./Dashboard"
 
-type PageDisplayProps = {
-    pages: Page[]
-    isEditMode: boolean
-    doAfterEdit: (element: Page) => void
-    onPressDelete: (element: Page) => void
-    dashboardList: DashboardList
-}
-
 export default function PageDisplay({ pages, isEditMode, doAfterEdit, onPressDelete, dashboardList }: PageDisplayProps) {
 
     return (
@@ -31,9 +23,17 @@ export default function PageDisplay({ pages, isEditMode, doAfterEdit, onPressDel
                         numColumns={1}
                         isEditMode={isEditMode}
                         doAfterEdit={doAfterEdit}
-                        onPressDelete={() => onPressDelete(item)} 
+                        onPressDelete={() => onPressDelete(item)}
                         dashboardList={dashboardList}/>
                 } />
         </View>
     )
+}
+
+type PageDisplayProps = {
+    pages: Page[]
+    isEditMode: boolean
+    doAfterEdit: (element: Page) => void
+    onPressDelete: (element: Page) => void
+    dashboardList: DashboardList
 }

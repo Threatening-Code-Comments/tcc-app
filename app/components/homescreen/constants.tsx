@@ -1,0 +1,1 @@
+export const FOLDER_HOVER_OVERLAY_INSET = 0.65

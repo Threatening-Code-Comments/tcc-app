@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import { View } from 'react-native'
-import { ElementTypeNames, ElementType, Page, RoutineOnPage, Tile, isPage, isRoutineOnPage, isTile } from '../../constants/DbTypes'
+import Animated from 'react-native-reanimated'
+import { ElementType, ElementTypeNames, Tile, isPage, isRoutineOnPage, isTile } from '../../constants/DbTypes'
+import { DashboardList } from '../../Dashboard'
+import { addElementToDashboard, checkIfElementOnDashboard, removeElementFromDashboard } from '../../db/dashboard'
 import { updatePage } from '../../db/pages'
 import { updateRoutine } from '../../db/routines'
 import { updateTile } from '../../db/tiles'
+import { showToast } from '../../util/comms'
 import { useModal } from '../modal/Modal'
 import { PageTileComponent } from './PageTile'
 import { RoutineTileComponent } from './RoutineTile'
 import { TileComponent } from './TileTile'
-import { getFlex, DeleteButton, DashboardButton } from './util'
-import { addElementToDashboard, checkIfElementOnDashboard, removeElementFromDashboard } from '../../db/dashboard'
-import { UseModalStateType } from '../modal/ModalTypeDefs'
-import { DashboardList } from '../../Dashboard'
-import { showToast } from '../../util/comms'
+import { DashboardButton, DeleteButton, getFlex } from './util'
+import { Modal, Pressable, View, StyleSheet, Text } from 'react-native'
+import { modalStyles } from '../modal/ModalStyles'
 
 export type TileProps = {
     numColumns?: number
@@ -114,8 +115,10 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
         }
     })
 
+    const [popupIsVisible, popupSetVisible] = useState(true)
+
     return (
-        <View style={{
+        <Animated.View style={{
             display: 'flex', flexDirection: "column",
             flex: getFlex(numColumns), flexGrow: getFlex(numColumns),
             aspectRatio: 1,
@@ -129,6 +132,6 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
                 : isRoutineOnPage(element)
                     ? <RoutineTileComponent routine={element} numColumns={numColumns} onPress={displayModal} isEditMode={isEditMode} onPressDelete={onPressDelete} isOnDashboard={isOnDashboard} />
                     : <PageTileComponent page={element} numColumns={numColumns} onPress={displayModal} isEditMode={isEditMode} onPressDelete={onPressDelete} isOnDashboard={isOnDashboard} />}
-        </View>
+        </Animated.View>
     )
 }

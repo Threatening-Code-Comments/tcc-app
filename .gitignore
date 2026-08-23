@@ -1,5 +1,9 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+*.apk
+*.aab
+test.*
+
 # dependencies
 node_modules/
 
@@ -35,3 +39,8 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+*.pptx
+
+# IDE
+/.idea/
+/.fleet/

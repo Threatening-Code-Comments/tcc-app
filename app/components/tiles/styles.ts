@@ -1,12 +1,54 @@
-import { StyleSheet } from 'react-native'
+import {StyleSheet} from 'react-native'
+
+export const utilStyles = StyleSheet.create({
+    full: {
+        width: '100%',
+        height: '100%',
+    },
+
+    topLeft: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+    },
+
+    column: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    row: {
+        display: 'flex',
+        flexDirection: 'row',
+    },
+
+    center: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignContent: 'center',
+    },
+
+    centerColumn: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    centerRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    }
+})
 
 export const newTileStyles = StyleSheet.create({
     pageTile: {
         aspectRatio: 1,
-        display: 'flex', flexDirection: 'column', justifyContent: 'space-around',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
         flex: 1, flexGrow: 1,
         zIndex: 1, shadowOpacity: 0.8,
-        elevation: 8
+        elevation: 8,
+        height: '100%'
     },
 
     linkOrPressable: {
@@ -37,18 +79,15 @@ export const tileStyles = StyleSheet.create({
     },
     name: {
         fontSize: 20,
-        marginHorizontal: 10,
         fontWeight: '500',
         color: 'white',
         textAlign: 'center',
-        // elevation: 5
     },
     info: {
         fontSize: 15,
         fontWeight: 'condensed',
         color: 'white',
         textAlign: 'center',
-        marginTop: 5
     },
     info2: {
         display: 'flex',
@@ -70,7 +109,6 @@ export const tileStyles = StyleSheet.create({
         justifyContent: 'flex-end',
         alignItems: 'flex-end',
         gap: 5,
-        marginRight: 5,
-        marginTop: 5
+        width: '100%',
     }
 })

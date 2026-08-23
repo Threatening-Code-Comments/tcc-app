@@ -3,13 +3,14 @@ import { StyleSheet } from "react-native"
 export const dbNameOld = 'TCC_DB'
 export const dbName = 'TCC_SQLITE_DB.db'
 
-export type ButtonType = "primary" | "secondary" | "error"
+export type ButtonType = "primary" | "secondary" | "error" | "transparent"
 
 export const colors = {
     background: '#222222',
     primary: '#6200ee',
     secondary: '#03dac5',
-    error: '#D80404'
+    error: '#D80404',
+    transparent: 'transparent',
 }
 
 export const globalStyles = StyleSheet.create({
