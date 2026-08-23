@@ -1,5 +1,5 @@
 import { GRID_COLUMNS, GRID_ROWS, makeSpaceForItem } from '@components/homescreen/move_algo'
-import { HomescreenItem } from "@app/components/homescreen/homescreenHandler";
+import { HomescreenItem } from "@app/components/homescreen/types";
 import { PlacementGrid } from '@app/components/homescreen/placementGrid';
 
 

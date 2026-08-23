@@ -36,11 +36,13 @@ export type HS3Element = HS3Item | HS3Folder
 
 export type HS3Item = {
     itemId: number,
-    name: string
+    name: string,
+    color: string
 } & HS3Layout;
 export type HS3Folder = {
     folderId: number,
     name: string,
+    color: string,
     items: HS3Item[]
 } & HS3Layout;
 export type HS3Layout = {

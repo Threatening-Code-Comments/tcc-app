@@ -15,6 +15,7 @@ export const iconNames = {
     clockOutline: 'clock-outline',
     arrowUp: 'arrow-up',
     arrowDown: 'arrow-down',
+    back: 'arrow-left',
     close: 'close',
     refresh: 'restart',
     createFolder: 'folder-multiple-plus',

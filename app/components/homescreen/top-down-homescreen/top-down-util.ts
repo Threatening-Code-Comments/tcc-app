@@ -391,6 +391,21 @@ export const getFoldersForLevel
     }
 }
 
+//path from root to the current folder, e.g. [Home, Essen, Döner]
+export const getFolderPath = (folderList: HS3Folder[], level: number | undefined): HS3Folder[] => {
+    "worklet"
+    if (!folderList || level === undefined) return []
+
+    const path: HS3Folder[] = []
+    let current = folderList.find(f => f.folderId === level)
+    while (current) {
+        path.unshift(current)
+        if (current.parentId === undefined) break
+        current = folderList.find(f => f.folderId === current.parentId)
+    }
+    return path
+}
+
 export function generateItemResults(dragState: DragState4 | undefined, previewElement: HS3Element, visibleElements: HS3Element[]) {
     "worklet"
     if (!dragState || !previewElement) return undefined

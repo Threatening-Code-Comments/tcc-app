@@ -1,5 +1,6 @@
 import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from '../../types'
 import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
+import {getRandomColor} from "@homescreen/top-down-homescreen/top-down-util";
 
 export const addToNewFolder = (
     draggedElement: HS3Element,
@@ -37,6 +38,7 @@ export function createFolder(children: HS3Element[], folders: HS3Folder[], curre
         layout: location,
         parentId: currentLevel,
         name: 'New Folder',
+        color: getRandomColor(),
         //all items are already added here
         items: children.filter(e => "itemId" in e) as HS3Item[]
     }

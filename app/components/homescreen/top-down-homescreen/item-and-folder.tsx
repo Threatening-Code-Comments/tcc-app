@@ -6,7 +6,6 @@ import {View} from "react-native";
 import {Icon} from "@components/Icon";
 import {GRID_COLUMNS} from "@components/homescreen/move_algo";
 import {ConcreteItemSlot, ItemDisplaySlot} from "@homescreen/top-down-homescreen/item-display-slots";
-import {getRandomColor} from "@homescreen/top-down-homescreen/top-down-util";
 
 type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     folder: HS3Folder,
@@ -52,7 +51,7 @@ export function Folder4(props: FolderProps) {
                 opacity: 0.7,
                 pointerEvents: 'none'
             }}>
-                <Icon iconName={"folder"} iconSize={115 * Math.min(layout.width, layout.height)} color={"red"}/>
+                <Icon iconName={"folder"} iconSize={115 * Math.min(layout.width, layout.height)} color={folder.color}/>
             </View>
 
             {/*Name at top left*/}
@@ -150,7 +149,7 @@ export function Item4(props: Item4Props) {
     ]
     const sortedSlotTypes = slotTypes.sort((a, b) => a.index - b.index)
 
-    const color = getRandomColor()
+    const color = item.color
 
     const firstSlot = slotTypes.at(0)
     const firstSlotBottom = slotTypes.at(1)

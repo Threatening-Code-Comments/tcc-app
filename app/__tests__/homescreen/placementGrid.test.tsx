@@ -1,5 +1,5 @@
 import { PlacementGrid } from '@components/homescreen/placementGrid';
-import { HomescreenItem } from '@components/homescreen/homescreenHandler';
+import { HomescreenItem } from '@components/homescreen/types';
 
 describe('PlacementGrid', () => {
     let grid: PlacementGrid;

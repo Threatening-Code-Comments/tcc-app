@@ -3,7 +3,7 @@ import {usePopup} from "@components/hooks/usePopup";
 import {Text, TextInput} from "react-native-paper";
 import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams, PixelPoint} from "@homescreen/types";
 import {TextField} from "rn-material-ui-textfield";
-import {clamp, getItemPath, getNextId} from "@homescreen/top-down-homescreen/top-down-util";
+import {clamp, getItemPath, getNextId, getRandomColor} from "@homescreen/top-down-homescreen/top-down-util";
 import {IconButton} from "@components/IconButton";
 import {View} from "react-native";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
@@ -24,7 +24,7 @@ export const useCreateTilePopup = (props: Props) => {
     const onSubmit = () => {
         popup.setVisible(false)
         onSubmitP({
-            name, parentId: currentLevel, itemId: getNextId("item", folders), layout: {
+            name, parentId: currentLevel, itemId: getNextId("item", folders), color: getRandomColor(), layout: {
                 x: 0, y: 0, width: 0, height: 0
             }
         })

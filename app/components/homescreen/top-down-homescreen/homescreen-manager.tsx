@@ -20,12 +20,14 @@ import {
     generateItemResults,
     generateTempItems,
     getElementKey,
+    getFolderPath,
     getFoldersForLevel,
     getModifiedTempItems,
     getTargetLayout4,
     goUpLevel,
     isSameElement
 } from "@components/homescreen/top-down-homescreen/top-down-util";
+import {IconButton} from "@components/IconButton";
 import {DragState4, HomescreenState} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
 import {gridPointToPixel, gridToPx} from "@components/homescreen/move_algo";
 import {useItemPopup} from "@components/homescreen/top-down-homescreen/item-popup";
@@ -90,6 +92,9 @@ export const HomescreenManager = (props: Props) => {
     const currentLevel = useSharedValue<number | undefined>(undefined)
     const currentFolderLevel = useDerivedValue(() => {
         return getFoldersForLevel(folders.value, currentLevel.value)
+    }, [folders, currentLevel])
+    const folderPath = useDerivedValue(() => {
+        return getFolderPath(folders.value, currentLevel.value)
     }, [folders, currentLevel])
     const visibleElements = useDerivedValue<HS3Element[]>(() => {
         if (!currentFolderLevel.value.main) return []
@@ -499,6 +504,50 @@ export const HomescreenManager = (props: Props) => {
                  <DotGridBackground mode={homescreenState.value}/>
             </Animated.View>
         </GestureDetector>
+
+        {currentLevel.value !== undefined && (
+            <View style={{
+                position: "absolute",
+                top: 0, left: 0, right: 0,
+                zIndex: 100,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                paddingHorizontal: 10,
+                paddingTop: 10,
+            }} pointerEvents="box-none">
+                <IconButton
+                    iconName="back"
+                    onPress={() => goUpLevel(currentLevel, folders)}
+                />
+                <View style={{flexDirection: "row", alignItems: "center", flexWrap: "wrap", flexShrink: 1}}>
+                    <Text
+                        style={{color: "black", fontWeight: "700"}}
+                        onPress={() => {
+                            currentLevel.value = undefined
+                        }}
+                    >
+                        Home
+                    </Text>
+                    {folderPath.value.map((f, index) => (
+                        <View key={f.folderId} style={{flexDirection: "row", alignItems: "center"}}>
+                            <Text style={{color: "black"}}> / </Text>
+                            <Text
+                                style={{
+                                    color: "black",
+                                    fontWeight: index === folderPath.value.length - 1 ? "700" : "400"
+                                }}
+                                onPress={() => {
+                                    currentLevel.value = f.folderId
+                                }}
+                            >
+                                {f.name}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
+            </View>
+        )}
 
         {!isAddFolder.value && (<PreviewItem3
             element={previewElement.value}

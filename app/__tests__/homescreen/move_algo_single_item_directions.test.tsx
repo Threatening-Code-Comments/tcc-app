@@ -1,4 +1,4 @@
-import { HomescreenItem } from "@app/components/homescreen/homescreenHandler";
+import { HomescreenItem } from "@app/components/homescreen/types";
 import { GRID_COLUMNS, GRID_ROWS, makeSpaceForItem } from "@app/components/homescreen/move_algo";
 import { PlacementGrid } from "@app/components/homescreen/placementGrid";
 
