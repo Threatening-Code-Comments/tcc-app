@@ -1,17 +1,19 @@
 # Homescreen Roadmap
 
 Living doc for what's planned next — product direction + rough sequencing, not a spec.
-See `BEHAVIOR.md` for intended UX behavior, `REFACTOR_PLAN.md` (temporary, near-done)
-for the code-shape restructure. Update this as direction changes; don't let it go stale.
+See `BEHAVIOR.md` for intended UX behavior. Update this as direction changes; don't let
+it go stale.
 
 ## Near-term sequence
 
-1. **Tile vs. homescreen-item data model split.** Still mock data at this point. `HS3Item`
-   today conflates "the tile" (name/color/data, lives once) and "the placement"
-   (position/size, can exist many times pointing at the same tile) — see `BEHAVIOR.md`'s
-   Data model section. Nothing below makes sense until this split is real, since App
-   Drawer *is* the tile library UI and drag-in *is* "create an item referencing an
-   existing tile."
+1. ✅ **Tile vs. homescreen-item data model split.** Done — `HS3Item` now just holds
+   `tileId` + placement (layout/parentId), the real `Tile`/`TileEvent` types from
+   `@app/constants/DbTypes` are reused as-is (not a new parallel type), `rootRoutineId`
+   keeps its exact field name but is repurposed as "App Drawer folder" (currently `0` =
+   uncategorized everywhere, since App Drawer browsing doesn't exist yet — that's step 2).
+   New `homescreen-data-context.tsx` carries `{folders, tiles}` centrally; `tileEvents`
+   deliberately excluded from it (changes per-tap, shouldn't force re-renders). Still mock
+   data (`db-mock.ts`) — no real DB wired up yet, that's step 5.
 2. **App Drawer rebuild**, against the new split model, still mock data. Currently a stub
    (`AppDrawer.tsx`) — wrong type (`HomescreenItem`, the legacy grid-algorithm type, not
    `HS3Item`), no styling, no drag, hardcoded item list. Search + flat list, no nested
