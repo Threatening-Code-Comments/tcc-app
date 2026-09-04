@@ -1,5 +1,6 @@
 import React from "react";
 import {Modal, View} from "react-native";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {SharedValue} from "react-native-reanimated";
 import {HS3Folder} from "@components/homescreen/types";
 import {Breadcrumb} from "@homescreen/ui/components/breadcrumb";
@@ -29,11 +30,12 @@ export const FolderModal = ({currentLevel, folderPath, folders, goUp, goToLevel}
             transparent
             onRequestClose={goUp}
         >
-            <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.35)'}}>
+            <GestureHandlerRootView style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.35)'}}>
                 <View style={{
                     flex: 1,
-                    margin: 20,
-                    marginTop: 60,
+                    marginHorizontal: 50,
+                    marginVertical: 150,
+                    // marginTop: 60,
                     borderRadius: 20,
                     overflow: 'hidden',
                     backgroundColor: '#f2f2f2',
@@ -47,7 +49,7 @@ export const FolderModal = ({currentLevel, folderPath, folders, goUp, goToLevel}
                         )}
                     </View>
                 </View>
-            </View>
+            </GestureHandlerRootView>
         </Modal>
     )
 }
