@@ -4,6 +4,7 @@ import {GridValue, HS3Element, HS3Folder, HS3Item, PixelPoint} from "@components
 import {DragState4, HomescreenState} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
 import {DragPointPosition} from "@components/homescreen/top-down-homescreen/drag-point";
 import {FolderOperations} from "@components/homescreen/top-down-homescreen/folder-popover";
+import {DropTarget} from "@components/homescreen/top-down-homescreen/useHomescreenDragAndDrop";
 
 export type RunnablesForElements<T> = {
     onDragStart: (e: T) => void
@@ -27,7 +28,7 @@ export type HomescreenContextValue = {
 
     dragState: SharedValue<DragState4 | undefined>,
     previewElement: SharedValue<HS3Element | undefined>,
-    isAddFolder: SharedValue<HS3Element | undefined>,
+    dropTarget: SharedValue<DropTarget | undefined>,
     tempItems: SharedValue<HS3Element[]>,
     tempItemsImpossible: SharedValue<HS3Element[]>,
 
@@ -38,7 +39,7 @@ export type HomescreenContextValue = {
     itemRunnables: RunnablesForElements<HS3Item>,
     onResizeUpdate: (element: HS3Element, position: DragPointPosition, deltaX: GridValue, deltaY: GridValue) => void,
     onResizeEnd: (element: HS3Element, pos: DragPointPosition) => void,
-    onFolderPopoverChange: (op?: FolderOperations) => void,
+    onFolderPopoverChange: (op: FolderOperations) => void,
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     editBackgroundStyle: any,

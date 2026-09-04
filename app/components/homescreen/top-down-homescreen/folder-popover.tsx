@@ -21,7 +21,7 @@ const getOperationAreasHeightWorklet = (element: HS3Element) => {
 type Props = {
     isAddFolder: HS3Element;
     dragState: DragState4;
-    onOperationChange: (operation?: FolderOperations) => void
+    onOperationChange: (operation: FolderOperations) => void
 }
 export const FolderPopover = (props: Props) => {
 
@@ -164,13 +164,12 @@ export const FolderPopover = (props: Props) => {
         () => dragStateStatus.value,
         (current, prev) => {
             if (current !== prev) {
-                const alignment = (current === "outside") ? undefined : current
-                if (!alignment) {
-                    runOnJS(props.onOperationChange)(undefined)
-                    return
-                }
+                //"outside" (hovering the target but not yet over either half of the popover)
+                //intentionally leaves the current choice as-is — there's always exactly one
+                //active choice while a folder is a drop target, never neither.
+                if (current === "outside" || !current) return
 
-                const op: FolderOperations = (!!alignment && alignment === "in_left") ? "create" : "moveTo"
+                const op: FolderOperations = (current === "in_left") ? "create" : "moveTo"
                 runOnJS(props.onOperationChange)(op)
             }
         }, [dragState, dragStateStatus]

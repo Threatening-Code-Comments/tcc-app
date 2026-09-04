@@ -69,7 +69,7 @@ export const HomescreenManager = (props: Props) => {
 
     //----------- drag & drop (drag/resize handlers + the preview/temp-item derivation chain)
     const {
-        dragState, previewElement, tempItems, tempItemsImpossible, isAddFolder,
+        dragState, previewElement, tempItems, tempItemsImpossible, dropTarget,
         folderOverlayStyle,
         onDragStart, onDragUpdate, onDragEnd, onResizeUpdate, onResizeEnd,
         onFolderPopoverChange,
@@ -177,13 +177,13 @@ export const HomescreenManager = (props: Props) => {
             cursorY: Math.floor(dragState.value?.coordinate?.y / RESOLUTION),
         }),
         (prepared, previous) => {
-            if (!isAddFolder.value)
+            if (!dropTarget.value)
                 return //this level of accuracy is only needed when there is no bigger movement
 
             if (JSON.stringify(prepared) !== JSON.stringify(previous)) {
                 runOnJS(refreshState)();
             }
-        }, [isAddFolder, dragState]
+        }, [dropTarget, dragState]
     )
     //🔁
 
@@ -284,7 +284,7 @@ export const HomescreenManager = (props: Props) => {
     return <HomescreenProvider value={{
         mountKey,
         folders, currentLevel, folderPath, visibleElements,
-        dragState, previewElement, isAddFolder, tempItems, tempItemsImpossible,
+        dragState, previewElement, dropTarget, tempItems, tempItemsImpossible,
         homescreenState, showCreateFABs,
         folderRunnables, itemRunnables, onResizeUpdate, onResizeEnd, onFolderPopoverChange,
         editBackgroundStyle, folderOverlayStyle, longTap,

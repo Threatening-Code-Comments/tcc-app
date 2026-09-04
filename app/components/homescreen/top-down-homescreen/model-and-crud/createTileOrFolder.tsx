@@ -1,6 +1,6 @@
 import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from '../../types'
-import {moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
-import {getRandomColor} from "@homescreen/top-down-homescreen/top-down-util";
+import {calculateNextPositionInFolder, moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
+import {getRandomColor, isSameElement} from "@homescreen/top-down-homescreen/top-down-util";
 
 export const addToNewFolder = (
     draggedElement: HS3Element,
@@ -8,9 +8,19 @@ export const addToNewFolder = (
     folders: HS3Folder[],
     currentLevel: number
 ) => {
+    const currentFolder = folders.find(f => f.folderId === currentLevel)
+    const existingLayouts = [
+        ...(currentFolder?.items ?? []),
+        ...folders.filter(f => f.parentId === currentLevel)
+    ]
+        .filter(e => !isSameElement(e, draggedElement) && !isSameElement(e, stationaryElement))
+        .map(e => e.layout)
+
+    const location = calculateNextPositionInFolder(existingLayouts, 1, 1)
+
     return createFolder(
         [draggedElement, stationaryElement],
-        folders, currentLevel, {x: 2, y: 2, width: 1, height: 1}
+        folders, currentLevel, {...location, width: 1, height: 1}
     );
 }
 

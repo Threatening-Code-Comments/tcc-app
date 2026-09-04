@@ -19,7 +19,7 @@ export const Homescreen = () => {
     const {
         mountKey,
         folders, currentLevel, folderPath, visibleElements,
-        dragState, previewElement, isAddFolder, tempItems, tempItemsImpossible,
+        dragState, previewElement, dropTarget, tempItems, tempItemsImpossible,
         homescreenState, showCreateFABs,
         folderRunnables, itemRunnables, onResizeUpdate, onResizeEnd, onFolderPopoverChange,
         editBackgroundStyle, folderOverlayStyle, longTap,
@@ -77,7 +77,7 @@ export const Homescreen = () => {
             </View>
         )}
 
-        {!isAddFolder.value && (<PreviewItem3
+        {!dropTarget.value && (<PreviewItem3
             element={previewElement.value}
             impossible={false}
             isDragElement={true}
@@ -85,7 +85,7 @@ export const Homescreen = () => {
         />)}
         <Animated.View style={folderOverlayStyle}/>
         {/*TODO popover*/}
-        <FolderPopover isAddFolder={isAddFolder.value} dragState={dragState.value}
+        <FolderPopover isAddFolder={dropTarget.value?.element} dragState={dragState.value}
                        onOperationChange={(op) => onFolderPopoverChange(op)}/>
 
         {itemPopupComponent}
