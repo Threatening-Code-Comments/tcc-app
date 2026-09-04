@@ -32,9 +32,9 @@ export const FolderModal = ({currentLevel, folderPath, folders, goUp, goToLevel}
             <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.35)'}}>
                 <View style={{
                     flex: 1,
+                    margin: 20,
                     marginTop: 60,
-                    borderTopLeftRadius: 20,
-                    borderTopRightRadius: 20,
+                    borderRadius: 20,
                     overflow: 'hidden',
                     backgroundColor: '#f2f2f2',
                 }}>
