@@ -13,21 +13,20 @@ type Props = {
 
 /**
  * "< Home / A / B" chrome shown while inside a folder. Renders nothing at the root level.
+ * Normal (non-absolute) layout on purpose — it's meant to sit as a real header above the
+ * grid in a flex column, reserving its own space, not float over whatever's underneath.
  */
 export const Breadcrumb = ({currentLevel, folderPath, goUp, goToLevel}: Props) => {
     if (currentLevel === undefined) return null
 
     return (
         <View style={{
-            position: "absolute",
-            top: 0, left: 0, right: 0,
-            zIndex: 100,
             flexDirection: "row",
             alignItems: "center",
             gap: 10,
             paddingHorizontal: 10,
-            paddingTop: 10,
-        }} pointerEvents="box-none">
+            paddingVertical: 10,
+        }}>
             <IconButton
                 iconName="back"
                 onPress={goUp}

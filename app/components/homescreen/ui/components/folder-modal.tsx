@@ -26,15 +26,26 @@ export const FolderModal = ({currentLevel, folderPath, folders, goUp, goToLevel}
         <Modal
             visible={currentLevel !== undefined}
             animationType="slide"
+            transparent
             onRequestClose={goUp}
         >
-            <View style={{flex: 1, backgroundColor: '#f2f2f2'}}>
-                <Breadcrumb currentLevel={currentLevel} folderPath={folderPath} goUp={goUp} goToLevel={goToLevel}/>
-                <View style={{flex: 1}}>
-                    {currentLevel !== undefined && (
-                        <Homescreen key={currentLevel} folderId={currentLevel} folders={folders}
-                                    onEnterFolder={goToLevel}/>
-                    )}
+            <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.35)'}}>
+                <View style={{
+                    flex: 1,
+                    marginTop: 60,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    overflow: 'hidden',
+                    backgroundColor: '#f2f2f2',
+                }}>
+                    <Breadcrumb currentLevel={currentLevel} folderPath={folderPath} goUp={goUp}
+                                goToLevel={goToLevel}/>
+                    <View style={{flex: 1}}>
+                        {currentLevel !== undefined && (
+                            <Homescreen key={currentLevel} folderId={currentLevel} folders={folders}
+                                        onEnterFolder={goToLevel}/>
+                        )}
+                    </View>
                 </View>
             </View>
         </Modal>
