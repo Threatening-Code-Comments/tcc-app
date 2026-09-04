@@ -2,7 +2,6 @@ import React from "react";
 import {Modal, View} from "react-native";
 import {useTheme} from "react-native-paper";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
-import {SharedValue} from "react-native-reanimated";
 import {HS3Folder} from "@components/homescreen/types";
 import {Breadcrumb} from "@homescreen/ui/components/breadcrumb";
 import {Homescreen} from "@components/homescreen/homescreen";
@@ -10,7 +9,6 @@ import {Homescreen} from "@components/homescreen/homescreen";
 type Props = {
     currentLevel: number | undefined,
     folderPath: HS3Folder[],
-    folders: SharedValue<HS3Folder[]>,
     goUp: () => void,
     goToLevel: (folderId: number | undefined) => void,
 }
@@ -23,7 +21,7 @@ type Props = {
  * now gets its own positioning context starting right below the breadcrumb's height,
  * whatever that height ends up being.
  */
-export const FolderModal = ({currentLevel, folderPath, folders, goUp, goToLevel}: Props) => {
+export const FolderModal = ({currentLevel, folderPath, goUp, goToLevel}: Props) => {
     const {colors} = useTheme();
 
     return (
@@ -46,7 +44,7 @@ export const FolderModal = ({currentLevel, folderPath, folders, goUp, goToLevel}
                                 goToLevel={goToLevel}/>
                     <View style={{flex: 1}}>
                         {currentLevel !== undefined && (
-                            <Homescreen key={currentLevel} folderId={currentLevel} folders={folders}
+                            <Homescreen key={currentLevel} folderId={currentLevel}
                                         onEnterFolder={goToLevel}/>
                         )}
                     </View>

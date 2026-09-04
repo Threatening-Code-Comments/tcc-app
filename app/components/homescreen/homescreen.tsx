@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {View} from "react-native";
-import Animated, {runOnJS, SharedValue, useAnimatedReaction, useDerivedValue, useSharedValue} from "react-native-reanimated";
+import Animated, {runOnJS, useAnimatedReaction, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {Folder, Item} from "@components/homescreen/ui/item-and-folder";
 import {MovableItemProps} from "@components/homescreen/ui/movable-item";
 import {PreviewItem} from "@homescreen/ui/components/preview-item";
@@ -8,15 +8,15 @@ import {getElementKey, getFoldersForLevel, isSameElement} from "@components/home
 import {FolderPopover} from "@components/homescreen/ui/folder-popover";
 import {DotGridBackground} from "@homescreen/ui/components/dot-grid";
 import {CreateElementControls} from "@homescreen/ui/create-element-controls";
-import {HS3Element, HS3Folder, HS3Item} from "@components/homescreen/types";
+import {HS3Element, HS3Item} from "@components/homescreen/types";
 import {useHomescreenDragAndDrop} from "@homescreen/hooks/useHomescreenDragAndDrop";
 import {useHomescreenEditMode} from "@homescreen/hooks/useHomescreenEditMode";
 import {useItemPopup} from "@components/homescreen/hooks/useItemPopup";
+import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 import {GestureDetector} from "react-native-gesture-handler";
 
 type Props = {
     folderId: number | undefined,
-    folders: SharedValue<HS3Folder[]>,
     onEnterFolder: (folderId: number) => void,
 }
 
@@ -25,7 +25,8 @@ type Props = {
  * whenever the active folder changes, so everything in here — drag state, edit mode,
  * popups, create-flow — naturally resets per level without manual cleanup.
  */
-export const Homescreen = ({folderId, folders, onEnterFolder}: Props) => {
+export const Homescreen = ({folderId, onEnterFolder}: Props) => {
+    const {folders} = useHomescreenData()
     //refresh: bridges Reanimated shared-value changes back into a React re-render,
     //since this component reads .value directly in its JSX below.
     const [, setRefreshTick] = useState(false)
@@ -168,7 +169,7 @@ export const Homescreen = ({folderId, folders, onEnterFolder}: Props) => {
         ))}
 
         <CreateElementControls
-            folders={folders} folderId={folderId}
+            folderId={folderId}
             dragState={dragState} tempElements={tempElements} tempElementsImpossible={tempElementsImpossible}
             onMutated={() => setMountKey(k => k + 1)}
         />

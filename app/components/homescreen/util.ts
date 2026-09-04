@@ -7,7 +7,7 @@ import {
     pxToGrid,
     snapPxToGridAsPx
 } from "@components/homescreen/move_algo";
-import {DragState, FolderDisplayLevel, PixelPoint} from "@components/homescreen/types";
+import {DragState, FolderDisplayLevel, PixelPoint, Tile} from "@components/homescreen/types";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants"
 
 export function getElementId(e: HS3Element) {
@@ -399,4 +399,8 @@ export function getNextId(type: "item" | "folder", folders: HS3Folder[]) {
         )
         return highest + 1
     }
+}
+
+export function getNextTileId(tiles: Tile[]): number {
+    return tiles.reduce((prev, curr) => (prev > curr.id) ? prev : curr.id, -1) + 1
 }

@@ -116,7 +116,7 @@ export function moveElementsToFolder(elements: HS3Element[], folders: HS3Folder[
             console.log("after:", JSON.stringify(folders1.map(folder => ({
                 id: folder.folderId,
                 folderName: folder.name,
-                items: folder.items.map(i => ({id: i.itemId, p: i.parentId, name: i.name}))
+                items: folder.items.map(i => ({id: i.itemId, p: i.parentId, tileId: i.tileId}))
             }))))
             continue
         } else {

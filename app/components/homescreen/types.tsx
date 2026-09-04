@@ -1,4 +1,5 @@
 import {PlacementGrid} from "./placementGrid";
+export type {Tile, TileEvent} from "@app/constants/DbTypes";
 
 export type PixelValue = number;
 export type GridValue = number
@@ -34,10 +35,12 @@ export type PixelItem = PixelTile & {
 
 export type HS3Element = HS3Item | HS3Folder
 
+//a homescreen-item is just a placement — position/size + which library tile it shows.
+//name/color/data live on the referenced Tile (see db-mock's tiles list), not here, so
+//the same tile can be placed via multiple items without duplicating its data.
 export type HS3Item = {
     itemId: number,
-    name: string,
-    color: string
+    tileId: number,
 } & HS3Layout;
 export type HS3Folder = {
     folderId: number,

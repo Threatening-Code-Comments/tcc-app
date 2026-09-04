@@ -6,6 +6,7 @@ import {View} from "react-native";
 import {Icon} from "@components/Icon";
 import {GRID_COLUMNS} from "@components/homescreen/move_algo";
 import {ConcreteItemSlot, ItemDisplaySlot} from "@homescreen/ui/components/item-display-slots";
+import {getTileById, useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
 type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     folder: HS3Folder,
@@ -90,12 +91,14 @@ export const getPercentageString = (gridValue: number, maxV: number) => {
 export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[] }) => {
     const {folderToView, children} = props
     const {items} = folderToView
+    const {tiles} = useHomescreenData()
 
     const maxWidth = GRID_COLUMNS
     const maxHeight = 3
 
     const getElementLayout = (item: HS3Element, index: number) => {
         const {layout: {x, y, width, height}} = item
+        const name = ("itemId" in item) ? getTileById(tiles.value, item.tileId)?.name : item.name
 
         return (
             //@ts-expect-error
@@ -107,7 +110,7 @@ export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[]
                 backgroundColor: ("itemId" in item) ? 'blue' : "red",
                 pointerEvents: 'none'
             }}>
-                <Text style={{fontSize: 10, pointerEvents: 'none'}}>{item.name}</Text>
+                <Text style={{fontSize: 10, pointerEvents: 'none'}}>{name}</Text>
             </View>
         )
     }
@@ -137,19 +140,22 @@ export function Item(props: ItemProps) {
         item, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
         onResizeUpdate, onResizeEnd
     } = props
+    const {tiles} = useHomescreenData()
+    const tile = getTileById(tiles.value, item.tileId)
 
     const slotAmounts = item.layout.width + 1
 
-    /*hier würde was existierendes aus der db kommmen*/
+    /*time_since_last is still a placeholder — needs the tile's actual last event once
+    the events list is real, not just mocked as empty*/
     const slotTypes: ConcreteItemSlot[] = [
-        {index: 0, type: "name", valueCallback: () => item.name},
+        {index: 0, type: "name", valueCallback: () => tile?.name},
         {index: 1, type: "time_since_last", valueCallback: () => new Date(2026, 1, 2, 19, 34)},
-        {index: 2, type: "taps_total", valueCallback: () => Math.floor(Math.random() * 599)},
-        {index: 3, type: "taps_total", valueCallback: () => Math.floor(Math.random() * 599)},
+        {index: 2, type: "taps_total", valueCallback: () => tile?.events.length ?? 0},
+        {index: 3, type: "taps_total", valueCallback: () => tile?.events.length ?? 0},
     ]
     const sortedSlotTypes = slotTypes.sort((a, b) => a.index - b.index)
 
-    const color = item.color
+    const color = tile?.color ?? '#888888'
 
     const firstSlot = slotTypes.at(0)
     const firstSlotBottom = slotTypes.at(1)

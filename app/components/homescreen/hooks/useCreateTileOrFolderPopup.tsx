@@ -1,40 +1,55 @@
 import React, {useEffect, useState} from "react";
 import {usePopup} from "@components/hooks/usePopup";
 import {Text, TextInput} from "react-native-paper";
-import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams, PixelPoint} from "@homescreen/types";
+import {HS3Element, HS3Item, HS3LayoutParams, PixelPoint, Tile} from "@homescreen/types";
 import {TextField} from "rn-material-ui-textfield";
-import {clamp, getElementPath, getNextId, getRandomColor} from "@homescreen/util";
+import {clamp, getElementPath, getNextId, getNextTileId, getRandomColor} from "@homescreen/util";
 import {IconButton} from "@components/IconButton";
 import {View} from "react-native";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {runOnJS, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {GRID_COLUMNS, pixelToGrid, pxToGrid} from "@homescreen/move_algo";
+import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
 type Props = {
-    folders: HS3Folder[],
     currentLevel: number
     onSubmit: (item: HS3Item) => void
 }
 
+//"Create Tile" here means "create a brand new library tile, and an item that places it
+//here" — a new Tile is pushed into the shared tile library, then the item referencing
+//it is handed to onSubmit for the caller to position on the grid.
 export const useCreateTilePopup = (props: Props) => {
-    const {folders, currentLevel, onSubmit: onSubmitP} = props
+    const {currentLevel, onSubmit: onSubmitP} = props
+    const {folders, tiles} = useHomescreenData()
 
     const [name, setName] = React.useState<string>("");
 
     const onSubmit = () => {
         popup.setVisible(false)
+
+        const newTile: Tile = {
+            id: getNextTileId(tiles.value),
+            name,
+            color: getRandomColor(),
+            mode: 0,
+            rootRoutineId: 0, //uncategorized in the App Drawer for now
+            events: [],
+        }
+        tiles.value = [...tiles.value, newTile]
+
         onSubmitP({
-            name, parentId: currentLevel, itemId: getNextId("item", folders), color: getRandomColor(), layout: {
-                x: 0, y: 0, width: 0, height: 0
-            }
+            itemId: getNextId("item", folders.value),
+            tileId: newTile.id,
+            parentId: currentLevel,
+            layout: {x: 0, y: 0, width: 0, height: 0}
         })
     }
 
-    // const newTileId =
-    const parent = folders.find(f => f.folderId === currentLevel)
+    const parent = folders.value.find(f => f.folderId === currentLevel)
     const popupContent = (<View style={{display: 'flex', flexDirection: 'column', gap: 20}}>
         <Text variant={"headlineSmall"}>Create Tile</Text>
-        <Text>Parent: {getElementPath(parent, folders)}</Text>
+        <Text>Parent: {getElementPath(parent, folders.value)}</Text>
 
         <TextInput label={"Name"}
                    value={name}

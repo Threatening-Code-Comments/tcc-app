@@ -9,6 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import {GRID_UNIT} from "@homescreen/move_algo";
 import {Text, useTheme} from "react-native-paper";
+import {getTileById, useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
 const SHAKE_OFFSET = 5;
 
@@ -23,6 +24,11 @@ export type PreviewItemProps = {
 export const PreviewItem = (props: PreviewItemProps) => {
     const {element, impossible, isDragElement = false} = props;
     const {colors} = useTheme();
+    const {tiles} = useHomescreenData();
+
+    const tile = (element && "itemId" in element) ? getTileById(tiles.value, element.tileId) : undefined
+    const elementColor = element ? (("itemId" in element) ? tile?.color : element.color) : undefined
+    const elementName = element ? (("itemId" in element) ? tile?.name : element.name) : undefined
 
     const {layout: {x, y, width, height}} = element ?? {layout: {x: 0, y: 0, width: 0, height: 0}};
     const translationYShakeOffset = useSharedValue<number>(0);
@@ -55,7 +61,7 @@ export const PreviewItem = (props: PreviewItemProps) => {
         width: width * GRID_UNIT,
         height: height * GRID_UNIT,
         backgroundColor: (impossible) ? "#ff000040" : "transparent",
-        borderColor: (isDragElement) ? "purple" : (impossible) ? "red" : (element?.color ?? "black"),
+        borderColor: (isDragElement) ? "purple" : (impossible) ? "red" : (elementColor ?? "black"),
         borderWidth: 2,
         borderRadius: 4,
         transform: [
@@ -84,7 +90,7 @@ export const PreviewItem = (props: PreviewItemProps) => {
     return (<Animated.View style={itemStyle}>
         {!isDragElement &&
             <Text style={{color: colors.onBackground, alignSelf: 'center', justifyContent: 'center',}}>
-                {props.element.name}
+                {elementName}
             </Text>}
     </Animated.View>)
 }
