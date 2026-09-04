@@ -1,15 +1,15 @@
 import React, {useState} from "react";
 import Animated, {runOnJS, SharedValue, useAnimatedReaction, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {Folder, Item} from "@components/homescreen/ui/item-and-folder";
-import {PreviewItem} from "@homescreen/ui/preview-item";
+import {PreviewItem} from "@homescreen/ui/components/preview-item";
 import {getElementKey, getFoldersForLevel, isSameElement} from "@components/homescreen/util";
 import {FolderPopover} from "@components/homescreen/ui/folder-popover";
-import {DotGridBackground} from "@homescreen/ui/dot-grid";
+import {DotGridBackground} from "@homescreen/ui/components/dot-grid";
 import {CreateElementControls} from "@homescreen/ui/create-element-controls";
 import {HS3Element, HS3Folder, HS3Item} from "@components/homescreen/types";
 import {useHomescreenDragAndDrop} from "@homescreen/hooks/useHomescreenDragAndDrop";
 import {useHomescreenEditMode} from "@homescreen/hooks/useHomescreenEditMode";
-import {useItemPopup} from "@components/homescreen/ui/item-popup";
+import {useItemPopup} from "@components/homescreen/hooks/useItemPopup";
 import {GestureDetector} from "react-native-gesture-handler";
 
 type Props = {

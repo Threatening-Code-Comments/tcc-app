@@ -5,7 +5,7 @@ import {MovableItem, MovableItemProps} from "@components/homescreen/ui/movable-i
 import {View} from "react-native";
 import {Icon} from "@components/Icon";
 import {GRID_COLUMNS} from "@components/homescreen/move_algo";
-import {ConcreteItemSlot, ItemDisplaySlot} from "@homescreen/ui/item-display-slots";
+import {ConcreteItemSlot, ItemDisplaySlot} from "@homescreen/ui/components/item-display-slots";
 
 type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     folder: HS3Folder,

@@ -1,7 +1,7 @@
 import {SharedValue, useAnimatedStyle, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {ToastAndroid} from "react-native";
 import {DragState, GridValue, HS3Element, HS3Folder, PixelPoint} from "@homescreen/types";
-import {DragPointPosition} from "@homescreen/ui/drag-point";
+import {DragPointPosition} from "@homescreen/ui/components/drag-point";
 import {FolderOperations} from "@homescreen/ui/folder-popover";
 import {
     createTempElements,

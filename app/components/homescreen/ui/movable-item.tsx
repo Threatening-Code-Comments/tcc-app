@@ -12,7 +12,7 @@ import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {PixelPoint, PixelValue} from "@components/homescreen/types";
 import {SpringConfig} from "react-native-reanimated/lib/typescript/reanimated2/animation/springUtils";
 import {View} from "react-native";
-import {DragPoint, DragPointPosition} from "@components/homescreen/ui/drag-point";
+import {DragPoint, DragPointPosition} from "@components/homescreen/ui/components/drag-point";
 
 /**
  * this scales the item down when it's dragging
