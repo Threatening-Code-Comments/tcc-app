@@ -38,7 +38,7 @@ export const HomescreenNavigator = (props: Props) => {
     if (!foldersLoaded) {
         return (
             <View>
-                <Text variant={"headlineMedium"} style={{color: 'black'}}>Loading...</Text>
+                <Text variant={"headlineMedium"}>Loading...</Text>
             </View>
         )
     }

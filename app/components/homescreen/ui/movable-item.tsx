@@ -186,7 +186,7 @@ export function MovableItem(props: MovableItemProps) {
                 <View style={{
                     position: 'absolute', left: 0, top: 0, width: '100%', height: '100%',
                     opacity: (props.isEditMode && !isDragging) ? 1 : 0
-                }}>
+                }} pointerEvents={(props.isEditMode && !isDragging) ? "auto" : "none"}>
                     <DragPoint position={"right"} onResizeEnd={onResizeEnd} onResizeUpdate={onResizeUpdate}/>
                     <DragPoint position={"bottom"} onResizeEnd={onResizeEnd} onResizeUpdate={onResizeUpdate}/>
                     <DragPoint position={"top"} onResizeEnd={onResizeEnd} onResizeUpdate={onResizeUpdate}/>

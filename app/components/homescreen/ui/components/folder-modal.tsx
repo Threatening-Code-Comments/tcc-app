@@ -1,5 +1,6 @@
 import React from "react";
 import {Modal, View} from "react-native";
+import {useTheme} from "react-native-paper";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {SharedValue} from "react-native-reanimated";
 import {HS3Folder} from "@components/homescreen/types";
@@ -23,6 +24,8 @@ type Props = {
  * whatever that height ends up being.
  */
 export const FolderModal = ({currentLevel, folderPath, folders, goUp, goToLevel}: Props) => {
+    const {colors} = useTheme();
+
     return (
         <Modal
             visible={currentLevel !== undefined}
@@ -35,10 +38,9 @@ export const FolderModal = ({currentLevel, folderPath, folders, goUp, goToLevel}
                     flex: 1,
                     marginHorizontal: 50,
                     marginVertical: 150,
-                    // marginTop: 60,
                     borderRadius: 20,
                     overflow: 'hidden',
-                    backgroundColor: '#f2f2f2',
+                    backgroundColor: colors.background,
                 }}>
                     <Breadcrumb currentLevel={currentLevel} folderPath={folderPath} goUp={goUp}
                                 goToLevel={goToLevel}/>

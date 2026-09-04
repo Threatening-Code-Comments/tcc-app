@@ -1,5 +1,5 @@
 import React from "react";
-import {Text} from "react-native-paper";
+import {Text, useTheme} from "react-native-paper";
 import {View} from "react-native";
 import {IconButton} from "@components/IconButton";
 import {HS3Folder} from "@components/homescreen/types";
@@ -17,6 +17,8 @@ type Props = {
  * grid in a flex column, reserving its own space, not float over whatever's underneath.
  */
 export const Breadcrumb = ({currentLevel, folderPath, goUp, goToLevel}: Props) => {
+    const {colors} = useTheme();
+
     if (currentLevel === undefined) return null
 
     return (
@@ -33,17 +35,17 @@ export const Breadcrumb = ({currentLevel, folderPath, goUp, goToLevel}: Props) =
             />
             <View style={{flexDirection: "row", alignItems: "center", flexWrap: "wrap", flexShrink: 1}}>
                 <Text
-                    style={{color: "black", fontWeight: "700"}}
+                    style={{color: colors.onBackground, fontWeight: "700"}}
                     onPress={() => goToLevel(undefined)}
                 >
                     Home
                 </Text>
                 {folderPath.map((f, index) => (
                     <View key={f.folderId} style={{flexDirection: "row", alignItems: "center"}}>
-                        <Text style={{color: "black"}}> / </Text>
+                        <Text style={{color: colors.onBackground}}> / </Text>
                         <Text
                             style={{
-                                color: "black",
+                                color: colors.onBackground,
                                 fontWeight: index === folderPath.length - 1 ? "700" : "400"
                             }}
                             onPress={() => goToLevel(f.folderId)}
