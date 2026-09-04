@@ -19,7 +19,7 @@ export const Homescreen = () => {
     const {
         mountKey,
         folders, currentLevel, folderPath, visibleElements,
-        dragState, previewElement, dropTarget, tempItems, tempItemsImpossible,
+        dragState, previewElement, dropTarget, tempElements, tempElementsImpossible,
         homescreenState, showCreateFABs,
         folderRunnables, itemRunnables, onResizeUpdate, onResizeEnd, onFolderPopoverChange,
         editBackgroundStyle, folderOverlayStyle, longTap,
@@ -90,11 +90,11 @@ export const Homescreen = () => {
 
         {itemPopupComponent}
 
-        {tempItems.value.map(i => (
+        {tempElements.value.map(i => (
             <PreviewItem
                 key={getElementKey(i)}
                 element={i}
-                impossible={tempItemsImpossible.value.some(i2 => isSameElement(i, i2))}
+                impossible={tempElementsImpossible.value.some(i2 => isSameElement(i, i2))}
             />
         ))}
 
@@ -144,7 +144,7 @@ export const Homescreen = () => {
             : null}
 
         {visibleElements.value
-            .filter(e => !tempItems.value.some(e2 => isSameElement(e, e2)))
+            .filter(e => !tempElements.value.some(e2 => isSameElement(e, e2)))
             .map((e, index) =>
                 ("itemId" in e)
                     ? <Item key={`${mountKey}-${currentLevel.value}-t-${e.itemId}`} item={e}

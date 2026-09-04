@@ -61,3 +61,16 @@ export enum Dirs {
     moveUp = "moveUp",
     moveDown = "moveDown",
 }
+
+export type DragState = {
+    element: HS3Element,
+    coordinate: PixelPoint
+    type: "drag" | "resize" | "create"
+}
+
+export type FolderDisplayLevel = {
+    main: HS3Folder,
+    more: HS3Folder[],
+}
+
+export type HomescreenState = "default" | "edit"

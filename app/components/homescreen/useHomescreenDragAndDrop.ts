@@ -1,19 +1,13 @@
-import {
-    SharedValue,
-    useAnimatedStyle,
-    useDerivedValue,
-    useSharedValue
-} from "react-native-reanimated";
+import {SharedValue, useAnimatedStyle, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {ToastAndroid} from "react-native";
-import {GridValue, HS3Element, HS3Folder, PixelPoint} from "@components/homescreen/types";
-import {DragState} from "@components/homescreen/crud/hs-types";
+import {DragState, GridValue, HS3Element, HS3Folder, PixelPoint} from "@components/homescreen/types";
 import {DragPointPosition} from "@components/homescreen/ui/drag-point";
 import {FolderOperations} from "@components/homescreen/ui/folder-popover";
 import {
     createTempElements,
-    generateItemResults,
-    generateTempItems,
-    getModifiedTempItems,
+    generateElementResults,
+    generateTempElements,
+    getModifiedTempElements,
     getTargetLayout,
 } from "@components/homescreen/util";
 import {gridPointToPixel, gridToPx} from "@components/homescreen/move_algo";
@@ -72,31 +66,31 @@ export function useHomescreenDragAndDrop(
             return dragState.value.element
     }, [dragState])
 
-    //dragState, visibleElements, previewElement -> item results
-    const itemResults = useDerivedValue(() => {
-        return generateItemResults(dragState.value, previewElement.value, visibleElements.value);
+    //dragState, visibleElements, previewElement -> element results
+    const elementResults = useDerivedValue(() => {
+        return generateElementResults(dragState.value, previewElement.value, visibleElements.value);
     }, [dragState, visibleElements, previewElement])
 
-    //itemResults -> isAddFolder
+    //elementResults -> isAddFolder
     const isAddFolder = useDerivedValue(() => {
-        if (!itemResults.value) return undefined
+        if (!elementResults.value) return undefined
 
-        for (let result of itemResults.value) {
+        for (let result of elementResults.value) {
             const {element, dirs: {isAddFolder: isAddFolderR}} = result
             if (isAddFolderR) return element
         }
         return undefined
-    }, [itemResults])
+    }, [elementResults])
 
-    //itemResults, previewElement, visibleElements -> TEMP ITEMS
-    const tempItems = useDerivedValue(() => {
-        return createTempElements(itemResults.value, previewElement.value, visibleElements.value, isAddFolder.value)
-    }, [itemResults, previewElement, visibleElements, isAddFolder])
+    //elementResults, previewElement, visibleElements -> TEMP ELEMENTS
+    const tempElements = useDerivedValue(() => {
+        return createTempElements(elementResults.value, previewElement.value, visibleElements.value, isAddFolder.value)
+    }, [elementResults, previewElement, visibleElements, isAddFolder])
 
-    //tempItems, visibleElements -> tempItemsImpossible
-    const tempItemsImpossible = useDerivedValue(
-        () => generateTempItems(tempItems.value, visibleElements.value, dragState.value),
-        [tempItems, visibleElements, dragState])
+    //tempElements, visibleElements -> tempElementsImpossible
+    const tempElementsImpossible = useDerivedValue(
+        () => generateTempElements(tempElements.value, visibleElements.value, dragState.value),
+        [tempElements, visibleElements, dragState])
 
     //whether hovering a folder target means "create a new folder here" or "move into it" —
     //set by FolderPopover depending on which half of it the drag is hovering over. Defaults
@@ -127,10 +121,10 @@ export function useHomescreenDragAndDrop(
         }
     };
     const onDragEnd = (element: HS3Element) => {
-        const isImpossible = tempItemsImpossible.value.length > 0
+        const isImpossible = tempElementsImpossible.value.length > 0
         const modifiedElement: HS3Element =
             {...previewElement.value, layout: {...previewElement.value.layout}}
-        const elementsToModify: HS3Element[] = [...tempItems.value, modifiedElement]
+        const elementsToModify: HS3Element[] = [...tempElements.value, modifiedElement]
         if (isImpossible) {
             dragState.value = undefined
             folderOperation.value = "moveTo"
@@ -163,7 +157,7 @@ export function useHomescreenDragAndDrop(
 
         dragState.value = undefined
         folderOperation.value = "moveTo"
-        folders.value = getModifiedTempItems(
+        folders.value = getModifiedTempElements(
             elementsToModify,
             folders.value
         )
@@ -251,7 +245,7 @@ export function useHomescreenDragAndDrop(
     }, [isAddFolder.value]);
 
     return {
-        dragState, previewElement, tempItems, tempItemsImpossible, dropTarget,
+        dragState, previewElement, tempElements, tempElementsImpossible, dropTarget,
         folderOverlayStyle,
         onDragStart, onDragUpdate, onDragEnd, onResizeUpdate, onResizeEnd,
         onFolderPopoverChange,

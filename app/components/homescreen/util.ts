@@ -9,11 +9,7 @@ import {
 } from "@components/homescreen/move_algo";
 import {SharedValue} from "react-native-reanimated";
 import {ToastAndroid} from "react-native";
-import {
-    DragState,
-    FolderDisplayLevel
-} from "@components/homescreen/crud/hs-types";
-import {PixelPoint} from "@components/homescreen/types";
+import {DragState, FolderDisplayLevel, PixelPoint} from "@components/homescreen/types";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants"
 
 export function getElementId(e: HS3Element) {
@@ -50,89 +46,48 @@ export function doRectanglesOverlap(r1: HS3LayoutParams, r2: HS3LayoutParams) {
 
 }
 
-type ItemWithOptions = {
-    item: HS3Item
-    isAddFolder?: boolean
-}
-export const checkDirAndMoveIfPossible: (item: HS3Element, targetPosition: {
+export const checkDirAndMoveIfPossible: (element: HS3Element, targetPosition: {
     x: number,
     y: number
-}, items?: ItemWithOptions[], tempItems?: SharedValue<HS3Element[]>) => HS3Element | undefined
-    = (item, targetPosition,) => {
+}) => HS3Element | undefined
+    = (element, targetPosition) => {
     "worklet"
-    // const {layout} = item
-    const itemCoords = {
+    const elementCoords = {
         x: targetPosition.x,
         y: targetPosition.y,
     }
-    // const itemMax = {
-    //     x: itemCoords.x + layout.width,
-    //     y: itemCoords.y + layout.height
-    // }
 
-    // let success = false
-    // for (let x = itemCoords.x; x < itemCoords.x + layout.width; x++) {
-    //     for (let y = itemCoords.y; y < itemCoords.y + layout.height; y++) {
-    //         if (x < 0 || y < 0 || x + layout.width >= GRID_COLUMNS || y + layout.height >= GRID_ROWS) {
-    //             success = false;
-    //             // break
-    //             return undefined
-    //         }
-    //         const valueAtPoint = items.filter(i =>
-    //             i.item.layout.x >= x && x <= itemMax.x
-    //             && i.item.layout.y >= y && y <= itemMax.y
-    //         )
-    //         if (!valueAtPoint) {
-    //             success = true;
-    //         }
-    //         // success = (dragState.value?.draggingItem.itemId === valueAtPoint[0].item.itemId)
-    //         success = true
-    //         if (!success) {
-    //             // break
-    //             return undefined
-    //         }
-    //     }
-    // }
-
-    const newItem: HS3Element = {
-        ...item,
+    const newElement: HS3Element = {
+        ...element,
         layout: {
-            ...item.layout,
-            ...itemCoords
+            ...element.layout,
+            ...elementCoords
         }
     }
 
-    // const isPossible = tempItems.value.map(i => !isSameElement(i, newItem)).reduce((p, c) => p && c)
-    // console.log("HALO")
-    // if (isPossible) {
-    // tempItem.value = newItem;
-    return newItem
-    // runOnJS(setRefresh)(prev => !prev);
-// }
-
-    // return undefined
+    return newElement
 }
 
-export const generateTempItems =
-    (tempItems: HS3Element[], visibleElements: HS3Element[], dragState: DragState) => {
+export const generateTempElements =
+    (elements: HS3Element[], visibleElements: HS3Element[], dragState: DragState) => {
         "worklet"
-        if (tempItems.length == 0) return []
+        if (elements.length == 0) return []
 
         const impossibleElements: HS3Element[] = []
 
-        for (let element of tempItems) {
+        for (let element of elements) {
             const tE = element.layout
 
             const isOutOfBounds = tE.x < 0 || tE.y < 0 || tE.x + tE.width - 1 >= GRID_COLUMNS || tE.y + tE.height - 1 >= GRID_ROWS
-            const itemBlocks = visibleElements
+            const elementBlocks = visibleElements
                 .filter(o =>
                     !isSameElementWorklet(element, o)
                     && !isSameElementWorklet(o, dragState.element))
-                .some((otherItem) => {
-                    return doRectanglesOverlap(tE, otherItem.layout)
+                .some((otherElement) => {
+                    return doRectanglesOverlap(tE, otherElement.layout)
                 })
 
-            if (itemBlocks || isOutOfBounds)
+            if (elementBlocks || isOutOfBounds)
                 impossibleElements.push(element)
         }
 
@@ -190,7 +145,7 @@ export function rainbow(numOfSteps: number, step: number) {
     return (c);
 }
 
-export const getModifiedTempItems = (
+export const getModifiedTempElements = (
     elementsToModify: HS3Element[],
     folders: HS3Folder[],
 ) => {
@@ -232,59 +187,59 @@ type ElementWithDirs = {
 }
 
 export function createTempElements(
-    itemResults: ElementWithDirs[],
+    elementResults: ElementWithDirs[],
     previewElement: HS3Element,
     visibleElements: HS3Element[],
     isAddFolder: HS3Element | undefined,
 ) {
     "worklet"
-    if (!itemResults || itemResults.length === 0 || !!isAddFolder)
+    if (!elementResults || elementResults.length === 0 || !!isAddFolder)
         return []
 
     const {layout: targetLayout} = previewElement;
-    const newTempItems: HS3Element[] = []
-    let tempTempItem: HS3Element | undefined = undefined
+    const newTempElements: HS3Element[] = []
+    let tempElement: HS3Element | undefined = undefined
 
-    for (let result of itemResults) {
+    for (let result of elementResults) {
         const {element, dirs: {dirs}} = result
-        tempTempItem = undefined
+        tempElement = undefined
 
         for (let dir of dirs) {
             switch (dir) {
                 case Dirs.moveRight:
-                    tempTempItem = checkDirAndMoveIfPossible(element, {
+                    tempElement = checkDirAndMoveIfPossible(element, {
                         x: targetLayout.x + targetLayout.width,
                         y: element.layout.y
-                    },)
+                    })
                     break;
                 case Dirs.moveLeft:
-                    tempTempItem = checkDirAndMoveIfPossible(element, {
+                    tempElement = checkDirAndMoveIfPossible(element, {
                         x: targetLayout.x - element.layout.width,
                         y: element.layout.y
-                    }, [])
+                    })
                     break;
                 case Dirs.moveUp:
-                    tempTempItem = checkDirAndMoveIfPossible(element, {
+                    tempElement = checkDirAndMoveIfPossible(element, {
                         x: element.layout.x,
                         y: targetLayout.y + targetLayout.width
                     })
                     break;
                 case Dirs.moveDown:
-                    tempTempItem = checkDirAndMoveIfPossible(element, {
+                    tempElement = checkDirAndMoveIfPossible(element, {
                         x: element.layout.x,
                         y: targetLayout.y - element.layout.height
-                    }, [])
+                    })
                     break;
             }
 
-            if (!!tempTempItem) {
-                newTempItems.push(tempTempItem)
+            if (!!tempElement) {
+                newTempElements.push(tempElement)
                 break;
             }
         }
     }
 
-    return newTempItems;
+    return newTempElements;
 }
 
 type CheckDirsReturnType = {
@@ -406,7 +361,7 @@ export const getFolderPath = (folderList: HS3Folder[], level: number | undefined
     return path
 }
 
-export function generateItemResults(dragState: DragState | undefined, previewElement: HS3Element, visibleElements: HS3Element[]) {
+export function generateElementResults(dragState: DragState | undefined, previewElement: HS3Element, visibleElements: HS3Element[]) {
     "worklet"
     if (!dragState || !previewElement) return undefined
 
@@ -419,7 +374,7 @@ export function generateItemResults(dragState: DragState | undefined, previewEle
         })).filter(e => (e.dirs.dirs.length > 0 || e.dirs.isAddFolder))
 }
 
-export function getItemPath(e: HS3Element, folders: HS3Folder[]) {
+export function getElementPath(e: HS3Element, folders: HS3Folder[]) {
     if (!e) return ""
     const parentId = e.parentId
 
@@ -427,7 +382,7 @@ export function getItemPath(e: HS3Element, folders: HS3Folder[]) {
         return "/"
     } else {
         const parent = folders.find(f => f.folderId === parentId)
-        return getItemPath(parent, folders) + getElementKey(parent) + "/"
+        return getElementPath(parent, folders) + getElementKey(parent) + "/"
     }
 }
 

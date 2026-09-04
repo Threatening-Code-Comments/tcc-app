@@ -2,8 +2,7 @@ import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle, useDerivedValu
 import {View} from "react-native";
 import React from "react";
 import {GRID_UNIT} from "@components/homescreen/move_algo";
-import {DragState} from "@components/homescreen/crud/hs-types";
-import {HS3Element, PixelPoint} from "@components/homescreen/types";
+import {DragState, HS3Element, PixelPoint} from "@components/homescreen/types";
 import {Icon} from "@components/Icon";
 
 type PointAlignment = "outside" | "in_left" | "in_right";

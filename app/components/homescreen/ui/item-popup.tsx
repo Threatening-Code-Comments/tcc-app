@@ -1,7 +1,7 @@
 import React from "react";
 import {HS3Folder, HS3Item} from '../types'
 import {Text} from 'react-native-paper'
-import {getItemPath} from "@components/homescreen/util";
+import {getElementPath} from "@components/homescreen/util";
 import {usePopup} from "@components/hooks/usePopup";
 
 type Props = {
@@ -14,7 +14,7 @@ export const useItemPopup = (props: Props) => {
 
     const popupContent = !!item && (<>
         <Text variant={"displaySmall"}>Item: {item.itemId}</Text>
-        <Text>Currently at {getItemPath(item, folders)}</Text>
+        <Text>Currently at {getElementPath(item, folders)}</Text>
     </>)
 
     const popup = usePopup({children: popupContent})

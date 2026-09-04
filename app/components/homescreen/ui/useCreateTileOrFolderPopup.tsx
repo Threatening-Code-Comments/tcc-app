@@ -3,7 +3,7 @@ import {usePopup} from "@components/hooks/usePopup";
 import {Text, TextInput} from "react-native-paper";
 import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams, PixelPoint} from "@homescreen/types";
 import {TextField} from "rn-material-ui-textfield";
-import {clamp, getItemPath, getNextId, getRandomColor} from "@homescreen/util";
+import {clamp, getElementPath, getNextId, getRandomColor} from "@homescreen/util";
 import {IconButton} from "@components/IconButton";
 import {View} from "react-native";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
@@ -34,7 +34,7 @@ export const useCreateTilePopup = (props: Props) => {
     const parent = folders.find(f => f.folderId === currentLevel)
     const popupContent = (<View style={{display: 'flex', flexDirection: 'column', gap: 20}}>
         <Text variant={"headlineSmall"}>Create Tile</Text>
-        <Text>Parent: {getItemPath(parent, folders)}</Text>
+        <Text>Parent: {getElementPath(parent, folders)}</Text>
 
         <TextInput label={"Name"}
                    value={name}

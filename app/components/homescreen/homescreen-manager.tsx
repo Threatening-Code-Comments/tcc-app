@@ -2,29 +2,14 @@ import React, {useEffect, useState} from "react";
 import {HS3Element, HS3Folder, HS3Item} from './types'
 import {getFoldersFromDb} from "@components/homescreen/db-mock";
 import {Text} from "react-native-paper";
-import {
-    runOnJS,
-    useAnimatedReaction,
-    useAnimatedStyle,
-    useDerivedValue,
-    useSharedValue
-} from "react-native-reanimated";
+import {runOnJS, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {BackHandler, ToastAndroid, View} from "react-native";
 
-import {PixelPoint} from "@components/homescreen/types";
-import {
-    getFolderPath,
-    getFoldersForLevel,
-    getModifiedTempItems,
-    goUpLevel,
-} from "@components/homescreen/util";
-import {HomescreenState} from "@components/homescreen/crud/hs-types";
+import {HomescreenState, PixelPoint} from "@components/homescreen/types";
+import {getFolderPath, getFoldersForLevel, getModifiedTempElements, goUpLevel,} from "@components/homescreen/util";
 import {useItemPopup} from "@components/homescreen/ui/item-popup";
 import {Gesture} from "react-native-gesture-handler";
-import {
-    useCreateLayoutOverlay,
-    useCreateTilePopup
-} from "@components/homescreen/ui/useCreateTileOrFolderPopup";
+import {useCreateLayoutOverlay, useCreateTilePopup} from "@components/homescreen/ui/useCreateTileOrFolderPopup";
 import {HomescreenProvider} from "@components/homescreen/homescreen-context";
 import {Homescreen} from "@components/homescreen/homescreen";
 import {useHomescreenDragAndDrop} from "@components/homescreen/useHomescreenDragAndDrop";
@@ -69,7 +54,7 @@ export const HomescreenManager = (props: Props) => {
 
     //----------- drag & drop (drag/resize handlers + the preview/temp-item derivation chain)
     const {
-        dragState, previewElement, tempItems, tempItemsImpossible, dropTarget,
+        dragState, previewElement, tempElements, tempElementsImpossible, dropTarget,
         folderOverlayStyle,
         onDragStart, onDragUpdate, onDragEnd, onResizeUpdate, onResizeEnd,
         onFolderPopoverChange,
@@ -155,9 +140,9 @@ export const HomescreenManager = (props: Props) => {
         () => ({
             cV: currentLevel.value,
             // dF: JSON.stringify(currentFolderLevel.value),
-            previewItem: previewElement.value,
-            tempItems: JSON.stringify(tempItems.value),
-            tempItemsImpossible: JSON.stringify(tempItemsImpossible.value),
+            previewElement: previewElement.value,
+            tempElements: JSON.stringify(tempElements.value),
+            tempElementsImpossible: JSON.stringify(tempElementsImpossible.value),
             visibleElements: JSON.stringify(visibleElements.value),
             itemPopup: popupItem.value,
             homescreenState: homescreenState.value,
@@ -167,7 +152,7 @@ export const HomescreenManager = (props: Props) => {
                 runOnJS(refreshState)();
                 return
             }
-        }, [currentLevel, previewElement, tempItems, tempItemsImpossible, visibleElements, popupItem, homescreenState]
+        }, [currentLevel, previewElement, tempElements, tempElementsImpossible, visibleElements, popupItem, homescreenState]
     )
     // !!!!!very frequent updates!!!!
     const RESOLUTION = 10 //pixels
@@ -231,7 +216,7 @@ export const HomescreenManager = (props: Props) => {
             showCreateFABs.value = false
         },
         onConfirm: (element) => {
-            if(tempItemsImpossible.value.length > 0){
+            if (tempElementsImpossible.value.length > 0) {
                 ToastAndroid.show("Error......", ToastAndroid.SHORT)
                 dragState.value = undefined
                 showCreateFABs.value = false
@@ -240,7 +225,7 @@ export const HomescreenManager = (props: Props) => {
             let newFolders = folders.value
 
             if ("itemId" in element) {
-                const parent = folders.value.find(f=>f.folderId === element.parentId)
+                const parent = folders.value.find(f => f.folderId === element.parentId)
                 console.log("old parent", parent)
                 parent.items = [...parent.items, element]
                 console.log("new..?", parent)
@@ -254,8 +239,8 @@ export const HomescreenManager = (props: Props) => {
                 newFolders = [...folders.value, element]
             }
 
-            folders.value = getModifiedTempItems(
-                tempItems.value,
+            folders.value = getModifiedTempElements(
+                tempElements.value,
                 newFolders
             )
 
@@ -284,7 +269,7 @@ export const HomescreenManager = (props: Props) => {
     return <HomescreenProvider value={{
         mountKey,
         folders, currentLevel, folderPath, visibleElements,
-        dragState, previewElement, dropTarget, tempItems, tempItemsImpossible,
+        dragState, previewElement, dropTarget, tempElements, tempElementsImpossible,
         homescreenState, showCreateFABs,
         folderRunnables, itemRunnables, onResizeUpdate, onResizeEnd, onFolderPopoverChange,
         editBackgroundStyle, folderOverlayStyle, longTap,
