@@ -4,8 +4,8 @@ const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
 const APP_NAME = "TCC-App";
 const PACKAGE_NAME = "com.threateningcodecomments.tcc_app";
 
-const APP_VERSION = "1.2.2";
-const VERSION_NUMBER = 5
+const APP_VERSION = "1.3.0";
+const VERSION_NUMBER = 6
 
 const getAppName = () => {
   if (IS_DEV) {
@@ -63,16 +63,16 @@ export default {
       "expo-build-properties",
       {
         "android": {
-          "compileSdkVersion": 34,
-          "targetSdkVersion": 34,
-          "buildToolsVersion": "34.0.0",
-          "kotlinVersion": "22",
+          // SDK 54 defaults: compile/targetSdk 36 (Android 16), buildTools 36.0.0.
+          // Werte explizit setzen, damit der Play-Store-Lint sie sicher sieht.
+          "compileSdkVersion": 36,
+          "targetSdkVersion": 36,
+          "buildToolsVersion": "36.0.0",
           "enableProguardInReleaseBuilds": true,
           "enableShrinkResourcesInReleaseBuilds": true
-
         },
         "ios": {
-          "deploymentTarget": "13.4"
+          "deploymentTarget": "15.1"
         }
       }
     ]
