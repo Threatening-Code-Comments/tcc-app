@@ -2,8 +2,8 @@ import React from "react";
 import {FAB, Text} from "react-native-paper";
 import Animated from "react-native-reanimated";
 import {View} from "react-native";
-import {Folder4, Item4} from "@components/homescreen/ui/item-and-folder";
-import {PreviewItem3} from "@homescreen/ui/preview-item";
+import {Folder, Item} from "@components/homescreen/ui/item-and-folder";
+import {PreviewItem} from "@homescreen/ui/preview-item";
 import {getElementKey, goUpLevel, isSameElement} from "@components/homescreen/util";
 import {IconButton} from "@components/IconButton";
 import {GestureDetector} from "react-native-gesture-handler";
@@ -77,7 +77,7 @@ export const Homescreen = () => {
             </View>
         )}
 
-        {!dropTarget.value && (<PreviewItem3
+        {!dropTarget.value && (<PreviewItem
             element={previewElement.value}
             impossible={false}
             isDragElement={true}
@@ -91,7 +91,7 @@ export const Homescreen = () => {
         {itemPopupComponent}
 
         {tempItems.value.map(i => (
-            <PreviewItem3
+            <PreviewItem
                 key={getElementKey(i)}
                 element={i}
                 impossible={tempItemsImpossible.value.some(i2 => isSameElement(i, i2))}
@@ -147,7 +147,7 @@ export const Homescreen = () => {
             .filter(e => !tempItems.value.some(e2 => isSameElement(e, e2)))
             .map((e, index) =>
                 ("itemId" in e)
-                    ? <Item4 key={`${mountKey}-${currentLevel.value}-t-${e.itemId}`} item={e}
+                    ? <Item key={`${mountKey}-${currentLevel.value}-t-${e.itemId}`} item={e}
                              onDragStart={() => itemRunnables.onDragStart(e)}
                              onDragUpdate={(coordinate) => itemRunnables.onDragUpdate(e, coordinate)}
                              onDragEnd={() => itemRunnables.onDragEnd(e)}
@@ -157,7 +157,7 @@ export const Homescreen = () => {
                              onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
                              onResizeEnd={(pos) => onResizeEnd(e, pos)}
                     />
-                    : <Folder4 key={`${mountKey}-${currentLevel.value}-f-${e.folderId}`} folder={e}
+                    : <Folder key={`${mountKey}-${currentLevel.value}-f-${e.folderId}`} folder={e}
                                onDragStart={() => folderRunnables.onDragStart(e)}
                                onDragUpdate={(coordinate) => folderRunnables.onDragUpdate(e, coordinate)}
                                onDragEnd={() => folderRunnables.onDragEnd(e)}

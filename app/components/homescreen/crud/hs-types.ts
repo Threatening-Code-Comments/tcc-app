@@ -1,6 +1,6 @@
 import {HS3Element, HS3Folder, PixelPoint} from "@components/homescreen/types";
 
-export type DragState4 = {
+export type DragState = {
     element: HS3Element,
     coordinate: PixelPoint
     type: "drag" | "resize" | "create"

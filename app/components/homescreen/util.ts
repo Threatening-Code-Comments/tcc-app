@@ -1,4 +1,4 @@
-import {Dirs, DragState, HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from "./types";
+import {Dirs, HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from "./types";
 import {
     GRID_COLUMNS,
     GRID_ROWS,
@@ -10,7 +10,7 @@ import {
 import {SharedValue} from "react-native-reanimated";
 import {ToastAndroid} from "react-native";
 import {
-    DragState4,
+    DragState,
     FolderDisplayLevel
 } from "@components/homescreen/crud/hs-types";
 import {PixelPoint} from "@components/homescreen/types";
@@ -114,7 +114,7 @@ export const checkDirAndMoveIfPossible: (item: HS3Element, targetPosition: {
 }
 
 export const generateTempItems =
-    (tempItems: HS3Element[], visibleElements: HS3Element[], dragState: DragState4) => {
+    (tempItems: HS3Element[], visibleElements: HS3Element[], dragState: DragState) => {
         "worklet"
         if (tempItems.length == 0) return []
 
@@ -347,7 +347,7 @@ export const clamp = (num, min, max) => {
     return Math.min(Math.max(num, min), max)
 }
 
-export function getTargetLayout4(dragState: DragState4): HS3Element {
+export function getTargetLayout(dragState: DragState): HS3Element {
     "worklet"
     const {coordinate: dragCoordinate, element} = dragState
 
@@ -406,7 +406,7 @@ export const getFolderPath = (folderList: HS3Folder[], level: number | undefined
     return path
 }
 
-export function generateItemResults(dragState: DragState4 | undefined, previewElement: HS3Element, visibleElements: HS3Element[]) {
+export function generateItemResults(dragState: DragState | undefined, previewElement: HS3Element, visibleElements: HS3Element[]) {
     "worklet"
     if (!dragState || !previewElement) return undefined
 
@@ -417,24 +417,6 @@ export function generateItemResults(dragState: DragState4 | undefined, previewEl
             // type: ("folderId" in e ? "folder" : "item"),
             dirs: checkDirectionsForElement(e, dragState.coordinate, doRectanglesOverlap(previewElement.layout, e.layout))
         })).filter(e => (e.dirs.dirs.length > 0 || e.dirs.isAddFolder))
-}
-
-export function getTargetLayout(dragState: DragState): HS3LayoutParams {
-    "worklet"
-    const {coordinate: dragCoordinate, draggingItem} = dragState
-
-    return {
-        x: clamp(
-            pxToGrid(snapPxToGridAsPx(dragCoordinate.x - gridToPx(draggingItem.layout.width) / 2)),
-            0, GRID_COLUMNS - draggingItem.layout.width
-        ),
-        y: clamp(
-            pxToGrid(snapPxToGridAsPx(dragCoordinate.y - gridToPx(draggingItem.layout.height) / 2)),
-            0, GRID_COLUMNS - draggingItem.layout.height
-        ),
-        width: draggingItem.layout.width,
-        height: draggingItem.layout.height,
-    }
 }
 
 export function getItemPath(e: HS3Element, folders: HS3Folder[]) {

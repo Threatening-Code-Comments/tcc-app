@@ -2,7 +2,7 @@ import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle, useDerivedValu
 import {View} from "react-native";
 import React from "react";
 import {GRID_UNIT} from "@components/homescreen/move_algo";
-import {DragState4} from "@components/homescreen/crud/hs-types";
+import {DragState} from "@components/homescreen/crud/hs-types";
 import {HS3Element, PixelPoint} from "@components/homescreen/types";
 import {Icon} from "@components/Icon";
 
@@ -20,7 +20,7 @@ const getOperationAreasHeightWorklet = (element: HS3Element) => {
 
 type Props = {
     isAddFolder: HS3Element;
-    dragState: DragState4;
+    dragState: DragState;
     onOperationChange: (operation: FolderOperations) => void
 }
 export const FolderPopover = (props: Props) => {

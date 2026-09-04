@@ -55,11 +55,6 @@ export type HS3LayoutParams = GridPoint & {
     height: number;
 }
 
-export type DragState = {
-    coordinate: PixelPoint
-    draggingItem: HS3Item
-}
-
 export enum Dirs {
     moveLeft = "moveLeft",
     moveRight = "moveRight",

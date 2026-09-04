@@ -3,7 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import {AppDrawer} from "@components/homescreen/AppDrawer/AppDrawer";
 import {HomescreenManager} from "@components/homescreen/homescreen-manager";
 
-export const HomescreenComponent = () => {
+export const HomescreenTempWrapper = () => {
     const items = [
         {id: 2, x: 1, y: 0, width: 2, height: 1},
         {id: 1, x: 0, y: 0, width: 1, height: 1}, // width und height als Einheiten

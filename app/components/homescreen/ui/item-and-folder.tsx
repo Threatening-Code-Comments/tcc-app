@@ -12,7 +12,7 @@ type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     children: HS3Folder[]
 }
 
-export function Folder4(props: FolderProps) {
+export function Folder(props: FolderProps) {
     const {
         folder, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
         onResizeUpdate, onResizeEnd
@@ -128,11 +128,11 @@ export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[]
         </View>)
 }
 
-type Item4Props = Omit<MovableItemProps, "children" | "layout"> & {
+type ItemProps = Omit<MovableItemProps, "children" | "layout"> & {
     item: HS3Item
 }
 
-export function Item4(props: Item4Props) {
+export function Item(props: ItemProps) {
     const {
         item, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
         onResizeUpdate, onResizeEnd

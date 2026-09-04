@@ -11,7 +11,7 @@ import {db} from '@db/database'
 import {deletePage, getPages, insertPages} from '@db/pages'
 import * as schema from './db/schema'
 import {exportDbFile, importDbFile, saveDbFileToDownloads} from './db/backup'
-import {HomescreenComponent} from '@components/homescreen/homescreenComponent'
+import {HomescreenTempWrapper} from '@homescreen/homescreenTempWrapper'
 
 const HomePage = () => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
@@ -181,7 +181,7 @@ const HomePage = () => {
 
                 {/* <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} /> */}
 
-                <HomescreenComponent/>
+                <HomescreenTempWrapper/>
 
             </Card>
             {/* <TestComponent elementList={dashboardList} /> */}

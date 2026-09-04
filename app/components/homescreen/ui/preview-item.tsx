@@ -20,7 +20,7 @@ export type PreviewItemProps = {
 }
 
 // type AnimatedPropsPreviewItem = Partial<PreviewItemProps>;
-export const PreviewItem3 = (props: PreviewItemProps) => {
+export const PreviewItem = (props: PreviewItemProps) => {
     const {element, impossible, isDragElement = false} = props;
 
     const {layout: {x, y, width, height}} = element ?? {layout: {x: 0, y: 0, width: 0, height: 0}};
@@ -86,4 +86,4 @@ export const PreviewItem3 = (props: PreviewItemProps) => {
     </Animated.View>)
 }
 
-// export const AnimatedPreviewItem = Animated.createAnimatedComponent(PreviewItem3)
+// export const AnimatedPreviewItem = Animated.createAnimatedComponent(PreviewItem)

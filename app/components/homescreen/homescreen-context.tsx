@@ -1,7 +1,7 @@
 import React, {createContext, useContext} from "react";
 import {SharedValue} from "react-native-reanimated";
 import {GridValue, HS3Element, HS3Folder, HS3Item, PixelPoint} from "@components/homescreen/types";
-import {DragState4, HomescreenState} from "@components/homescreen/crud/hs-types";
+import {DragState, HomescreenState} from "@components/homescreen/crud/hs-types";
 import {DragPointPosition} from "@components/homescreen/ui/drag-point";
 import {FolderOperations} from "@components/homescreen/ui/folder-popover";
 import {DropTarget} from "@components/homescreen/useHomescreenDragAndDrop";
@@ -26,7 +26,7 @@ export type HomescreenContextValue = {
     folderPath: SharedValue<HS3Folder[]>,
     visibleElements: SharedValue<HS3Element[]>,
 
-    dragState: SharedValue<DragState4 | undefined>,
+    dragState: SharedValue<DragState | undefined>,
     previewElement: SharedValue<HS3Element | undefined>,
     dropTarget: SharedValue<DropTarget | undefined>,
     tempItems: SharedValue<HS3Element[]>,

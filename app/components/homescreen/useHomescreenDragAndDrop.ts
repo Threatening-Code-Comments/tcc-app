@@ -6,7 +6,7 @@ import {
 } from "react-native-reanimated";
 import {ToastAndroid} from "react-native";
 import {GridValue, HS3Element, HS3Folder, PixelPoint} from "@components/homescreen/types";
-import {DragState4} from "@components/homescreen/crud/hs-types";
+import {DragState} from "@components/homescreen/crud/hs-types";
 import {DragPointPosition} from "@components/homescreen/ui/drag-point";
 import {FolderOperations} from "@components/homescreen/ui/folder-popover";
 import {
@@ -14,7 +14,7 @@ import {
     generateItemResults,
     generateTempItems,
     getModifiedTempItems,
-    getTargetLayout4,
+    getTargetLayout,
 } from "@components/homescreen/util";
 import {gridPointToPixel, gridToPx} from "@components/homescreen/move_algo";
 import {moveElementsToFolder} from "@components/homescreen/crud/move_elements";
@@ -59,7 +59,7 @@ export function useHomescreenDragAndDrop(
     visibleElements: SharedValue<HS3Element[]>,
     onMutated: () => void,
 ) {
-    const dragState = useSharedValue<DragState4 | undefined>(undefined);
+    const dragState = useSharedValue<DragState | undefined>(undefined);
 
     //dragState -> preview item
     const previewElement = useDerivedValue<HS3Element>(() => {
@@ -67,7 +67,7 @@ export function useHomescreenDragAndDrop(
             return undefined
         }
         if (dragState.value.type == 'drag')
-            return getTargetLayout4(dragState.value)
+            return getTargetLayout(dragState.value)
         else
             return dragState.value.element
     }, [dragState])
