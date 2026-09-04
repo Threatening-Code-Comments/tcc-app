@@ -4,10 +4,14 @@ import Animated, {
     useAnimatedStyle,
     useDerivedValue,
     useSharedValue,
-    withSpring
+    withDelay,
+    withRepeat,
+    withSequence,
+    withSpring,
+    withTiming
 } from "react-native-reanimated";
 import {GRID_UNIT, pxToGrid} from "@components/homescreen/move_algo";
-import React, {useEffect} from "react";
+import React, {useEffect, useMemo} from "react";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {PixelPoint, PixelValue} from "@components/homescreen/types";
 import {SpringConfig} from "react-native-reanimated/lib/typescript/reanimated2/animation/springUtils";
@@ -147,6 +151,30 @@ export function MovableItem(props: MovableItemProps) {
             ? Gesture.Exclusive(panGesture, tapGesture)
             : Gesture.Exclusive(tapGesture, longPress)
 
+    //edit-mode wiggle — the "you can drag/resize this now" signal, replacing the old
+    //screen-wide tint. Phase/duration jitter per item so a whole screen of tiles
+    //doesn't wiggle in lockstep.
+    const wigglePhase = useMemo(() => Math.random() * 300, [])
+    const wiggleRotation = useSharedValue(0)
+    useEffect(() => {
+        if (props.isEditMode && !isDragging) {
+            wiggleRotation.value = withDelay(wigglePhase, withRepeat(
+                withSequence(
+                    withTiming(-1.5, {duration: 120}),
+                    withTiming(1.5, {duration: 240}),
+                    withTiming(0, {duration: 120}),
+                ),
+                -1,
+                true
+            ))
+        } else {
+            wiggleRotation.value = withTiming(0, {duration: 100})
+        }
+    }, [props.isEditMode, isDragging])
+    const wiggleStyle = useAnimatedStyle(() => ({
+        transform: [{rotate: `${wiggleRotation.value}deg`}] as any,
+    }))
+
     const wrapperViewStyle = useAnimatedStyle(() => ({
         position: "absolute",
         left: itemX.value + (isResizing.value ? resizeLeft.value : 0),
@@ -178,10 +206,10 @@ export function MovableItem(props: MovableItemProps) {
     >
         <GestureDetector gesture={compoundGesture}>
             <Animated.View
-                style={{
+                style={[{
                     width: '100%', height: '100%',
                     justifyContent: 'center', alignItems: 'center'
-                }}>
+                }, wiggleStyle]}>
                 {props.children}
                 <View style={{
                     position: 'absolute', left: 0, top: 0, width: '100%', height: '100%',

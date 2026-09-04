@@ -1,10 +1,11 @@
-import {useAnimatedStyle, useSharedValue} from "react-native-reanimated";
+import {useSharedValue} from "react-native-reanimated";
 import {Gesture} from "react-native-gesture-handler";
 import {HomescreenState} from "@homescreen/types";
 
 /**
- * Browsing vs. editing (drag/resize enabled). A long press on empty canvas toggles it,
- * with a tinted background while in edit mode. Doesn't know about drag/drop itself —
+ * Browsing vs. editing (drag/resize enabled). A long press on empty canvas toggles it.
+ * Signaled to the user via the dot-grid background appearing and the tiles wiggling
+ * (see MovableItem) rather than a screen-wide tint. Doesn't know about drag/drop itself —
  * just whether it's currently allowed.
  */
 export function useHomescreenEditMode() {
@@ -18,15 +19,5 @@ export function useHomescreenEditMode() {
                     : "default"
         })
 
-    const editBackgroundStyle = useAnimatedStyle(() => ({
-        position: 'absolute', top: 0, left: 0,
-        width: '100%', height: '100%',
-        backgroundColor:
-            (homescreenState.value === "default")
-                ? 'transparent'
-                : 'rgba(163,102,163,0.44)',
-        zIndex: 1
-    }));
-
-    return {homescreenState, longTap, editBackgroundStyle}
+    return {homescreenState, longTap}
 }

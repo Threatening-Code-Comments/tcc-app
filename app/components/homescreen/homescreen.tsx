@@ -1,4 +1,5 @@
 import React, {useState} from "react";
+import {View} from "react-native";
 import Animated, {runOnJS, SharedValue, useAnimatedReaction, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {Folder, Item} from "@components/homescreen/ui/item-and-folder";
 import {MovableItemProps} from "@components/homescreen/ui/movable-item";
@@ -52,7 +53,7 @@ export const Homescreen = ({folderId, folders, onEnterFolder}: Props) => {
         () => setMountKey(k => k + 1)
     )
 
-    const {homescreenState, longTap, editBackgroundStyle} = useHomescreenEditMode()
+    const {homescreenState, longTap} = useHomescreenEditMode()
     const isEditMode = homescreenState.value === "edit"
 
     const onElementTap = (e: HS3Element) => {
@@ -141,9 +142,9 @@ export const Homescreen = ({folderId, folders, onEnterFolder}: Props) => {
 
     return <>
         <GestureDetector gesture={longTap}>
-            <Animated.View style={editBackgroundStyle}>
+            <View style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1}}>
                 <DotGridBackground mode={homescreenState.value}/>
-            </Animated.View>
+            </View>
         </GestureDetector>
 
         {!dropTarget.value && (<PreviewItem
