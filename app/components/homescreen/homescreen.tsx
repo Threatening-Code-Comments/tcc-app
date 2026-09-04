@@ -10,6 +10,7 @@ import {GestureDetector} from "react-native-gesture-handler";
 import {FolderPopover} from "@components/homescreen/ui/folder-popover";
 import {DotGridBackground} from "@homescreen/ui/dot-grid";
 import {useHomescreenContext} from "@components/homescreen/homescreen-context";
+import {HS3Element} from "@components/homescreen/types";
 
 /**
  * Pure rendering of the current homescreen level — everything it needs comes from
@@ -25,6 +26,41 @@ export const Homescreen = () => {
         editBackgroundStyle, folderOverlayStyle, longTap,
         itemPopupComponent, createPositionOverlay, tileCreatePopup,
     } = useHomescreenContext()
+
+    const isEditMode = homescreenState.value === "edit"
+
+    const impossibleElementKeys = new Set(tempElementsImpossible.value.map(getElementKey))
+
+    const stableElements = visibleElements.value
+        .filter(e => !tempElements.value.some(e2 => isSameElement(e, e2)))
+
+    const createFabProps = showCreateFABs.value
+        ? {icon: "window-close", label: "Cancel", variant: "tertiary" as const}
+        : {icon: "plus", label: "", variant: "primary" as const}
+
+    const renderElement = (e: HS3Element) =>
+        ("itemId" in e)
+            ? <Item key={`${mountKey}-${currentLevel.value}-t-${e.itemId}`} item={e}
+                    onDragStart={() => itemRunnables.onDragStart(e)}
+                    onDragUpdate={(coordinate) => itemRunnables.onDragUpdate(e, coordinate)}
+                    onDragEnd={() => itemRunnables.onDragEnd(e)}
+                    onTap={() => itemRunnables.onTap(e)}
+                    onLongPress={(coordinate) => itemRunnables.onLongTap(e, coordinate)}
+                    isEditMode={isEditMode}
+                    onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
+                    onResizeEnd={(pos) => onResizeEnd(e, pos)}
+            />
+            : <Folder key={`${mountKey}-${currentLevel.value}-f-${e.folderId}`} folder={e}
+                      onDragStart={() => folderRunnables.onDragStart(e)}
+                      onDragUpdate={(coordinate) => folderRunnables.onDragUpdate(e, coordinate)}
+                      onDragEnd={() => folderRunnables.onDragEnd(e)}
+                      onTap={() => folderRunnables.onTap(e)}
+                      onLongPress={(coordinate) => folderRunnables.onLongTap(e, coordinate)}
+                      isEditMode={isEditMode}
+                      onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
+                      onResizeEnd={(pos) => onResizeEnd(e, pos)}
+                      children={folders.value.filter(f => f.parentId === e.folderId)}
+            />
 
     return <>
         <GestureDetector gesture={longTap}>
@@ -94,7 +130,7 @@ export const Homescreen = () => {
             <PreviewItem
                 key={getElementKey(i)}
                 element={i}
-                impossible={tempElementsImpossible.value.some(i2 => isSameElement(i, i2))}
+                impossible={impossibleElementKeys.has(getElementKey(i))}
             />
         ))}
 
@@ -105,15 +141,7 @@ export const Homescreen = () => {
             right: 20, bottom: 150,
             zIndex: 100,
         }} size={"medium"}
-             icon={!!showCreateFABs.value ?
-                 "window-close" : "plus"}
-
-             label={!!showCreateFABs.value ?
-                 "Cancel" : ""}
-             variant={!!showCreateFABs.value ?
-                 "tertiary" : "primary"}
-
-
+             {...createFabProps}
              onPress={() => {
                  showCreateFABs.value = (!showCreateFABs.value)
              }}
@@ -143,33 +171,6 @@ export const Homescreen = () => {
             </View>
             : null}
 
-        {visibleElements.value
-            .filter(e => !tempElements.value.some(e2 => isSameElement(e, e2)))
-            .map((e, index) =>
-                ("itemId" in e)
-                    ? <Item key={`${mountKey}-${currentLevel.value}-t-${e.itemId}`} item={e}
-                             onDragStart={() => itemRunnables.onDragStart(e)}
-                             onDragUpdate={(coordinate) => itemRunnables.onDragUpdate(e, coordinate)}
-                             onDragEnd={() => itemRunnables.onDragEnd(e)}
-                             onTap={() => itemRunnables.onTap(e)}
-                             onLongPress={(coordinate) => itemRunnables.onLongTap(e, coordinate)}
-                             isEditMode={homescreenState.value === "edit"}
-                             onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
-                             onResizeEnd={(pos) => onResizeEnd(e, pos)}
-                    />
-                    : <Folder key={`${mountKey}-${currentLevel.value}-f-${e.folderId}`} folder={e}
-                               onDragStart={() => folderRunnables.onDragStart(e)}
-                               onDragUpdate={(coordinate) => folderRunnables.onDragUpdate(e, coordinate)}
-                               onDragEnd={() => folderRunnables.onDragEnd(e)}
-                               onTap={() => folderRunnables.onTap(e)}
-                               onLongPress={(coordinate) => folderRunnables.onLongTap(e, coordinate)}
-                               isEditMode={homescreenState.value === "edit"}
-                               onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
-                               onResizeEnd={(pos) => onResizeEnd(e, pos)}
-                               children={folders.value.filter(f => f.parentId === e.folderId)}
-                    />
-            )
-
-        }
+        {stableElements.map(renderElement)}
     </>
 }

@@ -2,17 +2,18 @@ import React, {useEffect, useState} from "react";
 import {HS3Element, HS3Folder, HS3Item} from './types'
 import {getFoldersFromDb} from "@components/homescreen/db-mock";
 import {Text} from "react-native-paper";
-import {runOnJS, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from "react-native-reanimated";
-import {BackHandler, ToastAndroid, View} from "react-native";
+import {runOnJS, useAnimatedReaction, useSharedValue} from "react-native-reanimated";
+import {ToastAndroid, View} from "react-native";
 
-import {HomescreenState, PixelPoint} from "@components/homescreen/types";
-import {getFolderPath, getFoldersForLevel, getModifiedTempElements, goUpLevel,} from "@components/homescreen/util";
+import {PixelPoint} from "@components/homescreen/types";
+import {getModifiedTempElements} from "@components/homescreen/util";
 import {useItemPopup} from "@components/homescreen/ui/item-popup";
-import {Gesture} from "react-native-gesture-handler";
 import {useCreateLayoutOverlay, useCreateTilePopup} from "@components/homescreen/ui/useCreateTileOrFolderPopup";
 import {HomescreenProvider} from "@components/homescreen/homescreen-context";
 import {Homescreen} from "@components/homescreen/homescreen";
 import {useHomescreenDragAndDrop} from "@components/homescreen/useHomescreenDragAndDrop";
+import {useHomescreenNavigation} from "@components/homescreen/useHomescreenNavigation";
+import {useHomescreenEditMode} from "@components/homescreen/useHomescreenEditMode";
 
 type Props = {}
 
@@ -35,22 +36,11 @@ export const HomescreenManager = (props: Props) => {
             )
     }, []);
 
-    //root level / level management
-    const currentLevel = useSharedValue<number | undefined>(undefined)
-    const currentFolderLevel = useDerivedValue(() => {
-        return getFoldersForLevel(folders.value, currentLevel.value)
-    }, [folders, currentLevel])
-    const folderPath = useDerivedValue(() => {
-        return getFolderPath(folders.value, currentLevel.value)
-    }, [folders, currentLevel])
-    const visibleElements = useDerivedValue<HS3Element[]>(() => {
-        if (!currentFolderLevel.value.main) return []
-        console.log("update!")
-        return [
-            ...currentFolderLevel.value.main.items,
-            ...currentFolderLevel.value.more
-        ]
-    }, [currentFolderLevel])
+    //----------- navigation (level, breadcrumb, back button)
+    const {
+        currentLevel, currentFolderLevel, folderPath, visibleElements,
+        onFolderTap,
+    } = useHomescreenNavigation(folders)
 
     //----------- drag & drop (drag/resize handlers + the preview/temp-item derivation chain)
     const {
@@ -63,8 +53,8 @@ export const HomescreenManager = (props: Props) => {
         () => setMountKey(k => k + 1)
     )
 
-    //----------- homescreen state
-    const homescreenState = useSharedValue<HomescreenState>("edit")//"default")
+    //----------- browsing vs. editing
+    const {homescreenState, longTap, editBackgroundStyle} = useHomescreenEditMode()
 
     type RunnablesForElements<T> = {
         onDragStart: (e: T) => void
@@ -88,27 +78,6 @@ export const HomescreenManager = (props: Props) => {
         onLongTap: (f, c) => onLongTap(f, c)
     }
 
-
-    // native back button handling
-    useEffect(() => {
-        const backAction = () => {
-            goUpLevel(currentLevel, folders)
-            return true;
-        };
-
-        const backHandler = BackHandler.addEventListener(
-            'hardwareBackPress',
-            backAction,
-        );
-
-        return () => backHandler.remove();
-    }, []);
-
-    ////---------Tile / Folder Events------------
-    const onFolderTap = (folder: HS3Folder) => {
-        currentLevel.value = folder.folderId
-    }
-    ////---------Tile / Folder Events------------
 
     const onLongTap = (e: HS3Element, coordinate: PixelPoint) => {
         // contextMenuCoordinates.value = {
@@ -171,25 +140,6 @@ export const HomescreenManager = (props: Props) => {
         }, [dropTarget, dragState]
     )
     //🔁
-
-    const longTap = Gesture.LongPress()
-        .onStart(() => {
-            console.log('onStart')
-            homescreenState.value =
-                (homescreenState.value === "default")
-                    ? "edit"
-                    : "default"
-        })
-
-    const editBackgroundStyle = useAnimatedStyle(() => ({
-        position: 'absolute', top: 0, left: 0,
-        width: '100%', height: '100%',
-        backgroundColor:
-            (homescreenState.value === "default")
-                ? 'transparent'
-                : 'rgba(163,102,163,0.44)',
-        zIndex: 1
-    }), [homescreenState.value]);
 
     const showCreateFABs = useSharedValue<boolean>(undefined)
     useAnimatedReaction(() => showCreateFABs.value,
