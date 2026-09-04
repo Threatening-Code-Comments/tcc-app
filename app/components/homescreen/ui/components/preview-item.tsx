@@ -8,7 +8,7 @@ import Animated, {
     withTiming
 } from "react-native-reanimated";
 import {GRID_UNIT} from "@homescreen/move_algo";
-import {Text} from "react-native-paper";
+import {Text, useTheme} from "react-native-paper";
 
 const SHAKE_OFFSET = 5;
 
@@ -22,6 +22,7 @@ export type PreviewItemProps = {
 // type AnimatedPropsPreviewItem = Partial<PreviewItemProps>;
 export const PreviewItem = (props: PreviewItemProps) => {
     const {element, impossible, isDragElement = false} = props;
+    const {colors} = useTheme();
 
     const {layout: {x, y, width, height}} = element ?? {layout: {x: 0, y: 0, width: 0, height: 0}};
     const translationYShakeOffset = useSharedValue<number>(0);
@@ -54,7 +55,7 @@ export const PreviewItem = (props: PreviewItemProps) => {
         width: width * GRID_UNIT,
         height: height * GRID_UNIT,
         backgroundColor: (impossible) ? "#ff000040" : "transparent",
-        borderColor: (isDragElement) ? "purple" : (impossible) ? "red" : "black",
+        borderColor: (isDragElement) ? "purple" : (impossible) ? "red" : (element?.color ?? "black"),
         borderWidth: 2,
         borderRadius: 4,
         transform: [
@@ -81,8 +82,10 @@ export const PreviewItem = (props: PreviewItemProps) => {
     }
 
     return (<Animated.View style={itemStyle}>
-        {props.isCreateElement &&
-            <Text style={{color: 'black', alignSelf: 'center', justifyContent: 'center',}}>{props.element.name}</Text>}
+        {!isDragElement &&
+            <Text style={{color: colors.onBackground, alignSelf: 'center', justifyContent: 'center',}}>
+                {props.element.name}
+            </Text>}
     </Animated.View>)
 }
 
