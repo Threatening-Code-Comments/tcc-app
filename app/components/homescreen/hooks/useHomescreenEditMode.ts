@@ -26,7 +26,7 @@ export function useHomescreenEditMode() {
                 ? 'transparent'
                 : 'rgba(163,102,163,0.44)',
         zIndex: 1
-    }), [homescreenState.value]);
+    }));
 
     return {homescreenState, longTap, editBackgroundStyle}
 }
