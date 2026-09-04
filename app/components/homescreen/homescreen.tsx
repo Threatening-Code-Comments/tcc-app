@@ -22,7 +22,8 @@ export const Homescreen = () => {
         folders, currentLevel, folderPath, visibleElements,
         dragState, previewElement, dropTarget, tempElements, tempElementsImpossible,
         homescreenState, showCreateFABs,
-        folderRunnables, itemRunnables, onResizeUpdate, onResizeEnd, onFolderPopoverChange,
+        onDragStart, onDragUpdate, onDragEnd, onElementTap, onLongTap,
+        onResizeUpdate, onResizeEnd, onFolderPopoverChange,
         editBackgroundStyle, folderOverlayStyle, longTap,
         itemPopupComponent, createPositionOverlay, tileCreatePopup,
     } = useHomescreenContext()
@@ -41,21 +42,21 @@ export const Homescreen = () => {
     const renderElement = (e: HS3Element) =>
         ("itemId" in e)
             ? <Item key={`${mountKey}-${currentLevel.value}-t-${e.itemId}`} item={e}
-                    onDragStart={() => itemRunnables.onDragStart(e)}
-                    onDragUpdate={(coordinate) => itemRunnables.onDragUpdate(e, coordinate)}
-                    onDragEnd={() => itemRunnables.onDragEnd(e)}
-                    onTap={() => itemRunnables.onTap(e)}
-                    onLongPress={(coordinate) => itemRunnables.onLongTap(e, coordinate)}
+                    onDragStart={() => onDragStart(e)}
+                    onDragUpdate={(coordinate) => onDragUpdate(e, coordinate)}
+                    onDragEnd={() => onDragEnd(e)}
+                    onTap={() => onElementTap(e)}
+                    onLongPress={(coordinate) => onLongTap(e, coordinate)}
                     isEditMode={isEditMode}
                     onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
                     onResizeEnd={(pos) => onResizeEnd(e, pos)}
             />
             : <Folder key={`${mountKey}-${currentLevel.value}-f-${e.folderId}`} folder={e}
-                      onDragStart={() => folderRunnables.onDragStart(e)}
-                      onDragUpdate={(coordinate) => folderRunnables.onDragUpdate(e, coordinate)}
-                      onDragEnd={() => folderRunnables.onDragEnd(e)}
-                      onTap={() => folderRunnables.onTap(e)}
-                      onLongPress={(coordinate) => folderRunnables.onLongTap(e, coordinate)}
+                      onDragStart={() => onDragStart(e)}
+                      onDragUpdate={(coordinate) => onDragUpdate(e, coordinate)}
+                      onDragEnd={() => onDragEnd(e)}
+                      onTap={() => onElementTap(e)}
+                      onLongPress={(coordinate) => onLongTap(e, coordinate)}
                       isEditMode={isEditMode}
                       onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
                       onResizeEnd={(pos) => onResizeEnd(e, pos)}

@@ -1,17 +1,9 @@
 import React, {createContext, useContext} from "react";
 import {SharedValue} from "react-native-reanimated";
-import {GridValue, HS3Element, HS3Folder, HS3Item, PixelPoint, DragState, HomescreenState} from "@components/homescreen/types";
+import {GridValue, HS3Element, HS3Folder, PixelPoint, DragState, HomescreenState} from "@components/homescreen/types";
 import {DragPointPosition} from "@components/homescreen/ui/drag-point";
 import {FolderOperations} from "@components/homescreen/ui/folder-popover";
 import {DropTarget} from "@components/homescreen/useHomescreenDragAndDrop";
-
-export type RunnablesForElements<T> = {
-    onDragStart: (e: T) => void
-    onDragUpdate: (e: T, coordinate: PixelPoint) => void,
-    onDragEnd: (e: T) => void,
-    onTap: (e: T) => void
-    onLongTap: (e: T, coordinate: PixelPoint) => void,
-}
 
 /**
  * Everything the `Homescreen` render component needs, bundled as-is from `HomescreenManager`.
@@ -34,8 +26,11 @@ export type HomescreenContextValue = {
     homescreenState: SharedValue<HomescreenState>,
     showCreateFABs: SharedValue<boolean>,
 
-    folderRunnables: RunnablesForElements<HS3Folder>,
-    itemRunnables: RunnablesForElements<HS3Item>,
+    onDragStart: (e: HS3Element) => void,
+    onDragUpdate: (e: HS3Element, coordinate: PixelPoint) => void,
+    onDragEnd: (e: HS3Element) => void,
+    onElementTap: (e: HS3Element) => void,
+    onLongTap: (e: HS3Element, coordinate: PixelPoint) => void,
     onResizeUpdate: (element: HS3Element, position: DragPointPosition, deltaX: GridValue, deltaY: GridValue) => void,
     onResizeEnd: (element: HS3Element, pos: DragPointPosition) => void,
     onFolderPopoverChange: (op: FolderOperations) => void,

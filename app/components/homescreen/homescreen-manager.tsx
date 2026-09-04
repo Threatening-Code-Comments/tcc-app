@@ -56,28 +56,13 @@ export const HomescreenManager = (props: Props) => {
     //----------- browsing vs. editing
     const {homescreenState, longTap, editBackgroundStyle} = useHomescreenEditMode()
 
-    type RunnablesForElements<T> = {
-        onDragStart: (e: T) => void
-        onDragUpdate: (e: T, coordinate: PixelPoint) => void,
-        onDragEnd: (e: T) => void,
-        onTap: (e: T) => void
-        onLongTap: (e: T, coordinate: PixelPoint) => void,
+    const onElementTap = (e: HS3Element) => {
+        if ("itemId" in e) {
+            console.log("ITEM HAS BEEN TUOCHED", e.itemId)
+        } else {
+            onFolderTap(e)
+        }
     }
-    const folderRunnables: RunnablesForElements<HS3Folder> = {
-        onDragStart: (f) => onDragStart(f),
-        onDragUpdate: (f, coordinate) => onDragUpdate(f, coordinate),
-        onDragEnd: (f) => onDragEnd(f),
-        onTap: (f) => onFolderTap(f),
-        onLongTap: (f, c) => onLongTap(f, c)
-    }
-    const itemRunnables: RunnablesForElements<HS3Item> = {
-        onDragStart: (f) => onDragStart(f),
-        onDragUpdate: (f, coordinate) => onDragUpdate(f, coordinate),
-        onDragEnd: (f) => onDragEnd(f),
-        onTap: (f) => console.log("ITEM HAS BEEN TUOCHED", f.itemId),
-        onLongTap: (f, c) => onLongTap(f, c)
-    }
-
 
     const onLongTap = (e: HS3Element, coordinate: PixelPoint) => {
         // contextMenuCoordinates.value = {
@@ -221,7 +206,8 @@ export const HomescreenManager = (props: Props) => {
         folders, currentLevel, folderPath, visibleElements,
         dragState, previewElement, dropTarget, tempElements, tempElementsImpossible,
         homescreenState, showCreateFABs,
-        folderRunnables, itemRunnables, onResizeUpdate, onResizeEnd, onFolderPopoverChange,
+        onDragStart, onDragUpdate, onDragEnd, onElementTap, onLongTap,
+        onResizeUpdate, onResizeEnd, onFolderPopoverChange,
         editBackgroundStyle, folderOverlayStyle, longTap,
         itemPopupComponent, createPositionOverlay, tileCreatePopup,
     }}>
