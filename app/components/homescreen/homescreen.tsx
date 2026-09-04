@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import Animated, {runOnJS, SharedValue, useAnimatedReaction, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {Folder, Item} from "@components/homescreen/ui/item-and-folder";
+import {MovableItemProps} from "@components/homescreen/ui/movable-item";
 import {PreviewItem} from "@homescreen/ui/components/preview-item";
 import {getElementKey, getFoldersForLevel, isSameElement} from "@components/homescreen/util";
 import {FolderPopover} from "@components/homescreen/ui/folder-popover";
@@ -118,29 +119,25 @@ export const Homescreen = ({folderId, folders, onEnterFolder}: Props) => {
     const stableElements = visibleElements.value
         .filter(e => !tempElements.value.some(e2 => isSameElement(e, e2)))
 
-    const renderElement = (e: HS3Element) =>
-        ("itemId" in e)
-            ? <Item key={`${mountKey}-t-${e.itemId}`} item={e}
-                    onDragStart={() => onDragStart(e)}
-                    onDragUpdate={(coordinate) => onDragUpdate(e, coordinate)}
-                    onDragEnd={() => onDragEnd(e)}
-                    onTap={() => onElementTap(e)}
-                    onLongPress={() => onLongTap(e)}
-                    isEditMode={isEditMode}
-                    onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
-                    onResizeEnd={(pos) => onResizeEnd(e, pos)}
-            />
-            : <Folder key={`${mountKey}-f-${e.folderId}`} folder={e}
-                      onDragStart={() => onDragStart(e)}
-                      onDragUpdate={(coordinate) => onDragUpdate(e, coordinate)}
-                      onDragEnd={() => onDragEnd(e)}
-                      onTap={() => onElementTap(e)}
-                      onLongPress={() => onLongTap(e)}
-                      isEditMode={isEditMode}
-                      onResizeUpdate={(pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY)}
-                      onResizeEnd={(pos) => onResizeEnd(e, pos)}
-                      children={folders.value.filter(f => f.parentId === e.folderId)}
-            />
+    const renderElement = (e: HS3Element) => {
+        //shared between Item and Folder — both are Omit<MovableItemProps, "children"|"layout">,
+        //and only differ in the item/folder prop itself plus Folder's own `children` (sub-folders).
+        const sharedProps: Omit<MovableItemProps, "children" | "layout"> = {
+            onDragStart: () => onDragStart(e),
+            onDragUpdate: (coordinate) => onDragUpdate(e, coordinate),
+            onDragEnd: () => onDragEnd(e),
+            onTap: () => onElementTap(e),
+            onLongPress: () => onLongTap(e),
+            isEditMode,
+            onResizeUpdate: (pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY),
+            onResizeEnd: (pos) => onResizeEnd(e, pos),
+        }
+
+        return ("itemId" in e)
+            ? <Item key={`${mountKey}-t-${e.itemId}`} item={e} {...sharedProps}/>
+            : <Folder key={`${mountKey}-f-${e.folderId}`} folder={e} {...sharedProps}
+                      children={folders.value.filter(f => f.parentId === e.folderId)}/>
+    }
 
     return <>
         <GestureDetector gesture={longTap}>
