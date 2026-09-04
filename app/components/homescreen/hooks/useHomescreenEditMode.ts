@@ -1,6 +1,6 @@
 import {useAnimatedStyle, useSharedValue} from "react-native-reanimated";
 import {Gesture} from "react-native-gesture-handler";
-import {HomescreenState} from "@components/homescreen/types";
+import {HomescreenState} from "@homescreen/types";
 
 /**
  * Browsing vs. editing (drag/resize enabled). A long press on empty canvas toggles it,

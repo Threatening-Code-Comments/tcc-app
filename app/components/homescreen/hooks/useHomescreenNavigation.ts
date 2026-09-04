@@ -1,8 +1,8 @@
 import {useEffect, useState} from "react";
 import {SharedValue} from "react-native-reanimated";
 import {BackHandler, ToastAndroid} from "react-native";
-import {HS3Folder} from "@components/homescreen/types";
-import {getFolderPath, getParentLevel} from "@components/homescreen/util";
+import {HS3Folder} from "@homescreen/types";
+import {getFolderPath, getParentLevel} from "@homescreen/util";
 
 /**
  * Which folder is the active one, and how to move between levels: breadcrumb path,

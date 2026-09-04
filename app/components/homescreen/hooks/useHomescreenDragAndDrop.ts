@@ -1,19 +1,19 @@
 import {SharedValue, useAnimatedStyle, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {ToastAndroid} from "react-native";
-import {DragState, GridValue, HS3Element, HS3Folder, PixelPoint} from "@components/homescreen/types";
-import {DragPointPosition} from "@components/homescreen/ui/drag-point";
-import {FolderOperations} from "@components/homescreen/ui/folder-popover";
+import {DragState, GridValue, HS3Element, HS3Folder, PixelPoint} from "@homescreen/types";
+import {DragPointPosition} from "@homescreen/ui/drag-point";
+import {FolderOperations} from "@homescreen/ui/folder-popover";
 import {
     createTempElements,
     generateElementResults,
     generateTempElements,
     getModifiedTempElements,
     getTargetLayout,
-} from "@components/homescreen/util";
-import {gridPointToPixel, gridToPx} from "@components/homescreen/move_algo";
-import {moveElementsToFolder} from "@components/homescreen/crud/move_elements";
-import {addToNewFolder} from "@components/homescreen/crud/createTileOrFolder";
-import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants";
+} from "@homescreen/util";
+import {gridPointToPixel, gridToPx} from "@homescreen/move_algo";
+import {moveElementsToFolder} from "@homescreen/crud/move_elements";
+import {addToNewFolder} from "@homescreen/crud/createTileOrFolder";
+import {FOLDER_HOVER_OVERLAY_INSET} from "@homescreen/constants";
 
 export type DropTarget = {
     element: HS3Element

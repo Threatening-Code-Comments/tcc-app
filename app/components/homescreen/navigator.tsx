@@ -4,7 +4,7 @@ import {useSharedValue} from "react-native-reanimated";
 import {View} from "react-native";
 import {HS3Folder} from "./types";
 import {getFoldersFromDb} from "@components/homescreen/db-mock";
-import {useHomescreenNavigation} from "@components/homescreen/useHomescreenNavigation";
+import {useHomescreenNavigation} from "@homescreen/hooks/useHomescreenNavigation";
 import {IconButton} from "@components/IconButton";
 import {Homescreen} from "@components/homescreen/homescreen";
 

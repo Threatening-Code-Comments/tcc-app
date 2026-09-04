@@ -1,17 +1,15 @@
 import React, {useState} from "react";
-import {FAB} from "react-native-paper";
 import Animated, {runOnJS, SharedValue, useAnimatedReaction, useDerivedValue, useSharedValue} from "react-native-reanimated";
-import {ToastAndroid, View} from "react-native";
 import {Folder, Item} from "@components/homescreen/ui/item-and-folder";
 import {PreviewItem} from "@homescreen/ui/preview-item";
-import {getElementKey, getFoldersForLevel, getModifiedTempElements, isSameElement} from "@components/homescreen/util";
+import {getElementKey, getFoldersForLevel, isSameElement} from "@components/homescreen/util";
 import {FolderPopover} from "@components/homescreen/ui/folder-popover";
 import {DotGridBackground} from "@homescreen/ui/dot-grid";
+import {CreateElementControls} from "@homescreen/ui/create-element-controls";
 import {HS3Element, HS3Folder, HS3Item} from "@components/homescreen/types";
-import {useHomescreenDragAndDrop} from "@components/homescreen/useHomescreenDragAndDrop";
-import {useHomescreenEditMode} from "@components/homescreen/useHomescreenEditMode";
+import {useHomescreenDragAndDrop} from "@homescreen/hooks/useHomescreenDragAndDrop";
+import {useHomescreenEditMode} from "@homescreen/hooks/useHomescreenEditMode";
 import {useItemPopup} from "@components/homescreen/ui/item-popup";
-import {useCreateLayoutOverlay, useCreateTilePopup} from "@components/homescreen/ui/useCreateTileOrFolderPopup";
 import {GestureDetector} from "react-native-gesture-handler";
 
 type Props = {
@@ -115,70 +113,10 @@ export const Homescreen = ({folderId, folders, onEnterFolder}: Props) => {
     )
     //🔁
 
-    const [showCreateFABs, setShowCreateFABs] = useState(false)
-    const createPositionOverlay = useCreateLayoutOverlay({
-        onStart: (layout, coordinate) => {
-            dragState.value = {
-                type: "create",
-                element: layout, coordinate
-            }
-        },
-        onUpdate: (layout, coordinate) => {
-            dragState.value = {
-                type: "create",
-                element: layout, coordinate
-            }
-        },
-        onCancel: () => {
-            dragState.value = undefined
-            setShowCreateFABs(false)
-        },
-        onConfirm: (element) => {
-            if (tempElementsImpossible.value.length > 0) {
-                ToastAndroid.show("Error......", ToastAndroid.SHORT)
-                dragState.value = undefined
-                setShowCreateFABs(false)
-                return
-            }
-            let newFolders = folders.value
-
-            if ("itemId" in element) {
-                const parent = folders.value.find(f => f.folderId === element.parentId)
-                parent.items = [...parent.items, element]
-
-                newFolders = folders.value.map(f =>
-                    (f.folderId === element.parentId)
-                        ? parent
-                        : f
-                )
-            } else {
-                newFolders = [...folders.value, element]
-            }
-
-            folders.value = getModifiedTempElements(
-                tempElements.value,
-                newFolders
-            )
-
-            dragState.value = undefined
-            setShowCreateFABs(false)
-            setMountKey(k => k + 1)
-        }
-    })
-    const tileCreatePopup = useCreateTilePopup({
-        folders: folders.value,
-        currentLevel: folderId,
-        onSubmit: (item: HS3Item) => createPositionOverlay.setElement(item)
-    })
-
     const impossibleElementKeys = new Set(tempElementsImpossible.value.map(getElementKey))
 
     const stableElements = visibleElements.value
         .filter(e => !tempElements.value.some(e2 => isSameElement(e, e2)))
-
-    const createFabProps = showCreateFABs
-        ? {icon: "window-close", label: "Cancel", variant: "tertiary" as const}
-        : {icon: "plus", label: "", variant: "primary" as const}
 
     const renderElement = (e: HS3Element) =>
         ("itemId" in e)
@@ -231,40 +169,11 @@ export const Homescreen = ({folderId, folders, onEnterFolder}: Props) => {
             />
         ))}
 
-        {createPositionOverlay.component}
-        {tileCreatePopup.component}
-        <FAB style={{
-            position: "absolute",
-            right: 20, bottom: 150,
-            zIndex: 100,
-        }} size={"medium"}
-             {...createFabProps}
-             onPress={() => setShowCreateFABs(v => !v)}
+        <CreateElementControls
+            folders={folders} folderId={folderId}
+            dragState={dragState} tempElements={tempElements} tempElementsImpossible={tempElementsImpossible}
+            onMutated={() => setMountKey(k => k + 1)}
         />
-
-        {showCreateFABs
-            ? <View style={{
-                position: 'absolute',
-                bottom: 230, right: 25,
-                width: "100%",
-                display: "flex", flexDirection: "row",
-                justifyContent: "flex-end",
-                gap: 10, zIndex: 100
-            }}>
-                <FAB icon={"rectangle"}
-                     variant={"secondary"}
-                     label={"Tile"}
-                     style={{zIndex: 100}}
-                     onPress={() => tileCreatePopup.setVisible(true)}
-                />
-
-                <FAB icon={"folder"}
-                     variant={"secondary"}
-                     label={"Folder"}
-                     style={{zIndex: 100}}
-                />
-            </View>
-            : null}
 
         {stableElements.map(renderElement)}
     </>
