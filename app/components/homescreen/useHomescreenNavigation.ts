@@ -1,40 +1,35 @@
-import {useEffect} from "react";
-import {SharedValue, useDerivedValue, useSharedValue} from "react-native-reanimated";
-import {BackHandler} from "react-native";
-import {HS3Element, HS3Folder} from "@components/homescreen/types";
-import {getFolderPath, getFoldersForLevel, goUpLevel} from "@components/homescreen/util";
+import {useEffect, useState} from "react";
+import {SharedValue} from "react-native-reanimated";
+import {BackHandler, ToastAndroid} from "react-native";
+import {HS3Folder} from "@components/homescreen/types";
+import {getFolderPath, getParentLevel} from "@components/homescreen/util";
 
 /**
- * Which folder is currently open, and how to move between levels: breadcrumb path,
- * the elements visible at the current level, tapping into a folder, and the
- * hardware/on-screen back button. Doesn't know about drag/drop, edit mode, or popups.
+ * Which folder is the active one, and how to move between levels: breadcrumb path,
+ * tapping into a folder, going up one level (back button, hardware or on-screen).
+ *
+ * `currentLevel` is plain React state, not a SharedValue — it's what drives
+ * `<Homescreen key={currentLevel}/>`'s remount, so it has to go through React's
+ * render cycle rather than bypass it the way SharedValues do.
  */
 export function useHomescreenNavigation(folders: SharedValue<HS3Folder[]>) {
-    const currentLevel = useSharedValue<number | undefined>(undefined)
+    const [currentLevel, setCurrentLevel] = useState<number | undefined>(undefined)
 
-    const currentFolderLevel = useDerivedValue(() => {
-        return getFoldersForLevel(folders.value, currentLevel.value)
-    }, [folders, currentLevel])
+    const folderPath = getFolderPath(folders.value, currentLevel)
 
-    const folderPath = useDerivedValue(() => {
-        return getFolderPath(folders.value, currentLevel.value)
-    }, [folders, currentLevel])
+    const goToLevel = (folderId: number | undefined) => setCurrentLevel(folderId)
 
-    const visibleElements = useDerivedValue<HS3Element[]>(() => {
-        if (!currentFolderLevel.value.main) return []
-        return [
-            ...currentFolderLevel.value.main.items,
-            ...currentFolderLevel.value.more
-        ]
-    }, [currentFolderLevel])
-
-    const onFolderTap = (folder: HS3Folder) => {
-        currentLevel.value = folder.folderId
+    const goUp = () => {
+        if (currentLevel === undefined) {
+            ToastAndroid.show("Already at root level", ToastAndroid.SHORT)
+            return
+        }
+        setCurrentLevel(getParentLevel(folders.value, currentLevel))
     }
 
     useEffect(() => {
         const backAction = () => {
-            goUpLevel(currentLevel, folders)
+            goUp()
             return true;
         };
 
@@ -44,10 +39,10 @@ export function useHomescreenNavigation(folders: SharedValue<HS3Folder[]>) {
         );
 
         return () => backHandler.remove();
-    }, []);
+    }, [currentLevel]);
 
     return {
-        currentLevel, currentFolderLevel, folderPath, visibleElements,
-        onFolderTap,
+        currentLevel, folderPath,
+        goToLevel, goUp,
     }
 }

@@ -49,7 +49,7 @@ function applyModificationToElement(modifiedElement: HS3Element, folders: Shared
  */
 export function useHomescreenDragAndDrop(
     folders: SharedValue<HS3Folder[]>,
-    currentLevel: SharedValue<number | undefined>,
+    folderId: number | undefined,
     visibleElements: SharedValue<HS3Element[]>,
     onMutated: () => void,
 ) {
@@ -140,7 +140,7 @@ export function useHomescreenDragAndDrop(
                     modifiedElement,
                     {...target, layout: target.layout},
                     folders.value,
-                    currentLevel.value
+                    folderId
                 )
             } else {
                 folders.value = moveElementsToFolder(

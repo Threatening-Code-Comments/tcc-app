@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {AppDrawer} from "@components/homescreen/AppDrawer/AppDrawer";
-import {HomescreenManager} from "@components/homescreen/homescreen-manager";
+import {HomescreenNavigator} from "@components/homescreen/navigator";
 
 export const HomescreenTempWrapper = () => {
     const items = [
@@ -16,7 +16,7 @@ export const HomescreenTempWrapper = () => {
 
     return (
         <View style={styles.grid}>
-            <HomescreenManager/>
+            <HomescreenNavigator/>
 
             <AppDrawer items={items} isOpen={appDrawerOpen} onToggle={() => null} onDragEnd={() => null}
                        onDrop={() => null}/>

@@ -7,8 +7,6 @@ import {
     pxToGrid,
     snapPxToGridAsPx
 } from "@components/homescreen/move_algo";
-import {SharedValue} from "react-native-reanimated";
-import {ToastAndroid} from "react-native";
 import {DragState, FolderDisplayLevel, PixelPoint} from "@components/homescreen/types";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants"
 
@@ -325,14 +323,8 @@ export function getTargetLayout(dragState: DragState): HS3Element {
     }
 }
 
-export const goUpLevel = (currentLevel: SharedValue<number>, folders: SharedValue<HS3Folder[]>) => {
-    if (currentLevel.value === undefined) {
-        ToastAndroid.show("Already at root level", ToastAndroid.SHORT)
-        return
-    }
-
-    currentLevel.value = getFoldersForLevel(folders.value, currentLevel.value)
-        .main.parentId || undefined
+export const getParentLevel = (folders: HS3Folder[], level: number | undefined): number | undefined => {
+    return getFoldersForLevel(folders, level).main?.parentId ?? undefined
 }
 
 export const getFoldersForLevel
