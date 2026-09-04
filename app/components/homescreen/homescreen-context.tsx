@@ -1,10 +1,10 @@
 import React, {createContext, useContext} from "react";
 import {SharedValue} from "react-native-reanimated";
 import {GridValue, HS3Element, HS3Folder, HS3Item, PixelPoint} from "@components/homescreen/types";
-import {DragState4, HomescreenState} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
-import {DragPointPosition} from "@components/homescreen/top-down-homescreen/drag-point";
-import {FolderOperations} from "@components/homescreen/top-down-homescreen/folder-popover";
-import {DropTarget} from "@components/homescreen/top-down-homescreen/useHomescreenDragAndDrop";
+import {DragState4, HomescreenState} from "@components/homescreen/crud/hs-types";
+import {DragPointPosition} from "@components/homescreen/ui/drag-point";
+import {FolderOperations} from "@components/homescreen/ui/folder-popover";
+import {DropTarget} from "@components/homescreen/useHomescreenDragAndDrop";
 
 export type RunnablesForElements<T> = {
     onDragStart: (e: T) => void

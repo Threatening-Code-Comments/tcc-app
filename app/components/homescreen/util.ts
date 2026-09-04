@@ -1,4 +1,4 @@
-import {Dirs, DragState, HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from "../types";
+import {Dirs, DragState, HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from "./types";
 import {
     GRID_COLUMNS,
     GRID_ROWS,
@@ -12,7 +12,7 @@ import {ToastAndroid} from "react-native";
 import {
     DragState4,
     FolderDisplayLevel
-} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
+} from "@components/homescreen/crud/hs-types";
 import {PixelPoint} from "@components/homescreen/types";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants"
 

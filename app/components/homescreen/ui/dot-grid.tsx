@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import Svg, {Circle, Defs, Pattern, Rect} from 'react-native-svg';
 import {GRID_UNIT} from "@homescreen/move_algo";
-import {HomescreenState} from "@homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
+import {HomescreenState} from "@homescreen/crud/hs-types";
 
 export const DotGridBackground = ({mode}: { mode: HomescreenState }) => (mode == "edit") ? (
     <View style={StyleSheet.absoluteFillObject}>

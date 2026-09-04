@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {AppDrawer} from "@components/homescreen/AppDrawer/AppDrawer";
-import {HomescreenManager} from "@components/homescreen/top-down-homescreen/homescreen-manager";
+import {HomescreenManager} from "@components/homescreen/homescreen-manager";
 
 export const HomescreenComponent = () => {
     const items = [
@@ -16,16 +16,7 @@ export const HomescreenComponent = () => {
 
     return (
         <View style={styles.grid}>
-            {/* <HomeScreenHandler items={items} /> */}
-            {/*<HomescreenHandlerNew items={items}/>*/}
-            {/*<HomescreenHandler3 items={items.map((i)=>({*/}
-            {/*    layout: {x: i.x, y: i.y, width: i.width, height: i.height},*/}
-            {/*    itemId: i.id,*/}
-            {/*    parentId: undefined*/}
-            {/*}))} />*/}
-
             <HomescreenManager/>
-            {/* hs4*/}
 
             <AppDrawer items={items} isOpen={appDrawerOpen} onToggle={() => null} onDragEnd={() => null}
                        onDrop={() => null}/>

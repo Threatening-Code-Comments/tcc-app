@@ -1,4 +1,4 @@
-import {HS3Element, HS3Folder, PixelPoint} from "@homescreen/types";
+import {HS3Element, HS3Folder, PixelPoint} from "@components/homescreen/types";
 
 export type DragState4 = {
     element: HS3Element,

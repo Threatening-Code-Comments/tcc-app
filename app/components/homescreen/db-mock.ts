@@ -1,5 +1,5 @@
 import {HS3Folder} from "@components/homescreen/types";
-import {getRandomColor} from "@homescreen/top-down-homescreen/top-down-util";
+import {getRandomColor} from "@homescreen/util";
 
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 

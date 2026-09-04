@@ -2,7 +2,7 @@ import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle, useDerivedValu
 import {View} from "react-native";
 import React from "react";
 import {GRID_UNIT} from "@components/homescreen/move_algo";
-import {DragState4} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
+import {DragState4} from "@components/homescreen/crud/hs-types";
 import {HS3Element, PixelPoint} from "@components/homescreen/types";
 import {Icon} from "@components/Icon";
 

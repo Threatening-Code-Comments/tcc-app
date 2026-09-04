@@ -1,6 +1,6 @@
-import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from '../../types'
-import {calculateNextPositionInFolder, moveElementsToFolder} from "@components/homescreen/top-down-homescreen/model-and-crud/move_elements";
-import {getRandomColor, isSameElement} from "@homescreen/top-down-homescreen/top-down-util";
+import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from '../types'
+import {calculateNextPositionInFolder, moveElementsToFolder} from "@components/homescreen/crud/move_elements";
+import {getRandomColor, isSameElement} from "@homescreen/util";
 
 export const addToNewFolder = (
     draggedElement: HS3Element,

@@ -2,14 +2,14 @@ import React from "react";
 import {FAB, Text} from "react-native-paper";
 import Animated from "react-native-reanimated";
 import {View} from "react-native";
-import {Folder4, Item4} from "@components/homescreen/top-down-homescreen/item-and-folder";
-import {PreviewItem3} from "@homescreen/top-down-homescreen/3_previewItem";
-import {getElementKey, goUpLevel, isSameElement} from "@components/homescreen/top-down-homescreen/top-down-util";
+import {Folder4, Item4} from "@components/homescreen/ui/item-and-folder";
+import {PreviewItem3} from "@homescreen/ui/preview-item";
+import {getElementKey, goUpLevel, isSameElement} from "@components/homescreen/util";
 import {IconButton} from "@components/IconButton";
 import {GestureDetector} from "react-native-gesture-handler";
-import {FolderPopover} from "@components/homescreen/top-down-homescreen/folder-popover";
-import {DotGridBackground} from "@homescreen/top-down-homescreen/dot-grid";
-import {useHomescreenContext} from "@components/homescreen/top-down-homescreen/homescreen-context";
+import {FolderPopover} from "@components/homescreen/ui/folder-popover";
+import {DotGridBackground} from "@homescreen/ui/dot-grid";
+import {useHomescreenContext} from "@components/homescreen/homescreen-context";
 
 /**
  * Pure rendering of the current homescreen level — everything it needs comes from

@@ -1,4 +1,4 @@
-import {GridValue, HS3Element, HS3Folder, HS3Item, HS3LayoutParams, PixelPoint} from "../../types";
+import {GridValue, HS3Element, HS3Folder, HS3Item, HS3LayoutParams, PixelPoint} from "../types";
 import {GRID_COLUMNS} from "@homescreen/move_algo";
 
 // Helper function to check for overlap between two rectangular items.

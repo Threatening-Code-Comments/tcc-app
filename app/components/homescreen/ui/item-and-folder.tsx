@@ -1,11 +1,11 @@
 import {HS3Element, HS3Folder, HS3Item} from '../types'
 import {Text} from "react-native-paper";
 import React from "react";
-import {MovableItem, MovableItemProps} from "@components/homescreen/top-down-homescreen/movable-item";
+import {MovableItem, MovableItemProps} from "@components/homescreen/ui/movable-item";
 import {View} from "react-native";
 import {Icon} from "@components/Icon";
 import {GRID_COLUMNS} from "@components/homescreen/move_algo";
-import {ConcreteItemSlot, ItemDisplaySlot} from "@homescreen/top-down-homescreen/item-display-slots";
+import {ConcreteItemSlot, ItemDisplaySlot} from "@homescreen/ui/item-display-slots";
 
 type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     folder: HS3Folder,

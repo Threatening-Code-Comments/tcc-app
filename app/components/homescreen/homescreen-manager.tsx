@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
-import {HS3Element, HS3Folder, HS3Item} from './../types'
-import {getFoldersFromDb} from "@components/homescreen/top-down-homescreen/db-mock";
+import {HS3Element, HS3Folder, HS3Item} from './types'
+import {getFoldersFromDb} from "@components/homescreen/db-mock";
 import {Text} from "react-native-paper";
 import {
     runOnJS,
@@ -17,17 +17,17 @@ import {
     getFoldersForLevel,
     getModifiedTempItems,
     goUpLevel,
-} from "@components/homescreen/top-down-homescreen/top-down-util";
-import {HomescreenState} from "@components/homescreen/top-down-homescreen/model-and-crud/top-down-hs-types";
-import {useItemPopup} from "@components/homescreen/top-down-homescreen/item-popup";
+} from "@components/homescreen/util";
+import {HomescreenState} from "@components/homescreen/crud/hs-types";
+import {useItemPopup} from "@components/homescreen/ui/item-popup";
 import {Gesture} from "react-native-gesture-handler";
 import {
     useCreateLayoutOverlay,
     useCreateTilePopup
-} from "@components/homescreen/top-down-homescreen/useCreateTileOrFolderPopup";
-import {HomescreenProvider} from "@components/homescreen/top-down-homescreen/homescreen-context";
-import {Homescreen} from "@components/homescreen/top-down-homescreen/homescreen";
-import {useHomescreenDragAndDrop} from "@components/homescreen/top-down-homescreen/useHomescreenDragAndDrop";
+} from "@components/homescreen/ui/useCreateTileOrFolderPopup";
+import {HomescreenProvider} from "@components/homescreen/homescreen-context";
+import {Homescreen} from "@components/homescreen/homescreen";
+import {useHomescreenDragAndDrop} from "@components/homescreen/useHomescreenDragAndDrop";
 
 type Props = {}
 
