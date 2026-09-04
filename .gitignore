@@ -47,3 +47,6 @@ yarn-error.*
 
 # Claude Code
 /.claude/
+
+# local dev data (DB exports etc.) — never commit real user data
+/local-data/
