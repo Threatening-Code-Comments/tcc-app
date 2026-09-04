@@ -8,7 +8,7 @@ import {HomescreenState} from "@homescreen/types";
  * just whether it's currently allowed.
  */
 export function useHomescreenEditMode() {
-    const homescreenState = useSharedValue<HomescreenState>("edit")
+    const homescreenState = useSharedValue<HomescreenState>("default")
 
     const longTap = Gesture.LongPress()
         .onStart(() => {
