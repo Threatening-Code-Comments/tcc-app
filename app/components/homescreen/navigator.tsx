@@ -5,7 +5,7 @@ import {View} from "react-native";
 import {HS3Folder} from "./types";
 import {getFoldersFromDb} from "@components/homescreen/db-mock";
 import {useHomescreenNavigation} from "@homescreen/hooks/useHomescreenNavigation";
-import {IconButton} from "@components/IconButton";
+import {Breadcrumb} from "@homescreen/ui/components/breadcrumb";
 import {Homescreen} from "@components/homescreen/homescreen";
 
 type Props = {}
@@ -43,45 +43,7 @@ export const HomescreenNavigator = (props: Props) => {
     }
 
     return <>
-        {currentLevel !== undefined && (
-            <View style={{
-                position: "absolute",
-                top: 0, left: 0, right: 0,
-                zIndex: 100,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                paddingHorizontal: 10,
-                paddingTop: 10,
-            }} pointerEvents="box-none">
-                <IconButton
-                    iconName="back"
-                    onPress={goUp}
-                />
-                <View style={{flexDirection: "row", alignItems: "center", flexWrap: "wrap", flexShrink: 1}}>
-                    <Text
-                        style={{color: "black", fontWeight: "700"}}
-                        onPress={() => goToLevel(undefined)}
-                    >
-                        Home
-                    </Text>
-                    {folderPath.map((f, index) => (
-                        <View key={f.folderId} style={{flexDirection: "row", alignItems: "center"}}>
-                            <Text style={{color: "black"}}> / </Text>
-                            <Text
-                                style={{
-                                    color: "black",
-                                    fontWeight: index === folderPath.length - 1 ? "700" : "400"
-                                }}
-                                onPress={() => goToLevel(f.folderId)}
-                            >
-                                {f.name}
-                            </Text>
-                        </View>
-                    ))}
-                </View>
-            </View>
-        )}
+        <Breadcrumb currentLevel={currentLevel} folderPath={folderPath} goUp={goUp} goToLevel={goToLevel}/>
 
         <Homescreen key={currentLevel} folderId={currentLevel} folders={folders} onEnterFolder={goToLevel}/>
     </>
