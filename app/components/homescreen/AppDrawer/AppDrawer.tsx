@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {ScrollView, View} from "react-native";
-import {Card, Text, TextInput} from "react-native-paper";
+import {Text, TextInput, useTheme} from "react-native-paper";
 import {runOnJS, useAnimatedReaction} from "react-native-reanimated";
 import {IconButton} from "@components/IconButton";
 import {getContrastColor} from "@components/Colors";
@@ -20,6 +20,7 @@ const UNCATEGORIZED = 0
  */
 export function AppDrawer() {
     const {tiles, routines} = useHomescreenData()
+    const {colors} = useTheme()
     const [isOpen, setIsOpen] = useState(false)
     const [query, setQuery] = useState("")
 
@@ -51,7 +52,7 @@ export function AppDrawer() {
     ].filter(g => g.tiles.length > 0)
 
     return (
-        <Card
+        <View
             style={{
                 position: 'absolute',
                 bottom: 0,
@@ -63,6 +64,7 @@ export function AppDrawer() {
                 borderTopRightRadius: 16,
                 borderWidth: 5,
                 borderColor: "yellow",
+                backgroundColor: colors.elevation.level2,
             }}
         >
             <View style={{alignItems: "center", justifyContent: "center", paddingTop: 8}}>
@@ -101,7 +103,7 @@ export function AppDrawer() {
                     </ScrollView>
                 </View>
             )}
-        </Card>
+        </View>
     )
 }
 
