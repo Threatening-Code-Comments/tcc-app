@@ -16,25 +16,32 @@ it go stale.
    data (`db-mock.ts`) — no real DB wired up yet, that's step 5.
 2. ✅ **App Drawer rebuild.** Real tiles from the library, grouped by routine (one level —
    "flat" meant no *nested* sub-folders, not zero grouping; with hundreds of tiles a
-   grouping level is needed, per the prod-app Pages→Routines→Tiles screenshots). Typing a
-   search query flattens across every routine, standing in for the Pages-level "quick
-   access" the prod app has — still an open question whether that's enough or Pages need
-   their own equivalent later. Mock data now includes a small `routinesFromDb` (Konsum,
-   Diabetes, Haushalt) with tiles spread across them plus a couple left uncategorized, to
-   actually exercise the grouping instead of everything sitting in one bucket.
+   grouping level is needed, per the prod-app Pages→Routines→Tiles screenshots). Routines
+   show as a flat grid of tappable "folders" at the top level; tapping one navigates into
+   it to show just that routine's tiles (a small back row to return), rather than every
+   routine's tiles expanded inline at once. Typing a search query ignores this navigation
+   and flattens across every routine, standing in for the Pages-level "quick access" the
+   prod app has — still an open question whether that's enough or Pages need their own
+   equivalent later. Mock data now includes a small `routinesFromDb` (Konsum, Diabetes,
+   Haushalt) with tiles spread across them plus a couple left uncategorized, to actually
+   exercise the grouping instead of everything sitting in one bucket.
    `HomescreenDataProvider` moved up into `homescreenTempWrapper.tsx` (new
    `useHomescreenLibraryData` hook, now also loading `routines`) so App Drawer and the
    navigator can both reach it as peers — it used to live inside `navigator.tsx`, which
    left App Drawer with no way to reach `tiles` at all.
    Re: the "drawer only shows the search bar, nothing renders" report — found and fixed.
-   Two real, separate issues, in the order they were found: (1) `.claude/worktrees/*` are
+   Three real, separate issues, in the order they were found: (1) `.claude/worktrees/*` are
    full repo checkouts with no `metro.config.js` excluding them, and one worktree happened
    to have a file at the exact same relative path as `AppDrawer.tsx` — a project-wide risk,
    fixed once via `metro.config.js`/`.watchmanconfig`, unrelated to this bug specifically.
-   (2) The actual cause: the `ScrollView` around the tile grid had no `style` at all, so it
-   collapsed to zero visible height inside its `flex:1` parent — the tiles were always
-   there (confirmed via temporary logging: 11 tiles, 3 routines reaching every render), just
-   never given room to show. Fixed with `style={{flex: 1}}` on the ScrollView.
+   (2) The `ScrollView` around the tile grid had no `style` at all — fixed with
+   `flex: 1`, though this alone didn't fully explain it either. (3) The actual root cause,
+   found via loud debug borders on every layout layer: `react-native-paper`'s `Card` wasn't
+   passing usable flex height to its children at all (a `flex: 1` child inside it rendered
+   at ~0px regardless of what it contained) — swapped `Card` for a plain `View` (background
+   + `elevation` for the same look) and the whole thing rendered correctly immediately.
+   Worth remembering for any future bottom-sheet-style UI in this app: don't nest flex
+   layouts inside Paper's `Card`.
    Still no drag-out — that's step 3.
 3. **Drag from App Drawer onto Homescreen** — places a new item referencing an existing
    tile.

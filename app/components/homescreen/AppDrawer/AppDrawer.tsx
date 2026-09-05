@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {ScrollView, View} from "react-native";
+import {ScrollView, TouchableOpacity, View} from "react-native";
 import {Text, TextInput, useTheme} from "react-native-paper";
 import {runOnJS, useAnimatedReaction} from "react-native-reanimated";
 import {IconButton} from "@components/IconButton";
@@ -9,13 +9,19 @@ import {useHomescreenData} from "@components/homescreen/homescreen-data-context"
 
 const TILE_SIZE = 70
 const UNCATEGORIZED = 0
+//sentinel for the "no routine" bucket, distinct from a real routine.id and from
+//Tile.rootRoutineId's own UNCATEGORIZED (0) value used for tile-to-routine matching.
+const UNCATEGORIZED_KEY = "uncategorized"
+
+type RoutineGroup = { key: number | typeof UNCATEGORIZED_KEY, routine?: Routine, tiles: Tile[] }
 
 /**
- * The tile library, browsable/searchable. One level of grouping (by routine) —
- * with hundreds of tiles a flat list isn't enough, but a second nested level
- * (routines inside pages, like the production app) would add more complexity than
- * it's worth here. Search ignores the grouping and flattens across everything, the
- * same way "open + search" already substitutes for page-level quick access.
+ * The tile library, browsable/searchable. One level of grouping (by routine), shown as
+ * flat "folders" you tap into — not everything expanded inline at once. With hundreds of
+ * tiles, a flat list alone isn't enough, but a second nested level (routines inside pages,
+ * like the production app) would add more complexity than it's worth here. Search ignores
+ * the grouping and flattens across everything, the same way "open + search" already
+ * substitutes for page-level quick access.
  * Drag-out onto the homescreen isn't built yet — this is browse + search only for now.
  */
 export function AppDrawer() {
@@ -23,6 +29,7 @@ export function AppDrawer() {
     const {colors} = useTheme()
     const [isOpen, setIsOpen] = useState(false)
     const [query, setQuery] = useState("")
+    const [activeRoutine, setActiveRoutine] = useState<number | typeof UNCATEGORIZED_KEY | undefined>(undefined)
 
     //bridges tiles.value/routines.value changes (e.g. a new tile created elsewhere) into
     //a re-render, same pattern used throughout the homescreen for SharedValue-backed reads.
@@ -43,13 +50,16 @@ export function AppDrawer() {
     const isSearching = query.trim().length > 0
     const searchResults = isSearching ? allTiles.filter(matchesQuery) : []
 
-    const groups: { routine?: Routine, tiles: Tile[] }[] = [
-        ...allRoutines.map(routine => ({
+    const groups: RoutineGroup[] = [
+        ...allRoutines.map((routine): RoutineGroup => ({
+            key: routine.id,
             routine,
             tiles: allTiles.filter(t => t.rootRoutineId === routine.id)
         })),
-        {routine: undefined, tiles: allTiles.filter(t => t.rootRoutineId === UNCATEGORIZED)},
+        {key: UNCATEGORIZED_KEY, routine: undefined, tiles: allTiles.filter(t => t.rootRoutineId === UNCATEGORIZED)} as RoutineGroup,
     ].filter(g => g.tiles.length > 0)
+
+    const activeGroup = groups.find(g => g.key === activeRoutine)
 
     return (
         <View
@@ -62,9 +72,8 @@ export function AppDrawer() {
                 zIndex: 2000,
                 borderTopLeftRadius: 16,
                 borderTopRightRadius: 16,
-                borderWidth: 5,
-                borderColor: "yellow",
                 backgroundColor: colors.elevation.level2,
+                elevation: 8,
             }}
         >
             <View style={{alignItems: "center", justifyContent: "center", paddingTop: 8}}>
@@ -74,10 +83,7 @@ export function AppDrawer() {
             </View>
 
             {isOpen && (
-                <View style={{flex: 1, paddingHorizontal: 12, borderWidth: 5, borderColor: "lime"}}>
-                    <Text style={{fontSize: 20, color: "magenta", fontWeight: "900"}}>
-                        DEBUG: isOpen block rendered, {allTiles.length} tiles / {allRoutines.length} routines / {groups.length} groups
-                    </Text>
+                <View style={{flex: 1, paddingHorizontal: 12}}>
                     <TextInput
                         mode="outlined"
                         dense
@@ -86,20 +92,20 @@ export function AppDrawer() {
                         onChangeText={setQuery}
                         style={{marginBottom: 8}}
                     />
-                    <ScrollView style={{flex: 1, borderWidth: 5, borderColor: "cyan", backgroundColor: "rgba(0,0,255,0.15)"}}>
+                    <ScrollView style={{flex: 1}}>
                         {isSearching
                             ? <TileGrid tiles={searchResults} emptyLabel="Keine Tiles gefunden."/>
-                            : groups.map(group => (
-                                <View key={group.routine?.id ?? "uncategorized"} style={{marginBottom: 16, borderWidth: 3, borderColor: "orange"}}>
-                                    <Text variant="labelLarge" style={{opacity: 0.7, marginBottom: 6}}>
-                                        {group.routine?.name ?? "Ohne Routine"}
-                                    </Text>
-                                    <TileGrid tiles={group.tiles}/>
-                                </View>
-                            ))}
-                        {!isSearching && groups.length === 0 && (
-                            <Text style={{fontSize: 20, color: "red", fontWeight: "900"}}>KEINE TILES VORHANDEN (groups.length === 0)</Text>
-                        )}
+                            : activeGroup
+                                ? <>
+                                    <TouchableOpacity onPress={() => setActiveRoutine(undefined)}
+                                                       style={{flexDirection: "row", alignItems: "center", marginBottom: 10}}>
+                                        <Text variant="labelLarge" style={{opacity: 0.8}}>{"< "}
+                                            {activeGroup.routine?.name ?? "Ohne Routine"}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    <TileGrid tiles={activeGroup.tiles}/>
+                                </>
+                                : <RoutineGrid groups={groups} onSelect={setActiveRoutine}/>}
                     </ScrollView>
                 </View>
             )}
@@ -107,8 +113,38 @@ export function AppDrawer() {
     )
 }
 
+const RoutineGrid = ({groups, onSelect}: {
+    groups: RoutineGroup[]
+    onSelect: (key: number | typeof UNCATEGORIZED_KEY) => void
+}) => (
+    <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8, paddingBottom: 12}}>
+        {groups.map(group => (
+            <TouchableOpacity key={group.key} onPress={() => onSelect(group.key)}>
+                <View style={{
+                    width: TILE_SIZE, height: TILE_SIZE,
+                    backgroundColor: group.routine?.color ?? "#888888",
+                    borderRadius: 10,
+                    alignItems: 'center', justifyContent: 'center',
+                    padding: 4,
+                }}>
+                    <Text style={{color: getContrastColor(group.routine?.color ?? "#888888"), fontSize: 11, textAlign: 'center'}}
+                          numberOfLines={2}>
+                        {group.routine?.name ?? "Ohne Routine"}
+                    </Text>
+                    <Text style={{color: getContrastColor(group.routine?.color ?? "#888888"), fontSize: 9, opacity: 0.8}}>
+                        {group.tiles.length}
+                    </Text>
+                </View>
+            </TouchableOpacity>
+        ))}
+        {groups.length === 0 && (
+            <Text style={{opacity: 0.6}}>Keine Tiles vorhanden.</Text>
+        )}
+    </View>
+)
+
 const TileGrid = ({tiles, emptyLabel}: { tiles: Tile[], emptyLabel?: string }) => (
-    <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8, paddingBottom: 12, minHeight: 50, borderWidth: 2, borderColor: "hotpink"}}>
+    <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8, paddingBottom: 12}}>
         {tiles.map(tile => <AppDrawerTile key={tile.id} tile={tile}/>)}
         {tiles.length === 0 && !!emptyLabel && (
             <Text style={{opacity: 0.6}}>{emptyLabel}</Text>
