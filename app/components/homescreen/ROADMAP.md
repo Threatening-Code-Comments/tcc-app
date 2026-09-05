@@ -43,8 +43,20 @@ it go stale.
    Worth remembering for any future bottom-sheet-style UI in this app: don't nest flex
    layouts inside Paper's `Card`.
    Still no drag-out — that's step 3.
-3. **Drag from App Drawer onto Homescreen** — places a new item referencing an existing
-   tile.
+3. ✅ **Drag from App Drawer onto Homescreen.** Places a new 1x1 item referencing the
+   dragged tile. AppDrawer and the homescreen area are siblings, not parent/child, so this
+   needed its own small bridge in `homescreen-data-context.tsx` (`dragPreview` — which
+   tile + current finger position; `homescreenAreaBounds` — the shared coordinate origin,
+   measured once via `measureInWindow`) rather than reusing Homescreen's existing per-level
+   `useHomescreenDragAndDrop`, which is tightly coupled to one Homescreen instance's own
+   collision/folder-hover preview system. A new `DragPreviewOverlay` shows the floating
+   tile following the finger.
+   v1 scope: only drops onto the **root level** — a folder open in the popup isn't a drop
+   target yet (would need that popup's own `currentLevel` threaded into the same bridge).
+   Also no collision-preview/folder-hover feedback during the drag itself like the native
+   in-homescreen drag has — it just finds a free cell (or the nearest one via
+   `calculateNextPositionInFolder`) on drop. Both worth revisiting if this becomes a
+   heavily-used path rather than an occasional one.
 4. **Creation flow decision** (see below) — implement once 1–3 exist to build on.
 5. **Real persistence + `.db` import**, only now. Wiring the exported prod DB
    (`local-data/`, gitignored) becomes a mechanical "swap the data source" step once the
