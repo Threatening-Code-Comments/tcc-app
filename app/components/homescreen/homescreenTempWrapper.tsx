@@ -1,27 +1,23 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {useTheme} from 'react-native-paper';
+import {Text, useTheme} from 'react-native-paper';
 import {AppDrawer} from "@components/homescreen/AppDrawer/AppDrawer";
 import {HomescreenNavigator} from "@components/homescreen/navigator";
+import {useHomescreenLibraryData} from "@components/homescreen/hooks/useHomescreenLibraryData";
+import {HomescreenDataProvider} from "@components/homescreen/homescreen-data-context";
 
 export const HomescreenTempWrapper = () => {
     const {colors} = useTheme();
-    const items = [
-        {id: 2, x: 1, y: 0, width: 2, height: 1},
-        {id: 1, x: 0, y: 0, width: 1, height: 1}, // width und height als Einheiten
-
-        {id: 3, x: 2, y: 1, width: 1, height: 1},
-        // Weitere Widgets ...
-    ]
-
-    const [appDrawerOpen, setAppDrawerOpen] = useState(false);
+    const {folders, tiles, dataLoaded} = useHomescreenLibraryData()
 
     return (
         <View style={[styles.grid, {backgroundColor: colors.background}]}>
-            <HomescreenNavigator/>
-
-            <AppDrawer items={items} isOpen={appDrawerOpen} onToggle={() => null} onDragEnd={() => null}
-                       onDrop={() => null}/>
+            {dataLoaded
+                ? <HomescreenDataProvider value={{folders, tiles}}>
+                    <HomescreenNavigator/>
+                    <AppDrawer/>
+                </HomescreenDataProvider>
+                : <Text variant={"headlineMedium"}>Loading...</Text>}
         </View>
     )
 }
