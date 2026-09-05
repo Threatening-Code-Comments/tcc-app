@@ -23,8 +23,6 @@ export function AppDrawer() {
     const [isOpen, setIsOpen] = useState(false)
     const [query, setQuery] = useState("")
 
-    console.log("[AppDrawer] render, isOpen:", isOpen, "tiles:", tiles.value.length, "routines:", routines.value.length)
-
     //bridges tiles.value/routines.value changes (e.g. a new tile created elsewhere) into
     //a re-render, same pattern used throughout the homescreen for SharedValue-backed reads.
     const [, setRefreshTick] = useState(false)
@@ -73,9 +71,6 @@ export function AppDrawer() {
 
             {isOpen && (
                 <View style={{flex: 1, paddingHorizontal: 12}}>
-                    <Text style={{opacity: 0.5, fontSize: 10}}>
-                        DEBUG ctx: {tiles.value.length} tiles, {routines.value.length} routines
-                    </Text>
                     <TextInput
                         mode="outlined"
                         dense
@@ -84,7 +79,7 @@ export function AppDrawer() {
                         onChangeText={setQuery}
                         style={{marginBottom: 8}}
                     />
-                    <ScrollView>
+                    <ScrollView style={{flex: 1}}>
                         {isSearching
                             ? <TileGrid tiles={searchResults} emptyLabel="Keine Tiles gefunden."/>
                             : groups.map(group => (
