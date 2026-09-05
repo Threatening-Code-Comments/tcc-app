@@ -7,8 +7,7 @@ import {IconButton} from "@components/IconButton";
 import {getContrastColor} from "@components/Colors";
 import {HS3Item, Routine, Tile} from "@components/homescreen/types";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
-import {GRID_COLUMNS, GRID_ROWS, pixelToGrid} from "@homescreen/move_algo";
-import {clamp, doRectanglesOverlap, getNextId} from "@homescreen/util";
+import {doRectanglesOverlap, getNextId, getSnappedGridPosition} from "@homescreen/util";
 import {calculateNextPositionInFolder} from "@homescreen/crud/move_elements";
 
 const TILE_SIZE = 88
@@ -54,9 +53,7 @@ export function AppDrawer() {
         const outOfBounds = localX < 0 || localY < 0 || localX > bounds.width || localY > bounds.height
         if (droppedOnDrawer || outOfBounds) return //cancelled
 
-        const grid = pixelToGrid({x: localX, y: localY})
-        const gx = clamp(grid.x, 0, GRID_COLUMNS - 1)
-        const gy = clamp(grid.y, 0, GRID_ROWS - 1)
+        const {x: gx, y: gy} = getSnappedGridPosition({x: localX, y: localY}, 1, 1)
 
         const rootFolder = folders.value.find(f => f.folderId === undefined)
         const existingLayouts = [

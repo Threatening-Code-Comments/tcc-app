@@ -3,13 +3,16 @@ import {Text} from "react-native-paper";
 import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle} from "react-native-reanimated";
 import {getContrastColor} from "@components/Colors";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
-
-const SIZE = 88
+import {GRID_UNIT, gridPointToPixel} from "@homescreen/move_algo";
+import {getSnappedGridPosition} from "@homescreen/util";
 
 /**
  * The floating tile that follows the finger while dragging an App Drawer tile onto the
  * homescreen — the only visible feedback for that cross-component drag (AppDrawer and the
  * homescreen area are siblings, so this lives at the shared parent instead of either one).
+ * Snaps to the grid cell it would actually land on (via the same getSnappedGridPosition
+ * handleDrop uses), not the raw finger position — consistent with how a normal
+ * in-homescreen drag previews its target cell.
  */
 export const DragPreviewOverlay = () => {
     const {dragPreview, homescreenAreaBounds} = useHomescreenData()
@@ -24,40 +27,31 @@ export const DragPreviewOverlay = () => {
         }, [dragPreview]
     )
 
-    //TEMP DEBUG: logs the raw values driving this overlay's position every time the drag
-    //moves, since the box has been reported invisible twice now despite the drop itself
-    //(which uses the exact same bounds/coordinate math) working correctly.
-    useAnimatedReaction(
-        () => ({preview: dragPreview.value, bounds: homescreenAreaBounds.value}),
-        (curr) => {
-            if (curr.preview) {
-                console.log("[DragPreviewOverlay]", JSON.stringify(curr))
-            }
-        }, [dragPreview, homescreenAreaBounds]
-    )
-
     //both branches return the exact same style keys on purpose — Reanimated doesn't reset
-    //a key that disappears between frames (the value just sticks natively), which bit this
-    //same "different-shaped branches" pattern earlier in this file's siblings.
+    //a key that disappears between frames (the value just sticks natively).
     const style = useAnimatedStyle(() => {
         const active = !!dragPreview.value && !!homescreenAreaBounds.value
         const bounds = homescreenAreaBounds.value
         const preview = dragPreview.value
 
-        const x = (active && preview && bounds) ? preview.x - bounds.x - SIZE / 2 : 0
-        const y = (active && preview && bounds) ? preview.y - bounds.y - SIZE / 2 : 0
+        let left = 0, top = 0
+        if (active && preview && bounds) {
+            const localPoint = {x: preview.x - bounds.x, y: preview.y - bounds.y}
+            const snapped = getSnappedGridPosition(localPoint, 1, 1)
+            const px = gridPointToPixel(snapped)
+            left = px.x
+            top = px.y
+        }
 
         return {
             opacity: active ? 1 : 0,
             position: "absolute",
-            left: x,
-            top: y,
-            width: SIZE,
-            height: SIZE,
+            left,
+            top,
+            width: GRID_UNIT,
+            height: GRID_UNIT,
             borderRadius: 12,
-            borderWidth: 4,
-            borderColor: "lime",
-            backgroundColor: preview?.tile.color ?? "magenta",
+            backgroundColor: preview?.tile.color ?? "transparent",
             zIndex: 3000,
             alignItems: "center",
             justifyContent: "center",
@@ -66,11 +60,13 @@ export const DragPreviewOverlay = () => {
 
     return (
         <Animated.View style={style} pointerEvents="none">
-            <Text
-                style={{color: "yellow", fontSize: 13, fontWeight: "900", textAlign: "center"}}
-                numberOfLines={2}>
-                {dragPreview.value?.tile.name ?? "DEBUG"}
-            </Text>
+            {!!dragPreview.value && (
+                <Text
+                    style={{color: getContrastColor(dragPreview.value.tile.color), fontSize: 13, fontWeight: "600", textAlign: "center"}}
+                    numberOfLines={2}>
+                    {dragPreview.value.tile.name}
+                </Text>
+            )}
         </Animated.View>
     )
 }

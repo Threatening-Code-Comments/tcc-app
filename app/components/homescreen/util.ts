@@ -7,7 +7,7 @@ import {
     pxToGrid,
     snapPxToGridAsPx
 } from "@components/homescreen/move_algo";
-import {DragState, FolderDisplayLevel, PixelPoint, Tile} from "@components/homescreen/types";
+import {DragState, FolderDisplayLevel, GridPoint, GridValue, PixelPoint, Tile} from "@components/homescreen/types";
 import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants"
 
 export function getElementId(e: HS3Element) {
@@ -320,6 +320,23 @@ export function getTargetLayout(dragState: DragState): HS3Element {
     return {
         ...element,
         layout: {...layout}
+    }
+}
+
+//same snapping convention as getTargetLayout above (point = the dragged element's center,
+//clamped so the element stays fully on the grid) — factored out so the App Drawer's drag
+//preview and its actual drop placement snap to exactly the same cell.
+export function getSnappedGridPosition(localPoint: PixelPoint, width: GridValue, height: GridValue): GridPoint {
+    "worklet"
+    return {
+        x: clamp(
+            pxToGrid(snapPxToGridAsPx(localPoint.x - gridToPx(width) / 2)),
+            0, GRID_COLUMNS - width
+        ),
+        y: clamp(
+            pxToGrid(snapPxToGridAsPx(localPoint.y - gridToPx(height) / 2)),
+            0, GRID_ROWS - height
+        ),
     }
 }
 
