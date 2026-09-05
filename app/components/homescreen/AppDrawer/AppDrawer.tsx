@@ -10,6 +10,24 @@ import {useHomescreenData} from "@components/homescreen/homescreen-data-context"
 const TILE_SIZE = 70
 const UNCATEGORIZED = 0
 
+//TEMP DEBUG: bypasses useHomescreenData() so the design is visible regardless of whether
+//the context data is actually reaching this component. Also drives the on-screen
+//"ctx tiles/routines" line below, which tells us whether the real bug is upstream (context
+//never populated / never reaches AppDrawer) or in AppDrawer's own rendering. Remove both
+//once the real bug is found.
+const HARDCODED_ROUTINES: Routine[] = [
+    {id: 1, name: "Konsum", color: "#e67e22"},
+    {id: 2, name: "Diabetes", color: "#2980b9"},
+    {id: 3, name: "Haushalt", color: "#27ae60"},
+]
+const HARDCODED_TILES: Tile[] = [
+    {id: 1, name: "Döner", mode: 0, rootRoutineId: 3, color: "#e74c3c", events: []},
+    {id: 2, name: "Einkaufen", mode: 0, rootRoutineId: 0, color: "#9b59b6", events: []},
+    {id: 3, name: "Koffein", mode: 0, rootRoutineId: 1, color: "#f1c40f", events: []},
+    {id: 4, name: "Alkohol", mode: 0, rootRoutineId: 1, color: "#e67e22", events: []},
+    {id: 5, name: "Blutzucker gemessen", mode: 0, rootRoutineId: 2, color: "#1abc9c", events: []},
+]
+
 /**
  * The tile library, browsable/searchable. One level of grouping (by routine) —
  * with hundreds of tiles a flat list isn't enough, but a second nested level
@@ -35,8 +53,8 @@ export function AppDrawer() {
 
     const toggleModal = () => setIsOpen(v => !v)
 
-    const allTiles = tiles.value
-    const allRoutines = routines.value
+    const allTiles = HARDCODED_TILES
+    const allRoutines = HARDCODED_ROUTINES
     const matchesQuery = (t: Tile) => t.name.toLowerCase().includes(query.trim().toLowerCase())
 
     const isSearching = query.trim().length > 0
@@ -71,6 +89,9 @@ export function AppDrawer() {
 
             {isOpen && (
                 <View style={{flex: 1, paddingHorizontal: 12}}>
+                    <Text style={{opacity: 0.5, fontSize: 10}}>
+                        DEBUG ctx: {tiles.value.length} tiles, {routines.value.length} routines
+                    </Text>
                     <TextInput
                         mode="outlined"
                         dense
