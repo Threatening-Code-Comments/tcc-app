@@ -24,6 +24,18 @@ export const DragPreviewOverlay = () => {
         }, [dragPreview]
     )
 
+    //TEMP DEBUG: logs the raw values driving this overlay's position every time the drag
+    //moves, since the box has been reported invisible twice now despite the drop itself
+    //(which uses the exact same bounds/coordinate math) working correctly.
+    useAnimatedReaction(
+        () => ({preview: dragPreview.value, bounds: homescreenAreaBounds.value}),
+        (curr) => {
+            if (curr.preview) {
+                console.log("[DragPreviewOverlay]", JSON.stringify(curr))
+            }
+        }, [dragPreview, homescreenAreaBounds]
+    )
+
     //both branches return the exact same style keys on purpose — Reanimated doesn't reset
     //a key that disappears between frames (the value just sticks natively), which bit this
     //same "different-shaped branches" pattern earlier in this file's siblings.
@@ -43,7 +55,9 @@ export const DragPreviewOverlay = () => {
             width: SIZE,
             height: SIZE,
             borderRadius: 12,
-            backgroundColor: preview?.tile.color ?? "transparent",
+            borderWidth: 4,
+            borderColor: "lime",
+            backgroundColor: preview?.tile.color ?? "magenta",
             zIndex: 3000,
             alignItems: "center",
             justifyContent: "center",
@@ -52,13 +66,11 @@ export const DragPreviewOverlay = () => {
 
     return (
         <Animated.View style={style} pointerEvents="none">
-            {!!dragPreview.value && (
-                <Text
-                    style={{color: getContrastColor(dragPreview.value.tile.color), fontSize: 13, fontWeight: "600", textAlign: "center"}}
-                    numberOfLines={2}>
-                    {dragPreview.value.tile.name}
-                </Text>
-            )}
+            <Text
+                style={{color: "yellow", fontSize: 13, fontWeight: "900", textAlign: "center"}}
+                numberOfLines={2}>
+                {dragPreview.value?.tile.name ?? "DEBUG"}
+            </Text>
         </Animated.View>
     )
 }

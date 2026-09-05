@@ -120,6 +120,14 @@ export function AppDrawer() {
     const cancelBarStyle = useAnimatedStyle(() => ({
         opacity: dragPreview.value ? 1 : 0,
     }))
+    //grows the button when the drag is actually hovering the cancel zone — the same
+    //localY math handleDrop itself uses to decide whether a drop there cancels.
+    const cancelButtonStyle = useAnimatedStyle(() => {
+        if (!dragPreview.value || !homescreenAreaBounds.value) return {transform: [{scale: 1}]}
+        const localY = dragPreview.value.y - homescreenAreaBounds.value.y
+        const hovering = localY > homescreenAreaBounds.value.height - CANCEL_ZONE_HEIGHT
+        return {transform: [{scale: hovering ? 1.15 : 1}]}
+    })
 
     return (
         <>
@@ -136,16 +144,16 @@ export function AppDrawer() {
                 justifyContent: "center",
             }, cancelBarStyle]}
         >
-            <View style={{
+            <Animated.View style={[{
                 paddingHorizontal: 28,
                 paddingVertical: 14,
                 borderRadius: 24,
                 backgroundColor: colors.errorContainer,
                 borderWidth: 2,
                 borderColor: colors.error,
-            }}>
+            }, cancelButtonStyle]}>
                 <Text style={{color: colors.onErrorContainer, fontWeight: "700"}}>Abbrechen</Text>
-            </View>
+            </Animated.View>
         </Animated.View>
         <Animated.View
             style={[{
