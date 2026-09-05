@@ -23,6 +23,8 @@ export function AppDrawer() {
     const [isOpen, setIsOpen] = useState(false)
     const [query, setQuery] = useState("")
 
+    console.log("[AppDrawer] render, isOpen:", isOpen, "tiles:", tiles.value.length, "routines:", routines.value.length)
+
     //bridges tiles.value/routines.value changes (e.g. a new tile created elsewhere) into
     //a re-render, same pattern used throughout the homescreen for SharedValue-backed reads.
     const [, setRefreshTick] = useState(false)

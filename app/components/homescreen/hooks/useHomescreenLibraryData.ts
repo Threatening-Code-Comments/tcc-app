@@ -22,6 +22,7 @@ export function useHomescreenLibraryData() {
             .then(res => {
                 if (!!res) {
                     const [loadedFolders, loadedTiles, loadedRoutines] = res
+                    console.log("[useHomescreenLibraryData] loaded", loadedFolders.length, "folders,", loadedTiles.length, "tiles,", loadedRoutines.length, "routines")
                     folders.value = loadedFolders
                     tiles.value = loadedTiles
                     routines.value = loadedRoutines
