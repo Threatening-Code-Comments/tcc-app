@@ -61,6 +61,8 @@ export function AppDrawer() {
                 zIndex: 2000,
                 borderTopLeftRadius: 16,
                 borderTopRightRadius: 16,
+                borderWidth: 5,
+                borderColor: "yellow",
             }}
         >
             <View style={{alignItems: "center", justifyContent: "center", paddingTop: 8}}>
@@ -70,7 +72,10 @@ export function AppDrawer() {
             </View>
 
             {isOpen && (
-                <View style={{flex: 1, paddingHorizontal: 12}}>
+                <View style={{flex: 1, paddingHorizontal: 12, borderWidth: 5, borderColor: "lime"}}>
+                    <Text style={{fontSize: 20, color: "magenta", fontWeight: "900"}}>
+                        DEBUG: isOpen block rendered, {allTiles.length} tiles / {allRoutines.length} routines / {groups.length} groups
+                    </Text>
                     <TextInput
                         mode="outlined"
                         dense
@@ -79,11 +84,11 @@ export function AppDrawer() {
                         onChangeText={setQuery}
                         style={{marginBottom: 8}}
                     />
-                    <ScrollView style={{flex: 1}}>
+                    <ScrollView style={{flex: 1, borderWidth: 5, borderColor: "cyan", backgroundColor: "rgba(0,0,255,0.15)"}}>
                         {isSearching
                             ? <TileGrid tiles={searchResults} emptyLabel="Keine Tiles gefunden."/>
                             : groups.map(group => (
-                                <View key={group.routine?.id ?? "uncategorized"} style={{marginBottom: 16}}>
+                                <View key={group.routine?.id ?? "uncategorized"} style={{marginBottom: 16, borderWidth: 3, borderColor: "orange"}}>
                                     <Text variant="labelLarge" style={{opacity: 0.7, marginBottom: 6}}>
                                         {group.routine?.name ?? "Ohne Routine"}
                                     </Text>
@@ -91,7 +96,7 @@ export function AppDrawer() {
                                 </View>
                             ))}
                         {!isSearching && groups.length === 0 && (
-                            <Text style={{opacity: 0.6}}>Keine Tiles vorhanden.</Text>
+                            <Text style={{fontSize: 20, color: "red", fontWeight: "900"}}>KEINE TILES VORHANDEN (groups.length === 0)</Text>
                         )}
                     </ScrollView>
                 </View>
@@ -101,7 +106,7 @@ export function AppDrawer() {
 }
 
 const TileGrid = ({tiles, emptyLabel}: { tiles: Tile[], emptyLabel?: string }) => (
-    <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8, paddingBottom: 12}}>
+    <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8, paddingBottom: 12, minHeight: 50, borderWidth: 2, borderColor: "hotpink"}}>
         {tiles.map(tile => <AppDrawerTile key={tile.id} tile={tile}/>)}
         {tiles.length === 0 && !!emptyLabel && (
             <Text style={{opacity: 0.6}}>{emptyLabel}</Text>
