@@ -14,6 +14,10 @@ import {calculateNextPositionInFolder} from "@homescreen/crud/move_elements";
 const TILE_SIZE = 88
 const UNCATEGORIZED = 0
 const DRAWER_OPEN_HEIGHT = 560
+//footprint of the cancel bar shown in the drawer's place while dragging — matches the
+//drawer's own collapsed-bar height, so the visible cancel target and the actual cancel
+//zone checked in handleDrop line up exactly.
+const CANCEL_ZONE_HEIGHT = 100
 //sentinel for the "no routine" bucket, distinct from a real routine.id and from
 //Tile.rootRoutineId's own UNCATEGORIZED (0) value used for tile-to-routine matching.
 const UNCATEGORIZED_KEY = "uncategorized"
@@ -46,7 +50,7 @@ export function AppDrawer() {
 
         const localX = absX - bounds.x
         const localY = absY - bounds.y
-        const droppedOnDrawer = localY > bounds.height - DRAWER_OPEN_HEIGHT
+        const droppedOnDrawer = localY > bounds.height - CANCEL_ZONE_HEIGHT
         const outOfBounds = localX < 0 || localY < 0 || localX > bounds.width || localY > bounds.height
         if (droppedOnDrawer || outOfBounds) return //cancelled
 
@@ -111,8 +115,38 @@ export function AppDrawer() {
     const hideWhileDraggingStyle = useAnimatedStyle(() => ({
         opacity: dragPreview.value ? 0 : 1,
     }))
+    //shown in the drawer's place while dragging — the visible, discoverable version of the
+    //same cancel zone handleDrop already checks (dropping anywhere in this bar cancels).
+    const cancelBarStyle = useAnimatedStyle(() => ({
+        opacity: dragPreview.value ? 1 : 0,
+    }))
 
     return (
+        <>
+        <Animated.View
+            pointerEvents="none"
+            style={[{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: "100%",
+                height: CANCEL_ZONE_HEIGHT,
+                zIndex: 1999,
+                alignItems: "center",
+                justifyContent: "center",
+            }, cancelBarStyle]}
+        >
+            <View style={{
+                paddingHorizontal: 28,
+                paddingVertical: 14,
+                borderRadius: 24,
+                backgroundColor: colors.errorContainer,
+                borderWidth: 2,
+                borderColor: colors.error,
+            }}>
+                <Text style={{color: colors.onErrorContainer, fontWeight: "700"}}>Abbrechen</Text>
+            </View>
+        </Animated.View>
         <Animated.View
             style={[{
                 position: 'absolute',
@@ -161,6 +195,7 @@ export function AppDrawer() {
                 </View>
             )}
         </Animated.View>
+        </>
     )
 }
 

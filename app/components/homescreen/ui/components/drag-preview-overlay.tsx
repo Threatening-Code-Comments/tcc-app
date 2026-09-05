@@ -24,22 +24,26 @@ export const DragPreviewOverlay = () => {
         }, [dragPreview]
     )
 
+    //both branches return the exact same style keys on purpose — Reanimated doesn't reset
+    //a key that disappears between frames (the value just sticks natively), which bit this
+    //same "different-shaped branches" pattern earlier in this file's siblings.
     const style = useAnimatedStyle(() => {
-        if (!dragPreview.value || !homescreenAreaBounds.value) {
-            return {opacity: 0, left: 0, top: 0, width: 0, height: 0, backgroundColor: "transparent"}
-        }
-        const {x, y} = dragPreview.value
+        const active = !!dragPreview.value && !!homescreenAreaBounds.value
         const bounds = homescreenAreaBounds.value
+        const preview = dragPreview.value
+
+        const x = (active && preview && bounds) ? preview.x - bounds.x - SIZE / 2 : 0
+        const y = (active && preview && bounds) ? preview.y - bounds.y - SIZE / 2 : 0
 
         return {
-            opacity: 1,
+            opacity: active ? 1 : 0,
             position: "absolute",
-            left: x - bounds.x - SIZE / 2,
-            top: y - bounds.y - SIZE / 2,
+            left: x,
+            top: y,
             width: SIZE,
             height: SIZE,
             borderRadius: 12,
-            backgroundColor: dragPreview.value.tile.color,
+            backgroundColor: preview?.tile.color ?? "transparent",
             zIndex: 3000,
             alignItems: "center",
             justifyContent: "center",
