@@ -11,7 +11,7 @@ export const addToNewFolder = (
     const currentFolder = folders.find(f => f.folderId === currentLevel)
     const existingLayouts = [
         ...(currentFolder?.items ?? []),
-        ...folders.filter(f => f.parentId === currentLevel)
+        ...folders.filter(f => f.parentId === currentLevel && f.folderId !== currentLevel)
     ]
         .filter(e => !isSameElement(e, draggedElement) && !isSameElement(e, stationaryElement))
         .map(e => e.layout)

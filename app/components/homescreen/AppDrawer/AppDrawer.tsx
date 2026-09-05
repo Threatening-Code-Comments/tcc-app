@@ -55,7 +55,7 @@ export function AppDrawer() {
         const rootFolder = folders.value.find(f => f.folderId === undefined)
         const existingLayouts = [
             ...(rootFolder?.items.map(i => i.layout) ?? []),
-            ...folders.value.filter(f => f.parentId === undefined).map(f => f.layout),
+            ...folders.value.filter(f => f.parentId === undefined && f.folderId !== undefined).map(f => f.layout),
         ]
         const wanted = {x: gx, y: gy, width: 1, height: 1}
         const isOccupied = existingLayouts.some(l => doRectanglesOverlap(l, wanted))
