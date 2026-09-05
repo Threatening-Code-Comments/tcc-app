@@ -7,7 +7,7 @@ import {getContrastColor} from "@components/Colors";
 import {Routine, Tile} from "@components/homescreen/types";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
-const TILE_SIZE = 70
+const TILE_SIZE = 88
 const UNCATEGORIZED = 0
 //sentinel for the "no routine" bucket, distinct from a real routine.id and from
 //Tile.rootRoutineId's own UNCATEGORIZED (0) value used for tile-to-routine matching.
@@ -68,7 +68,7 @@ export function AppDrawer() {
                 bottom: 0,
                 left: 0,
                 width: "100%",
-                height: isOpen ? 500 : 100,
+                height: isOpen ? 560 : 100,
                 zIndex: 2000,
                 borderTopLeftRadius: 16,
                 borderTopRightRadius: 16,
@@ -86,11 +86,10 @@ export function AppDrawer() {
                 <View style={{flex: 1, paddingHorizontal: 12}}>
                     <TextInput
                         mode="outlined"
-                        dense
                         placeholder="Suchen..."
                         value={query}
                         onChangeText={setQuery}
-                        style={{marginBottom: 8}}
+                        style={{marginBottom: 12}}
                     />
                     <ScrollView style={{flex: 1}}>
                         {isSearching
@@ -98,8 +97,8 @@ export function AppDrawer() {
                             : activeGroup
                                 ? <>
                                     <TouchableOpacity onPress={() => setActiveRoutine(undefined)}
-                                                       style={{flexDirection: "row", alignItems: "center", marginBottom: 10}}>
-                                        <Text variant="labelLarge" style={{opacity: 0.8}}>{"< "}
+                                                       style={{flexDirection: "row", alignItems: "center", marginBottom: 14}}>
+                                        <Text variant="titleMedium" style={{opacity: 0.8}}>{"< "}
                                             {activeGroup.routine?.name ?? "Ohne Routine"}
                                         </Text>
                                     </TouchableOpacity>
@@ -113,38 +112,50 @@ export function AppDrawer() {
     )
 }
 
+//Routines are organizational "folders", not content — shown as an outline (base surface
+//fill, colored stroke + text) so they read as distinct from the filled, color-coded tiles
+//they contain.
 const RoutineGrid = ({groups, onSelect}: {
     groups: RoutineGroup[]
     onSelect: (key: number | typeof UNCATEGORIZED_KEY) => void
-}) => (
-    <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8, paddingBottom: 12}}>
-        {groups.map(group => (
-            <TouchableOpacity key={group.key} onPress={() => onSelect(group.key)}>
-                <View style={{
-                    width: TILE_SIZE, height: TILE_SIZE,
-                    backgroundColor: group.routine?.color ?? "#888888",
-                    borderRadius: 10,
-                    alignItems: 'center', justifyContent: 'center',
-                    padding: 4,
-                }}>
-                    <Text style={{color: getContrastColor(group.routine?.color ?? "#888888"), fontSize: 11, textAlign: 'center'}}
-                          numberOfLines={2}>
-                        {group.routine?.name ?? "Ohne Routine"}
-                    </Text>
-                    <Text style={{color: getContrastColor(group.routine?.color ?? "#888888"), fontSize: 9, opacity: 0.8}}>
-                        {group.tiles.length}
-                    </Text>
-                </View>
-            </TouchableOpacity>
-        ))}
-        {groups.length === 0 && (
-            <Text style={{opacity: 0.6}}>Keine Tiles vorhanden.</Text>
-        )}
-    </View>
-)
+}) => {
+    const {colors} = useTheme()
+
+    return (
+        <View style={{flexDirection: "row", flexWrap: "wrap", gap: 10, paddingBottom: 12}}>
+            {groups.map(group => {
+                const color = group.routine?.color ?? colors.onSurfaceVariant
+                return (
+                    <TouchableOpacity key={group.key} onPress={() => onSelect(group.key)}>
+                        <View style={{
+                            width: TILE_SIZE, height: TILE_SIZE,
+                            backgroundColor: colors.elevation.level3,
+                            borderRadius: 12,
+                            borderWidth: 2,
+                            borderColor: color,
+                            alignItems: 'center', justifyContent: 'center',
+                            padding: 6,
+                        }}>
+                            <Text style={{color, fontSize: 13, fontWeight: "600", textAlign: 'center'}}
+                                  numberOfLines={2}>
+                                {group.routine?.name ?? "Ohne Routine"}
+                            </Text>
+                            <Text style={{color, fontSize: 11, opacity: 0.8}}>
+                                {group.tiles.length}
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+                )
+            })}
+            {groups.length === 0 && (
+                <Text style={{opacity: 0.6}}>Keine Tiles vorhanden.</Text>
+            )}
+        </View>
+    )
+}
 
 const TileGrid = ({tiles, emptyLabel}: { tiles: Tile[], emptyLabel?: string }) => (
-    <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8, paddingBottom: 12}}>
+    <View style={{flexDirection: "row", flexWrap: "wrap", gap: 10, paddingBottom: 12}}>
         {tiles.map(tile => <AppDrawerTile key={tile.id} tile={tile}/>)}
         {tiles.length === 0 && !!emptyLabel && (
             <Text style={{opacity: 0.6}}>{emptyLabel}</Text>
@@ -159,11 +170,11 @@ const AppDrawerTile = ({tile}: { tile: Tile }) => {
         <View style={{
             width: TILE_SIZE, height: TILE_SIZE,
             backgroundColor: tile.color,
-            borderRadius: 10,
+            borderRadius: 12,
             alignItems: 'center', justifyContent: 'center',
-            padding: 4,
+            padding: 6,
         }}>
-            <Text style={{color: contrastColor, fontSize: 11, textAlign: 'center'}} numberOfLines={2}>
+            <Text style={{color: contrastColor, fontSize: 13, fontWeight: "600", textAlign: 'center'}} numberOfLines={2}>
                 {tile.name}
             </Text>
         </View>
