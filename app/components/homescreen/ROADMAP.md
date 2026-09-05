@@ -26,12 +26,15 @@ it go stale.
    `useHomescreenLibraryData` hook, now also loading `routines`) so App Drawer and the
    navigator can both reach it as peers — it used to live inside `navigator.tsx`, which
    left App Drawer with no way to reach `tiles` at all.
-   Re: the "drawer only shows the search bar, nothing renders" report — re-audited the
-   whole data path (`db-mock.ts` → `useHomescreenLibraryData` → `HomescreenDataProvider` →
-   `AppDrawer`) end to end and found no logic bug; the mock tiles/routines are well-formed
-   and every consumer reads them the same way Homescreen already does successfully. Best
-   guess is Metro/Fast-Refresh staleness after the file moves earlier this session — try a
-   full reload with cache cleared (`npx expo start -c`) before assuming it's still broken.
+   Re: the "drawer only shows the search bar, nothing renders" report — found and fixed.
+   Two real, separate issues, in the order they were found: (1) `.claude/worktrees/*` are
+   full repo checkouts with no `metro.config.js` excluding them, and one worktree happened
+   to have a file at the exact same relative path as `AppDrawer.tsx` — a project-wide risk,
+   fixed once via `metro.config.js`/`.watchmanconfig`, unrelated to this bug specifically.
+   (2) The actual cause: the `ScrollView` around the tile grid had no `style` at all, so it
+   collapsed to zero visible height inside its `flex:1` parent — the tiles were always
+   there (confirmed via temporary logging: 11 tiles, 3 routines reaching every render), just
+   never given room to show. Fixed with `style={{flex: 1}}` on the ScrollView.
    Still no drag-out — that's step 3.
 3. **Drag from App Drawer onto Homescreen** — places a new item referencing an existing
    tile.
