@@ -26,7 +26,7 @@ type Props = {
  * popups, create-flow — naturally resets per level without manual cleanup.
  */
 export const Homescreen = ({folderId, onEnterFolder}: Props) => {
-    const {folders} = useHomescreenData()
+    const {folders, dragPreview} = useHomescreenData()
     //refresh: bridges Reanimated shared-value changes back into a React re-render,
     //since this component reads .value directly in its JSX below.
     const [, setRefreshTick] = useState(false)
@@ -55,7 +55,9 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
     )
 
     const {homescreenState, longTap} = useHomescreenEditMode()
-    const isEditMode = homescreenState.value === "edit"
+    //also treated as edit mode while a tile is being dragged in from the App Drawer —
+    //the same wiggle/dot-grid signal applies, it just wasn't triggered by a long-press here.
+    const isEditMode = homescreenState.value === "edit" || !!dragPreview.value
 
     const onElementTap = (e: HS3Element) => {
         if ("itemId" in e) {
@@ -92,12 +94,13 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
             visibleElements: JSON.stringify(visibleElements.value),
             homescreenState: homescreenState.value,
             popupItem: popupItem.value,
+            isExternalDrag: !!dragPreview.value,
         }),
         (current, previous) => {
             if (JSON.stringify(current) !== JSON.stringify(previous)) {
                 runOnJS(refreshState)();
             }
-        }, [previewElement, tempElements, tempElementsImpossible, visibleElements, homescreenState, popupItem]
+        }, [previewElement, tempElements, tempElementsImpossible, visibleElements, homescreenState, popupItem, dragPreview]
     )
     const RESOLUTION = 10 //pixels
     useAnimatedReaction(
@@ -144,7 +147,7 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
     return <>
         <GestureDetector gesture={longTap}>
             <View style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1}}>
-                <DotGridBackground mode={homescreenState.value}/>
+                <DotGridBackground mode={isEditMode ? "edit" : "default"}/>
             </View>
         </GestureDetector>
 

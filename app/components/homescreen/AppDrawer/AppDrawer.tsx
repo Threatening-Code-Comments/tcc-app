@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {ScrollView, TouchableOpacity, View} from "react-native";
 import {Text, TextInput, useTheme} from "react-native-paper";
-import {runOnJS, useAnimatedReaction} from "react-native-reanimated";
+import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle} from "react-native-reanimated";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {IconButton} from "@components/IconButton";
 import {getContrastColor} from "@components/Colors";
@@ -38,6 +38,8 @@ export function AppDrawer() {
 
     //drop handling for a tile dragged out of the drawer — placed at the root level only
     //for now; dropping into whichever folder popup happens to be open isn't supported yet.
+    //Dropping back onto the drawer's own area (or off-screen) is the cancel gesture — a
+    //no-op, same as the in-homescreen drag's "impossible drop" case.
     const handleDrop = (tile: Tile, absX: number, absY: number) => {
         const bounds = homescreenAreaBounds.value
         if (!bounds) return
@@ -46,7 +48,7 @@ export function AppDrawer() {
         const localY = absY - bounds.y
         const droppedOnDrawer = localY > bounds.height - DRAWER_OPEN_HEIGHT
         const outOfBounds = localX < 0 || localY < 0 || localX > bounds.width || localY > bounds.height
-        if (droppedOnDrawer || outOfBounds) return //dropped back onto the drawer, or off-screen — no-op
+        if (droppedOnDrawer || outOfBounds) return //cancelled
 
         const grid = pixelToGrid({x: localX, y: localY})
         const gx = clamp(grid.x, 0, GRID_COLUMNS - 1)
@@ -70,6 +72,7 @@ export function AppDrawer() {
         folders.value = folders.value.map(f =>
             f.folderId === undefined ? {...f, items: [...f.items, newItem]} : f
         )
+        setIsOpen(false) //placed it — get out of the way and show the result
     }
 
     //bridges tiles.value/routines.value changes (e.g. a new tile created elsewhere) into
@@ -102,9 +105,16 @@ export function AppDrawer() {
 
     const activeGroup = groups.find(g => g.key === activeRoutine)
 
+    //hidden (not unmounted, so isOpen/activeRoutine/query all survive) while one of its own
+    //tiles is being dragged — it's just in the way of seeing the homescreen underneath.
+    //Dropping back into this same area (still there, just invisible) still cancels the drag.
+    const hideWhileDraggingStyle = useAnimatedStyle(() => ({
+        opacity: dragPreview.value ? 0 : 1,
+    }))
+
     return (
-        <View
-            style={{
+        <Animated.View
+            style={[{
                 position: 'absolute',
                 bottom: 0,
                 left: 0,
@@ -115,7 +125,7 @@ export function AppDrawer() {
                 borderTopRightRadius: 16,
                 backgroundColor: colors.elevation.level2,
                 elevation: 8,
-            }}
+            }, hideWhileDraggingStyle]}
         >
             <View style={{alignItems: "center", justifyContent: "center", paddingTop: 8}}>
                 <IconButton iconName={isOpen ? "arrowDown" : "arrowUp"} type={"transparent"}
@@ -150,7 +160,7 @@ export function AppDrawer() {
                     </ScrollView>
                 </View>
             )}
-        </View>
+        </Animated.View>
     )
 }
 
