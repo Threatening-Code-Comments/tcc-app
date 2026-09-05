@@ -14,11 +14,25 @@ it go stale.
    New `homescreen-data-context.tsx` carries `{folders, tiles}` centrally; `tileEvents`
    deliberately excluded from it (changes per-tap, shouldn't force re-renders). Still mock
    data (`db-mock.ts`) — no real DB wired up yet, that's step 5.
-2. ✅ **App Drawer rebuild.** Done — real tiles from the library, search box (filters by
-   name), flat wrapped grid of colored tile cards. `HomescreenDataProvider` moved up into
-   `homescreenTempWrapper.tsx` (new `useHomescreenLibraryData` hook) so App Drawer and the
+2. ✅ **App Drawer rebuild.** Real tiles from the library, grouped by routine (one level —
+   "flat" meant no *nested* sub-folders, not zero grouping; with hundreds of tiles a
+   grouping level is needed, per the prod-app Pages→Routines→Tiles screenshots). Typing a
+   search query flattens across every routine, standing in for the Pages-level "quick
+   access" the prod app has — still an open question whether that's enough or Pages need
+   their own equivalent later. Mock data now includes a small `routinesFromDb` (Konsum,
+   Diabetes, Haushalt) with tiles spread across them plus a couple left uncategorized, to
+   actually exercise the grouping instead of everything sitting in one bucket.
+   `HomescreenDataProvider` moved up into `homescreenTempWrapper.tsx` (new
+   `useHomescreenLibraryData` hook, now also loading `routines`) so App Drawer and the
    navigator can both reach it as peers — it used to live inside `navigator.tsx`, which
-   left App Drawer with no way to reach `tiles` at all. Still no drag-out — that's step 3.
+   left App Drawer with no way to reach `tiles` at all.
+   Re: the "drawer only shows the search bar, nothing renders" report — re-audited the
+   whole data path (`db-mock.ts` → `useHomescreenLibraryData` → `HomescreenDataProvider` →
+   `AppDrawer`) end to end and found no logic bug; the mock tiles/routines are well-formed
+   and every consumer reads them the same way Homescreen already does successfully. Best
+   guess is Metro/Fast-Refresh staleness after the file moves earlier this session — try a
+   full reload with cache cleared (`npx expo start -c`) before assuming it's still broken.
+   Still no drag-out — that's step 3.
 3. **Drag from App Drawer onto Homescreen** — places a new item referencing an existing
    tile.
 4. **Creation flow decision** (see below) — implement once 1–3 exist to build on.

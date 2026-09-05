@@ -1,5 +1,5 @@
 import {PlacementGrid} from "./placementGrid";
-export type {Tile, TileEvent} from "@app/constants/DbTypes";
+export type {Tile, TileEvent, Routine} from "@app/constants/DbTypes";
 
 export type PixelValue = number;
 export type GridValue = number

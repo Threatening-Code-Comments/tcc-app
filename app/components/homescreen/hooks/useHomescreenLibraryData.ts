@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {useSharedValue} from "react-native-reanimated";
-import {HS3Folder, Tile} from "@homescreen/types";
-import {getFoldersFromDb, getTilesFromDb} from "@components/homescreen/db-mock";
+import {HS3Folder, Routine, Tile} from "@homescreen/types";
+import {getFoldersFromDb, getRoutinesFromDb, getTilesFromDb} from "@components/homescreen/db-mock";
 
 /**
  * Loads the folder tree + tile library once. Lives above both the navigator and
@@ -10,23 +10,25 @@ import {getFoldersFromDb, getTilesFromDb} from "@components/homescreen/db-mock";
 export function useHomescreenLibraryData() {
     const folders = useSharedValue<HS3Folder[]>([]);
     const tiles = useSharedValue<Tile[]>([]);
+    const routines = useSharedValue<Routine[]>([]);
     const [dataLoaded, setDataLoaded] = useState(false)
 
     useEffect(() => {
-        Promise.all([getFoldersFromDb(), getTilesFromDb()])
+        Promise.all([getFoldersFromDb(), getTilesFromDb(), getRoutinesFromDb()])
             .catch(err => {
                 console.log(err)
                 return undefined
             })
             .then(res => {
                 if (!!res) {
-                    const [loadedFolders, loadedTiles] = res
+                    const [loadedFolders, loadedTiles, loadedRoutines] = res
                     folders.value = loadedFolders
                     tiles.value = loadedTiles
+                    routines.value = loadedRoutines
                     setDataLoaded(true)
                 }
             })
     }, []);
 
-    return {folders, tiles, dataLoaded}
+    return {folders, tiles, routines, dataLoaded}
 }

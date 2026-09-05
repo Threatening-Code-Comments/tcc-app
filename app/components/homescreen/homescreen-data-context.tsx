@@ -1,6 +1,6 @@
 import React, {createContext, useContext} from "react";
 import {SharedValue} from "react-native-reanimated";
-import {HS3Folder, Tile} from "@components/homescreen/types";
+import {HS3Folder, Routine, Tile} from "@components/homescreen/types";
 
 /**
  * The central, relatively-stable data both the navigator and every homescreen level
@@ -11,6 +11,7 @@ import {HS3Folder, Tile} from "@components/homescreen/types";
 export type HomescreenDataValue = {
     folders: SharedValue<HS3Folder[]>,
     tiles: SharedValue<Tile[]>,
+    routines: SharedValue<Routine[]>,
 }
 
 const HomescreenDataContext = createContext<HomescreenDataValue | undefined>(undefined)

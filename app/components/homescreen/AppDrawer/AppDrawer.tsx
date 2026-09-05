@@ -4,37 +4,51 @@ import {Card, Text, TextInput} from "react-native-paper";
 import {runOnJS, useAnimatedReaction} from "react-native-reanimated";
 import {IconButton} from "@components/IconButton";
 import {getContrastColor} from "@components/Colors";
-import {Tile} from "@components/homescreen/types";
+import {Routine, Tile} from "@components/homescreen/types";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
 const TILE_SIZE = 70
+const UNCATEGORIZED = 0
 
 /**
- * The tile library, browsable/searchable — flat, no nested folders here (the homescreen
- * already has folders for spatial organization; a second hierarchy in the drawer would
- * just be redundant). Drag-out onto the homescreen isn't built yet — this is search +
- * display only for now.
+ * The tile library, browsable/searchable. One level of grouping (by routine) —
+ * with hundreds of tiles a flat list isn't enough, but a second nested level
+ * (routines inside pages, like the production app) would add more complexity than
+ * it's worth here. Search ignores the grouping and flattens across everything, the
+ * same way "open + search" already substitutes for page-level quick access.
+ * Drag-out onto the homescreen isn't built yet — this is browse + search only for now.
  */
 export function AppDrawer() {
-    const {tiles} = useHomescreenData()
+    const {tiles, routines} = useHomescreenData()
     const [isOpen, setIsOpen] = useState(false)
     const [query, setQuery] = useState("")
 
-    //bridges tiles.value changes (e.g. a new tile created elsewhere) into a re-render,
-    //same pattern used throughout the homescreen for SharedValue-backed React reads.
+    //bridges tiles.value/routines.value changes (e.g. a new tile created elsewhere) into
+    //a re-render, same pattern used throughout the homescreen for SharedValue-backed reads.
     const [, setRefreshTick] = useState(false)
     useAnimatedReaction(
-        () => tiles.value.length,
+        () => tiles.value.length + routines.value.length,
         (current, previous) => {
             if (current !== previous) runOnJS(setRefreshTick)(t => !t)
-        }, [tiles]
+        }, [tiles, routines]
     )
 
     const toggleModal = () => setIsOpen(v => !v)
 
-    const filteredTiles = tiles.value.filter(t =>
-        t.name.toLowerCase().includes(query.toLowerCase())
-    )
+    const allTiles = tiles.value
+    const allRoutines = routines.value
+    const matchesQuery = (t: Tile) => t.name.toLowerCase().includes(query.trim().toLowerCase())
+
+    const isSearching = query.trim().length > 0
+    const searchResults = isSearching ? allTiles.filter(matchesQuery) : []
+
+    const groups: { routine?: Routine, tiles: Tile[] }[] = [
+        ...allRoutines.map(routine => ({
+            routine,
+            tiles: allTiles.filter(t => t.rootRoutineId === routine.id)
+        })),
+        {routine: undefined, tiles: allTiles.filter(t => t.rootRoutineId === UNCATEGORIZED)},
+    ].filter(g => g.tiles.length > 0)
 
     return (
         <Card
@@ -66,20 +80,34 @@ export function AppDrawer() {
                         style={{marginBottom: 8}}
                     />
                     <ScrollView>
-                        <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8, paddingBottom: 12}}>
-                            {filteredTiles.map(tile => (
-                                <AppDrawerTile key={tile.id} tile={tile}/>
+                        {isSearching
+                            ? <TileGrid tiles={searchResults} emptyLabel="Keine Tiles gefunden."/>
+                            : groups.map(group => (
+                                <View key={group.routine?.id ?? "uncategorized"} style={{marginBottom: 16}}>
+                                    <Text variant="labelLarge" style={{opacity: 0.7, marginBottom: 6}}>
+                                        {group.routine?.name ?? "Ohne Routine"}
+                                    </Text>
+                                    <TileGrid tiles={group.tiles}/>
+                                </View>
                             ))}
-                            {filteredTiles.length === 0 && (
-                                <Text style={{opacity: 0.6}}>Keine Tiles gefunden.</Text>
-                            )}
-                        </View>
+                        {!isSearching && groups.length === 0 && (
+                            <Text style={{opacity: 0.6}}>Keine Tiles vorhanden.</Text>
+                        )}
                     </ScrollView>
                 </View>
             )}
         </Card>
     )
 }
+
+const TileGrid = ({tiles, emptyLabel}: { tiles: Tile[], emptyLabel?: string }) => (
+    <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8, paddingBottom: 12}}>
+        {tiles.map(tile => <AppDrawerTile key={tile.id} tile={tile}/>)}
+        {tiles.length === 0 && !!emptyLabel && (
+            <Text style={{opacity: 0.6}}>{emptyLabel}</Text>
+        )}
+    </View>
+)
 
 const AppDrawerTile = ({tile}: { tile: Tile }) => {
     const contrastColor = getContrastColor(tile.color)

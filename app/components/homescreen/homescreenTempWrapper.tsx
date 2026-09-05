@@ -8,12 +8,12 @@ import {HomescreenDataProvider} from "@components/homescreen/homescreen-data-con
 
 export const HomescreenTempWrapper = () => {
     const {colors} = useTheme();
-    const {folders, tiles, dataLoaded} = useHomescreenLibraryData()
+    const {folders, tiles, routines, dataLoaded} = useHomescreenLibraryData()
 
     return (
         <View style={[styles.grid, {backgroundColor: colors.background}]}>
             {dataLoaded
-                ? <HomescreenDataProvider value={{folders, tiles}}>
+                ? <HomescreenDataProvider value={{folders, tiles, routines}}>
                     <HomescreenNavigator/>
                     <AppDrawer/>
                 </HomescreenDataProvider>
