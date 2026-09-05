@@ -14,11 +14,11 @@ it go stale.
    New `homescreen-data-context.tsx` carries `{folders, tiles}` centrally; `tileEvents`
    deliberately excluded from it (changes per-tap, shouldn't force re-renders). Still mock
    data (`db-mock.ts`) — no real DB wired up yet, that's step 5.
-2. **App Drawer rebuild**, against the new split model, still mock data. Currently a stub
-   (`AppDrawer.tsx`) — wrong type (`HomescreenItem`, the legacy grid-algorithm type, not
-   `HS3Item`), no styling, no drag, hardcoded item list. Search + flat list, no nested
-   folders in the drawer itself (the homescreen already has folders for spatial
-   organization — a second hierarchy in the drawer would be redundant).
+2. ✅ **App Drawer rebuild.** Done — real tiles from the library, search box (filters by
+   name), flat wrapped grid of colored tile cards. `HomescreenDataProvider` moved up into
+   `homescreenTempWrapper.tsx` (new `useHomescreenLibraryData` hook) so App Drawer and the
+   navigator can both reach it as peers — it used to live inside `navigator.tsx`, which
+   left App Drawer with no way to reach `tiles` at all. Still no drag-out — that's step 3.
 3. **Drag from App Drawer onto Homescreen** — places a new item referencing an existing
    tile.
 4. **Creation flow decision** (see below) — implement once 1–3 exist to build on.
