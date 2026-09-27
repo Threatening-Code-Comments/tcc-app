@@ -76,6 +76,8 @@ export type DragState = {
     element: HS3Element,
     coordinate: PixelPoint
     type: "drag" | "resize" | "create"
+    //resize only: the edge being dragged — overlapped elements get pushed away in that direction
+    resizeEdge?: 'top' | 'bottom' | 'left' | 'right'
 }
 
 export type FolderDisplayLevel = {

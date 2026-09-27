@@ -4,11 +4,13 @@ import {DragState, GridValue, HS3Element, HS3Folder, PixelPoint} from "@homescre
 import {DragPointPosition} from "@homescreen/ui/components/drag-point";
 import {FolderOperations} from "@homescreen/ui/folder-popover";
 import {
+    createResizeTempElements,
     createTempElements,
     generateElementResults,
     generateTempElements,
     getModifiedTempElements,
     getTargetLayout,
+    isOutOfGridBounds,
 } from "@homescreen/util";
 import {gridPointToPixel, gridToPx} from "@homescreen/move_algo";
 import {moveElementsToFolder} from "@homescreen/crud/move_elements";
@@ -18,28 +20,6 @@ import {FOLDER_HOVER_OVERLAY_INSET} from "@homescreen/constants";
 export type DropTarget = {
     element: HS3Element
     operation: FolderOperations
-}
-
-function applyModificationToElement(modifiedElement: HS3Element, folders: SharedValue<HS3Folder[]>) {
-    if ("itemId" in modifiedElement) {
-        folders.value = folders.value.map(f =>
-            f.folderId === modifiedElement.parentId
-                ? {
-                    ...f, items: f.items.map(i =>
-                        i.itemId === modifiedElement.itemId
-                            ? modifiedElement
-                            : i
-                    )
-                }
-                : f
-        )
-    } else {
-        folders.value = folders.value.map(f =>
-            f.folderId === modifiedElement.folderId
-                ? modifiedElement
-                : f
-        )
-    }
 }
 
 /**
@@ -84,8 +64,10 @@ export function useHomescreenDragAndDrop(
 
     //elementResults, previewElement, visibleElements -> TEMP ELEMENTS
     const tempElements = useDerivedValue(() => {
+        if (dragState.value?.type === "resize" && dragState.value.resizeEdge)
+            return createResizeTempElements(previewElement.value, visibleElements.value, dragState.value.resizeEdge)
         return createTempElements(elementResults.value, previewElement.value, visibleElements.value, isAddFolder.value)
-    }, [elementResults, previewElement, visibleElements, isAddFolder])
+    }, [dragState, elementResults, previewElement, visibleElements, isAddFolder])
 
     //tempElements, visibleElements -> tempElementsImpossible
     const tempElementsImpossible = useDerivedValue(
@@ -208,14 +190,27 @@ export function useHomescreenDragAndDrop(
         }
 
         dragState.value = {
-            element: modifiedElement, coordinate: {x: 0, y: 0}, type: "resize"
+            element: modifiedElement, coordinate: {x: 0, y: 0}, type: "resize", resizeEdge: position
         }
     }
     const onResizeEnd = (element: HS3Element, pos: DragPointPosition) => {
+        if (!dragState.value) return
         const modifiedElement = dragState.value.element
-        applyModificationToElement(modifiedElement, folders);
+        const isImpossible = tempElementsImpossible.value.length > 0
+            || isOutOfGridBounds(modifiedElement.layout)
 
         dragState.value = undefined
+        if (isImpossible) {
+            ToastAndroid.show("Couldn't resize", ToastAndroid.SHORT);
+        } else {
+            //pushed-away neighbours are saved together with the resized element, same as a drop
+            folders.value = getModifiedTempElements(
+                [...tempElements.value, modifiedElement],
+                folders.value
+            )
+        }
+        //remount either way — an aborted resize leaves the layout unchanged, so the item's
+        //own resize preview would otherwise never reset
         onMutated()
     }
 

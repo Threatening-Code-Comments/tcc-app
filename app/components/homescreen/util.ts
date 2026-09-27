@@ -240,6 +240,41 @@ export function createTempElements(
     return newTempElements;
 }
 
+/**
+ * Resize counterpart of createTempElements: there's no pointer position to derive a push
+ * direction from, so every element the resized one now overlaps gets pushed away along
+ * the edge being dragged. Whether that's possible is checked afterwards by generateTempElements.
+ */
+export function createResizeTempElements(
+    previewElement: HS3Element,
+    visibleElements: HS3Element[],
+    edge: NonNullable<DragState["resizeEdge"]>,
+) {
+    "worklet"
+    const t = previewElement.layout
+
+    return visibleElements
+        .filter(e => !isSameElementWorklet(e, previewElement) && doRectanglesOverlap(t, e.layout))
+        .map(e => {
+            switch (edge) {
+                case "right":
+                    return checkDirAndMoveIfPossible(e, {x: t.x + t.width, y: e.layout.y})
+                case "left":
+                    return checkDirAndMoveIfPossible(e, {x: t.x - e.layout.width, y: e.layout.y})
+                case "bottom":
+                    return checkDirAndMoveIfPossible(e, {x: e.layout.x, y: t.y + t.height})
+                case "top":
+                    return checkDirAndMoveIfPossible(e, {x: e.layout.x, y: t.y - e.layout.height})
+            }
+        })
+}
+
+export function isOutOfGridBounds(layout: HS3LayoutParams) {
+    "worklet"
+    return layout.x < 0 || layout.y < 0
+        || layout.x + layout.width > GRID_COLUMNS || layout.y + layout.height > GRID_ROWS
+}
+
 type CheckDirsReturnType = {
     dirs: Dirs[]
     isAddFolder: boolean
