@@ -5,7 +5,7 @@ import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams, PixelPoint, Routine, Ti
 import {TextField} from "rn-material-ui-textfield";
 import {clamp, getElementPath, getNextId, getNextTileId, getRandomColor} from "@homescreen/util";
 import {getContrastColor} from "@components/Colors";
-import {calculateNextPositionInFolder} from "@homescreen/crud/move_elements";
+import {syncRoutineFolder} from "@homescreen/crud/routine_folders";
 import {IconButton} from "@components/IconButton";
 import {ScrollView, TouchableOpacity, View} from "react-native";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
@@ -77,10 +77,10 @@ type PlaceExistingProps = {
 //The other half of "+": place something that already exists in the library, instead of
 //creating a new one — the only way to get the same tile into multiple folders from here
 //(BEHAVIOR.md's caffeinated-drinks-in-3-folders case). Picking a tile hands a new item
-//referencing it to onSubmit; picking a routine hands over a folder (routine's name and
-//color) pre-filled with an item per tile in it. Either way it's then positioned with the
-//same layout overlay as "Tile". The routine folder is a one-time copy, not a live link —
-//tiles added to the routine later don't show up in it.
+//referencing it to onSubmit; picking a routine hands over a folder live-linked to it
+//(name, color and tiles follow the routine, see crud/routine_folders.ts), pre-filled so
+//the placement preview already shows its contents. Either way it's then positioned with
+//the same layout overlay as "Tile".
 export const usePlaceExistingTilePopup = (props: PlaceExistingProps) => {
     const {currentLevel, onSubmit: onSubmitP} = props
     const {folders, tiles, routines} = useHomescreenData()
@@ -103,25 +103,16 @@ export const usePlaceExistingTilePopup = (props: PlaceExistingProps) => {
         popup.setVisible(false)
         setQuery("")
 
-        const folderId = getNextId("folder", folders.value)
-        const firstItemId = getNextId("item", folders.value)
-        const placed: HS3LayoutParams[] = []
-        const items: HS3Item[] = tiles.value
-            .filter(t => t.rootRoutineId === routine.id)
-            .map((tile, index) => {
-                const layout = {...calculateNextPositionInFolder(placed, 1, 1), width: 1, height: 1}
-                placed.push(layout)
-                return {itemId: firstItemId + index, tileId: tile.id, parentId: folderId, layout}
-            })
-
-        onSubmitP({
-            folderId,
+        const linkedFolder: HS3Folder = {
+            folderId: getNextId("folder", folders.value),
             name: routine.name,
             color: routine.color,
-            items,
+            items: [],
+            routineId: routine.id,
             parentId: currentLevel,
             layout: {x: 0, y: 0, width: 0, height: 0}
-        })
+        }
+        onSubmitP(syncRoutineFolder(linkedFolder, folders.value, tiles.value, routines.value))
     }
 
     const trimmed = query.trim().toLowerCase()

@@ -41,12 +41,19 @@ export type HS3Element = HS3Item | HS3Folder
 export type HS3Item = {
     itemId: number,
     tileId: number,
+    //set when this item was put here by a routine-linked folder's sync (the routine's id) —
+    //only those are removed again when their tile leaves the routine. Items added by hand
+    //into a linked folder don't have it and are left alone.
+    syncedFromRoutine?: number,
 } & HS3Layout;
 export type HS3Folder = {
     folderId: number,
     name: string,
     color: string,
     items: HS3Item[]
+    //live link to a routine: name, color and the routine's tiles follow it (see
+    //crud/routine_folders.ts). Undefined for a normal folder.
+    routineId?: number,
 } & HS3Layout;
 export type HS3Layout = {
     layout: HS3LayoutParams;

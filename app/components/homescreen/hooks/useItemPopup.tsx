@@ -11,12 +11,15 @@ type Props = {
     element: HS3Element | undefined,
     folders: HS3Folder[],
     onDelete: (element: HS3Element) => void,
+    //item belongs to its folder's routine link — can't be removed here, only by taking
+    //the tile out of the routine
+    managedByRoutine?: boolean,
 }
 
 //long-press popup for an item or folder. Delete asks once more before acting, since a
 //folder takes its whole contents with it.
 export const useElementPopup = (props: Props) => {
-    const {element, folders, onDelete} = props
+    const {element, folders, onDelete, managedByRoutine = false} = props
     const {tiles} = useHomescreenData()
     const [confirming, setConfirming] = useState(false)
 
@@ -34,7 +37,13 @@ export const useElementPopup = (props: Props) => {
         <Text variant={"headlineSmall"}>{title}</Text>
         <Text>{isItem ? "Item" : "Folder"} at {getElementPath(element, folders)}</Text>
 
-        {confirming
+        {!("itemId" in element) && element.routineId !== undefined && (
+            <Text style={{opacity: 0.8}}>Linked to its routine — tiles follow it automatically.</Text>
+        )}
+
+        {managedByRoutine
+            ? <Text style={{opacity: 0.8}}>Part of this folder's routine. Remove it from the routine to take it out here.</Text>
+            : confirming
             ? <>
                 <Text>
                     {isItem

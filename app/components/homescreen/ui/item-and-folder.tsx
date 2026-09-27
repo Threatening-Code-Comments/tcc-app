@@ -66,7 +66,7 @@ export function Folder(props: FolderProps) {
                 <Text style={{
                     color: 'black', zIndex: 3, elevation: 3,
                     alignSelf: 'center'
-                }}>{folder.name}</Text>
+                }}>{folder.routineId !== undefined ? "↻ " : ""}{folder.name}</Text>
             </View>
 
 

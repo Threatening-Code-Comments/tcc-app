@@ -11,6 +11,7 @@ const jestConfig: JestConfigWithTsJest = {
     '^@app/(.*)$': '<rootDir>/app/$1',
     '^@db/(.*)$': '<rootDir>/app/db/$1',
     '^@components/(.*)$': '<rootDir>/app/components/$1',
+    '^@homescreen/(.*)$': '<rootDir>/app/components/homescreen/$1',
     '^@mocks/(.*)$': '<rootDir>/__mocks__/$1',
     '^@tests/(.*)$': '<rootDir>/app/__tests__/$1',
   } //pathsToModuleNameMapper(compilerOptions.paths /*, { prefix: '<rootDir>/' } */),

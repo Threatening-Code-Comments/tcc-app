@@ -13,6 +13,7 @@ import {useHomescreenDragAndDrop} from "@homescreen/hooks/useHomescreenDragAndDr
 import {useHomescreenEditMode} from "@homescreen/hooks/useHomescreenEditMode";
 import {useElementPopup} from "@components/homescreen/hooks/useItemPopup";
 import {deleteElement} from "@homescreen/crud/delete_elements";
+import {isManagedByRoutine} from "@homescreen/crud/routine_folders";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 import {GestureDetector} from "react-native-gesture-handler";
 
@@ -102,6 +103,8 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
     } = useElementPopup({
         element: popupItem.value,
         folders: folders.value,
+        managedByRoutine: !!popupItem.value && "itemId" in popupItem.value
+            && isManagedByRoutine(popupItem.value, folders.value),
         onDelete: (e) => {
             folders.value = deleteElement(e, folders.value)
             popupItem.value = undefined
@@ -173,7 +176,8 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
             isEditMode,
             onResizeUpdate: (pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY),
             onResizeEnd: (pos) => onResizeEnd(e, pos),
-            onRemove: () => removeElement(e),
+            //a routine's own tile in its linked folder would just come back on the next sync
+            onRemove: ("itemId" in e && isManagedByRoutine(e, folders.value)) ? undefined : () => removeElement(e),
         }
 
         return ("itemId" in e)

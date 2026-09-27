@@ -1,8 +1,9 @@
 import {useEffect, useState} from "react";
-import {useSharedValue} from "react-native-reanimated";
+import {runOnJS, useAnimatedReaction, useSharedValue} from "react-native-reanimated";
 import {HS3Folder, Routine, Tile} from "@homescreen/types";
 import {getFoldersFromDb, getRoutinesFromDb, getTilesFromDb} from "@components/homescreen/db-mock";
 import {DragPreview} from "@components/homescreen/homescreen-data-context";
+import {syncRoutineFolders} from "@homescreen/crud/routine_folders";
 
 /**
  * Loads the folder tree + tile library once, and owns the App-Drawer-drag bridge state.
@@ -33,6 +34,21 @@ export function useHomescreenLibraryData() {
                 }
             })
     }, []);
+
+    //keeps routine-linked folders live: whenever tiles, routines or the folder tree change,
+    //linked folders are re-synced. Lives here (not in a Homescreen level) so it also runs
+    //for changes made from the App Drawer. The sync returns undefined once everything is in
+    //line, so its own write doesn't loop.
+    const syncLinkedFolders = () => {
+        const synced = syncRoutineFolders(folders.value, tiles.value, routines.value)
+        if (synced) folders.value = synced
+    }
+    useAnimatedReaction(
+        () => ({folders: folders.value, tiles: tiles.value, routines: routines.value}),
+        (current, previous) => {
+            if (current !== previous) runOnJS(syncLinkedFolders)()
+        }, [folders, tiles, routines]
+    )
 
     return {folders, tiles, routines, dragPreview, homescreenAreaBounds, dataLoaded}
 }

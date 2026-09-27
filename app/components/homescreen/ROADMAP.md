@@ -64,6 +64,13 @@ it go stale.
    **Folder** (named, empty — the FAB existed before but had no handler). Drag-onto-each-
    other folder creation vs. move-into (#75) was already resolved via `dropTarget` +
    FolderPopover's create/moveTo halves.
+   Follow-ups: **Existing** also lists routines — placing one creates a folder *live-linked*
+   to it (`HS3Folder.routineId`, synced in `crud/routine_folders.ts` from
+   `useHomescreenLibraryData` whenever tiles/routines/folders change: name/color follow,
+   new routine tiles get the next free cell, tiles leaving the routine go; hand-placed
+   extras and existing layout are kept). Removing: the edit-mode "×" only takes a
+   placement off the homescreen (routine-managed items have none — they'd just come back);
+   the App Drawer's edit toggle deletes tiles from the library, with all their placements.
 5. **Real persistence + `.db` import**, only now. Wiring the exported prod DB
    (`local-data/`, gitignored) becomes a mechanical "swap the data source" step once the
    model/UX is proven, instead of a decision that constrains UX work while it's still in
