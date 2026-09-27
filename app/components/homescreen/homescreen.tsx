@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {View} from "react-native";
 import Animated, {runOnJS, useAnimatedReaction, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {Folder, Item} from "@components/homescreen/ui/item-and-folder";
@@ -8,10 +8,11 @@ import {getElementKey, getFoldersForLevel, isSameElement} from "@components/home
 import {FolderPopover} from "@components/homescreen/ui/folder-popover";
 import {DotGridBackground} from "@homescreen/ui/components/dot-grid";
 import {CreateElementControls} from "@homescreen/ui/create-element-controls";
-import {HS3Element, HS3Item} from "@components/homescreen/types";
+import {HS3Element} from "@components/homescreen/types";
 import {useHomescreenDragAndDrop} from "@homescreen/hooks/useHomescreenDragAndDrop";
 import {useHomescreenEditMode} from "@homescreen/hooks/useHomescreenEditMode";
-import {useItemPopup} from "@components/homescreen/hooks/useItemPopup";
+import {useElementPopup} from "@components/homescreen/hooks/useItemPopup";
+import {deleteElement} from "@homescreen/crud/delete_elements";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 import {GestureDetector} from "react-native-gesture-handler";
 
@@ -67,15 +68,28 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         }
     }
 
-    const popupItem = useSharedValue<HS3Item | undefined>(undefined)
+    const popupItem = useSharedValue<HS3Element | undefined>(undefined)
     const onLongTap = (e: HS3Element) => {
-        if ("itemId" in e)
-            popupItem.value = e
+        popupItem.value = e
     }
     const {
+        visible: itemPopupOpen,
         setVisible: setItemPopupOpen,
         component: itemPopupComponent
-    } = useItemPopup({item: popupItem.value, folders: folders.value})
+    } = useElementPopup({
+        element: popupItem.value,
+        folders: folders.value,
+        onDelete: (e) => {
+            folders.value = deleteElement(e, folders.value)
+            popupItem.value = undefined
+            setMountKey(k => k + 1)
+        },
+    })
+    //closing the popup (backdrop/back) has to clear the selection too, otherwise a second
+    //long-press on the same element wouldn't count as a change and never reopen it.
+    useEffect(() => {
+        if (!itemPopupOpen) popupItem.value = undefined
+    }, [itemPopupOpen])
     useAnimatedReaction(
         () => ({item: popupItem.value}),
         (curr, prev) => {

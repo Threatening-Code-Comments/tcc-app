@@ -408,9 +408,11 @@ export function getNextId(type: "item" | "folder", folders: HS3Folder[]) {
         return highest + 1
     } else {
         //e is folder
+        //the root folder's folderId is undefined — skipped, or it'd turn the result into NaN
+        //whenever it happens to be the last folder compared
         const highest = folders.reduce(
             (prev, curr) =>
-                (prev > curr.folderId)
+                (curr.folderId === undefined || prev > curr.folderId)
                     ? prev : curr.folderId,
             -1
         )

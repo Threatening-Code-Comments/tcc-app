@@ -1,21 +1,56 @@
-import React from "react";
-import {HS3Folder, HS3Item} from '../types'
+import React, {useEffect, useState} from "react";
+import {View} from "react-native";
+import {HS3Element, HS3Folder} from '../types'
 import {Text} from 'react-native-paper'
 import {getElementPath} from "@components/homescreen/util";
 import {usePopup} from "@components/hooks/usePopup";
+import {IconButton} from "@components/IconButton";
+import {getTileById, useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
 type Props = {
-    item: HS3Item | undefined,
-    folders: HS3Folder[]
+    element: HS3Element | undefined,
+    folders: HS3Folder[],
+    onDelete: (element: HS3Element) => void,
 }
 
-export const useItemPopup = (props: Props) => {
-    const {item, folders} = props
+//long-press popup for an item or folder. Delete asks once more before acting, since a
+//folder takes its whole contents with it.
+export const useElementPopup = (props: Props) => {
+    const {element, folders, onDelete} = props
+    const {tiles} = useHomescreenData()
+    const [confirming, setConfirming] = useState(false)
 
-    const popupContent = !!item && (<>
-        <Text variant={"displaySmall"}>Item: {item.itemId}</Text>
-        <Text>Currently at {getElementPath(item, folders)}</Text>
-    </>)
+    useEffect(() => setConfirming(false), [element])
+
+    const isItem = !!element && "itemId" in element
+    const title = !element ? ""
+        : ("itemId" in element)
+            ? getTileById(tiles.value, element.tileId)?.name ?? `Item ${element.itemId}`
+            : element.name
+    const childCount = (!element || "itemId" in element) ? 0
+        : element.items.length + folders.filter(f => f.parentId === element.folderId).length
+
+    const popupContent = !!element && (<View style={{display: 'flex', flexDirection: 'column', gap: 16}}>
+        <Text variant={"headlineSmall"}>{title}</Text>
+        <Text>{isItem ? "Item" : "Folder"} at {getElementPath(element, folders)}</Text>
+
+        {confirming
+            ? <>
+                <Text>
+                    {isItem
+                        ? "Remove from the homescreen? The tile stays in the App Drawer."
+                        : `Delete this folder${childCount > 0 ? ` and its ${childCount} element(s)` : ""}? Tiles stay in the App Drawer.`}
+                </Text>
+                <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+                    <IconButton iconName={"close"} text={"Cancel"} type={"transparent"}
+                                onPress={() => setConfirming(false)}/>
+                    <IconButton iconName={"delete"} text={"Delete"} type={"error"}
+                                onPress={() => onDelete(element)}/>
+                </View>
+            </>
+            : <IconButton iconName={"delete"} text={"Delete"} type={"error"}
+                          onPress={() => setConfirming(true)}/>}
+    </View>)
 
     const popup = usePopup({children: popupContent})
 

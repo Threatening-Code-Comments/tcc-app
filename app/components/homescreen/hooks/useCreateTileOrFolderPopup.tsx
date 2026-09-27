@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from "react";
 import {usePopup} from "@components/hooks/usePopup";
 import {Text, TextInput} from "react-native-paper";
-import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams, PixelPoint, Tile} from "@homescreen/types";
+import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams, PixelPoint, Routine, Tile} from "@homescreen/types";
 import {TextField} from "rn-material-ui-textfield";
 import {clamp, getElementPath, getNextId, getNextTileId, getRandomColor} from "@homescreen/util";
 import {getContrastColor} from "@components/Colors";
+import {calculateNextPositionInFolder} from "@homescreen/crud/move_elements";
 import {IconButton} from "@components/IconButton";
 import {ScrollView, TouchableOpacity, View} from "react-native";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
@@ -68,13 +69,21 @@ export const useCreateTilePopup = (props: Props) => {
     }
 }
 
-//The other half of "+": place a tile that already exists in the library, instead of
+type PlaceExistingProps = {
+    currentLevel: number
+    onSubmit: (element: HS3Element) => void
+}
+
+//The other half of "+": place something that already exists in the library, instead of
 //creating a new one — the only way to get the same tile into multiple folders from here
 //(BEHAVIOR.md's caffeinated-drinks-in-3-folders case). Picking a tile hands a new item
-//referencing it to onSubmit, which positions it with the same layout overlay as "Tile".
-export const usePlaceExistingTilePopup = (props: Props) => {
+//referencing it to onSubmit; picking a routine hands over a folder (routine's name and
+//color) pre-filled with an item per tile in it. Either way it's then positioned with the
+//same layout overlay as "Tile". The routine folder is a one-time copy, not a live link —
+//tiles added to the routine later don't show up in it.
+export const usePlaceExistingTilePopup = (props: PlaceExistingProps) => {
     const {currentLevel, onSubmit: onSubmitP} = props
-    const {folders, tiles} = useHomescreenData()
+    const {folders, tiles, routines} = useHomescreenData()
 
     const [query, setQuery] = React.useState<string>("")
 
@@ -90,19 +99,68 @@ export const usePlaceExistingTilePopup = (props: Props) => {
         })
     }
 
+    const onPickRoutine = (routine: Routine) => {
+        popup.setVisible(false)
+        setQuery("")
+
+        const folderId = getNextId("folder", folders.value)
+        const firstItemId = getNextId("item", folders.value)
+        const placed: HS3LayoutParams[] = []
+        const items: HS3Item[] = tiles.value
+            .filter(t => t.rootRoutineId === routine.id)
+            .map((tile, index) => {
+                const layout = {...calculateNextPositionInFolder(placed, 1, 1), width: 1, height: 1}
+                placed.push(layout)
+                return {itemId: firstItemId + index, tileId: tile.id, parentId: folderId, layout}
+            })
+
+        onSubmitP({
+            folderId,
+            name: routine.name,
+            color: routine.color,
+            items,
+            parentId: currentLevel,
+            layout: {x: 0, y: 0, width: 0, height: 0}
+        })
+    }
+
     const trimmed = query.trim().toLowerCase()
     const results = tiles.value.filter(t => t.name.toLowerCase().includes(trimmed))
+    const routineResults = routines.value.filter(r =>
+        r.name.toLowerCase().includes(trimmed) && tiles.value.some(t => t.rootRoutineId === r.id)
+    )
 
     const parent = folders.value.find(f => f.folderId === currentLevel)
     const popupContent = (<View style={{display: 'flex', flexDirection: 'column', gap: 16}}>
-        <Text variant={"headlineSmall"}>Place existing Tile</Text>
+        <Text variant={"headlineSmall"}>Place existing</Text>
         <Text>Parent: {getElementPath(parent, folders.value)}</Text>
 
         <TextInput label={"Search"}
                    value={query}
                    onChangeText={text => setQuery(text)}/>
 
-        <ScrollView style={{maxHeight: 320}}>
+        <ScrollView style={{maxHeight: 360}}>
+            {routineResults.length > 0 && <>
+                <Text variant={"labelLarge"} style={{marginBottom: 8, opacity: 0.8}}>Routines</Text>
+                <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16}}>
+                    {routineResults.map(routine => (
+                        <TouchableOpacity key={routine.id} onPress={() => onPickRoutine(routine)}>
+                            {/*outlined like the App Drawer's routine folders, to read as "a group", not a tile*/}
+                            <View style={{
+                                paddingHorizontal: 12, paddingVertical: 8,
+                                borderRadius: 10,
+                                borderWidth: 2,
+                                borderColor: routine.color,
+                            }}>
+                                <Text style={{color: routine.color, fontWeight: "600"}}>
+                                    {routine.name} ({tiles.value.filter(t => t.rootRoutineId === routine.id).length})
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            </>}
+            <Text variant={"labelLarge"} style={{marginBottom: 8, opacity: 0.8}}>Tiles</Text>
             <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8}}>
                 {results.map(tile => (
                     <TouchableOpacity key={tile.id} onPress={() => onPick(tile)}>
@@ -244,7 +302,7 @@ export const useCreateLayoutOverlay = (props: CreateLayoutProps) => {
                 <View
                     style={{
                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                        zIndex: 20, backgroundColor: '#ffff0055'
+                        zIndex: 20, backgroundColor: '#00000033'
                     }}>
                     <View
                         style={{

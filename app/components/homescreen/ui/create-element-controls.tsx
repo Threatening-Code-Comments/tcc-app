@@ -22,7 +22,7 @@ type Props = {
 
 /**
  * The "+" FAB and everything it opens: a new tile (named, registered in the library), an
- * existing library tile, or an empty folder — each then dragged out to its position and
+ * existing library tile or routine (as a pre-filled folder), or an empty folder — each then dragged out to its position and
  * merged into `folders` on confirm. Self-contained — Homescreen just needs to give
  * it the shared drag state (it reuses the same "drag out a rectangle" preview machinery
  * as a normal drag) and folderId to place the new element into.
@@ -77,7 +77,7 @@ export const CreateElementControls = ({
     })
     const placeExistingPopup = usePlaceExistingTilePopup({
         currentLevel: folderId,
-        onSubmit: (item: HS3Item) => createPositionOverlay.setElement(item)
+        onSubmit: (element: HS3Element) => createPositionOverlay.setElement(element)
     })
     const folderCreatePopup = useCreateFolderPopup({
         currentLevel: folderId,
