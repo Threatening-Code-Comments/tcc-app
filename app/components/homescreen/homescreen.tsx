@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {View} from "react-native";
+import {Alert, View} from "react-native";
 import Animated, {runOnJS, useAnimatedReaction, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {Folder, Item} from "@components/homescreen/ui/item-and-folder";
 import {MovableItemProps} from "@components/homescreen/ui/movable-item";
@@ -66,6 +66,29 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         } else {
             onEnterFolder(e.folderId)
         }
+    }
+
+    //the edit-mode "×": only takes the placement off the homescreen (the tile stays in the
+    //App Drawer). Items go right away; a folder with anything in it asks first, since its
+    //whole contents go with it.
+    const removeElement = (e: HS3Element) => {
+        const apply = () => {
+            folders.value = deleteElement(e, folders.value)
+            setMountKey(k => k + 1)
+        }
+        if ("itemId" in e) return apply()
+
+        const childCount = e.items.length + folders.value.filter(f => f.parentId === e.folderId).length
+        if (childCount === 0) return apply()
+
+        Alert.alert(
+            `Remove "${e.name}"?`,
+            `Its ${childCount} element(s) are removed from the homescreen too. Tiles stay in the App Drawer.`,
+            [
+                {text: "Cancel", style: "cancel"},
+                {text: "Remove", style: "destructive", onPress: apply},
+            ]
+        )
     }
 
     const popupItem = useSharedValue<HS3Element | undefined>(undefined)
@@ -150,6 +173,7 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
             isEditMode,
             onResizeUpdate: (pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY),
             onResizeEnd: (pos) => onResizeEnd(e, pos),
+            onRemove: () => removeElement(e),
         }
 
         return ("itemId" in e)

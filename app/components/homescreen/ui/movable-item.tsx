@@ -17,6 +17,7 @@ import {PixelPoint, PixelValue} from "@components/homescreen/types";
 import {SpringConfig} from "react-native-reanimated/lib/typescript/reanimated2/animation/springUtils";
 import {View} from "react-native";
 import {DragPoint, DragPointPosition} from "@components/homescreen/ui/components/drag-point";
+import {RemoveBadge} from "@homescreen/ui/components/remove-badge";
 
 /**
  * this scales the item down when it's dragging
@@ -34,6 +35,8 @@ export type MovableItemProps = {
     children?: React.ReactNode
     onResizeUpdate?: (pos: DragPointPosition, deltaX: PixelValue, deltaY: PixelValue) => void
     onResizeEnd?: (pos: DragPointPosition) => void
+    //removes this placement from the homescreen — shown as an "×" in edit mode
+    onRemove?: () => void
 }
 
 export function MovableItem(props: MovableItemProps) {
@@ -219,6 +222,7 @@ export function MovableItem(props: MovableItemProps) {
                     <DragPoint position={"bottom"} onResizeEnd={onResizeEnd} onResizeUpdate={onResizeUpdate}/>
                     <DragPoint position={"top"} onResizeEnd={onResizeEnd} onResizeUpdate={onResizeUpdate}/>
                     <DragPoint position={"left"} onResizeEnd={onResizeEnd} onResizeUpdate={onResizeUpdate}/>
+                    {props.onRemove && <RemoveBadge onPress={props.onRemove}/>}
                 </View>
             </Animated.View>
         </GestureDetector>

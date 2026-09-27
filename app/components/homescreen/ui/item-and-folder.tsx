@@ -16,7 +16,7 @@ type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
 export function Folder(props: FolderProps) {
     const {
         folder, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
-        onResizeUpdate, onResizeEnd
+        onResizeUpdate, onResizeEnd, onRemove
     } = props
     const {layout} = folder
 
@@ -30,6 +30,7 @@ export function Folder(props: FolderProps) {
         isEditMode={props.isEditMode}
         onResizeUpdate={onResizeUpdate}
         onResizeEnd={onResizeEnd}
+        onRemove={onRemove}
     >
         <View style={{
             // backgroundColor: 'white',
@@ -138,7 +139,7 @@ type ItemProps = Omit<MovableItemProps, "children" | "layout"> & {
 export function Item(props: ItemProps) {
     const {
         item, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
-        onResizeUpdate, onResizeEnd
+        onResizeUpdate, onResizeEnd, onRemove
     } = props
     const {tiles} = useHomescreenData()
     const tile = getTileById(tiles.value, item.tileId)
@@ -173,6 +174,7 @@ export function Item(props: ItemProps) {
         isEditMode={props.isEditMode}
         onResizeUpdate={onResizeUpdate}
         onResizeEnd={onResizeEnd}
+        onRemove={onRemove}
     >
         {/*<View style={{*/}
         {/*    ...utilStyles.topLeft, ...utilStyles.full,*/}

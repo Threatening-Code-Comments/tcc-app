@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useState} from "react";
-import {ScrollView, TouchableOpacity, View} from "react-native";
+import {Alert, ScrollView, TouchableOpacity, View} from "react-native";
 import {Text, TextInput, useTheme} from "react-native-paper";
 import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle} from "react-native-reanimated";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
@@ -9,6 +9,7 @@ import {HS3Item, Routine, Tile} from "@components/homescreen/types";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 import {doRectanglesOverlap, getNextId, getSnappedGridPosition} from "@homescreen/util";
 import {calculateNextPositionInFolder} from "@homescreen/crud/move_elements";
+import {RemoveBadge} from "@homescreen/ui/components/remove-badge";
 
 //fixed column count rather than a fixed tile size — a fixed 88px tile plus gaps came out
 //at 3 columns on narrower phones and 4 on wider ones. Tile size is derived from the
@@ -36,7 +37,8 @@ type RoutineGroup = { key: number | typeof UNCATEGORIZED_KEY, routine?: Routine,
  * like the production app) would add more complexity than it's worth here. Search ignores
  * the grouping and flattens across everything, the same way "open + search" already
  * substitutes for page-level quick access.
- * Drag-out onto the homescreen isn't built yet — this is browse + search only for now.
+ * Tiles drag out onto the homescreen; the edit toggle next to search switches to deleting
+ * tiles from the library instead (the homescreen's own "×" only removes placements).
  */
 export function AppDrawer() {
     const {tiles, routines, folders, dragPreview, homescreenAreaBounds} = useHomescreenData()
@@ -45,6 +47,28 @@ export function AppDrawer() {
     const [query, setQuery] = useState("")
     const [activeRoutine, setActiveRoutine] = useState<number | typeof UNCATEGORIZED_KEY | undefined>(undefined)
     const [tileSize, setTileSize] = useState(FALLBACK_TILE_SIZE)
+    const [isDeleteMode, setDeleteMode] = useState(false)
+
+    //the real delete: the tile leaves the library, and every placement of it on the
+    //homescreen goes with it — an item pointing at a tile that no longer exists is useless.
+    const deleteTile = (tile: Tile) => {
+        const placements = folders.value.flatMap(f => f.items).filter(i => i.tileId === tile.id).length
+        Alert.alert(
+            `Delete "${tile.name}"?`,
+            placements > 0
+                ? `It's also removed from the homescreen (${placements} placement(s)). This can't be undone.`
+                : "This can't be undone.",
+            [
+                {text: "Cancel", style: "cancel"},
+                {
+                    text: "Delete", style: "destructive", onPress: () => {
+                        folders.value = folders.value.map(f => ({...f, items: f.items.filter(i => i.tileId !== tile.id)}))
+                        tiles.value = tiles.value.filter(t => t.id !== tile.id)
+                    }
+                },
+            ]
+        )
+    }
 
     //drop handling for a tile dragged out of the drawer — placed at the root level only
     //for now; dropping into whichever folder popup happens to be open isn't supported yet.
@@ -93,7 +117,10 @@ export function AppDrawer() {
         }, [tiles, routines]
     )
 
-    const toggleModal = () => setIsOpen(v => !v)
+    const toggleModal = () => {
+        setIsOpen(v => !v)
+        setDeleteMode(false)
+    }
 
     const allTiles = tiles.value
     const allRoutines = routines.value
@@ -181,13 +208,18 @@ export function AppDrawer() {
 
             {isOpen && (
                 <View style={{flex: 1, paddingHorizontal: 12}}>
-                    <TextInput
-                        mode="outlined"
-                        placeholder="Suchen..."
-                        value={query}
-                        onChangeText={setQuery}
-                        style={{marginBottom: 12}}
-                    />
+                    <View style={{flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12}}>
+                        <TextInput
+                            mode="outlined"
+                            placeholder="Suchen..."
+                            value={query}
+                            onChangeText={setQuery}
+                            style={{flex: 1}}
+                        />
+                        <IconButton iconName={isDeleteMode ? "close" : "edit"}
+                                    type={isDeleteMode ? "error" : "transparent"}
+                                    onPress={() => setDeleteMode(v => !v)}/>
+                    </View>
                     <TileSizeContext.Provider value={tileSize}>
                     <ScrollView style={{flex: 1}} onLayout={e => {
                         const width = e.nativeEvent.layout.width
@@ -196,7 +228,8 @@ export function AppDrawer() {
                     }}>
                         {isSearching
                             ? <TileGrid tiles={searchResults} emptyLabel="Keine Tiles gefunden."
-                                        dragPreview={dragPreview} onDrop={handleDrop}/>
+                                        dragPreview={dragPreview} onDrop={handleDrop}
+                                        onDelete={isDeleteMode ? deleteTile : undefined}/>
                             : activeGroup
                                 ? <>
                                     <TouchableOpacity onPress={() => setActiveRoutine(undefined)}
@@ -205,7 +238,8 @@ export function AppDrawer() {
                                             {activeGroup.routine?.name ?? "Ohne Routine"}
                                         </Text>
                                     </TouchableOpacity>
-                                    <TileGrid tiles={activeGroup.tiles} dragPreview={dragPreview} onDrop={handleDrop}/>
+                                    <TileGrid tiles={activeGroup.tiles} dragPreview={dragPreview} onDrop={handleDrop}
+                                              onDelete={isDeleteMode ? deleteTile : undefined}/>
                                 </>
                                 : <RoutineGrid groups={groups} onSelect={setActiveRoutine}/>}
                     </ScrollView>
@@ -265,16 +299,22 @@ type DragProps = {
     onDrop: (tile: Tile, absX: number, absY: number) => void
 }
 
-const TileGrid = ({tiles, emptyLabel, dragPreview, onDrop}: { tiles: Tile[], emptyLabel?: string } & Partial<DragProps>) => (
+type DeleteProps = {
+    //set = delete mode: tiles show an "×" and aren't draggable
+    onDelete?: (tile: Tile) => void
+}
+
+const TileGrid = ({tiles, emptyLabel, dragPreview, onDrop, onDelete}: { tiles: Tile[], emptyLabel?: string } & Partial<DragProps> & DeleteProps) => (
     <View style={{flexDirection: "row", flexWrap: "wrap", gap: GAP, paddingBottom: 12}}>
-        {tiles.map(tile => <AppDrawerTile key={tile.id} tile={tile} dragPreview={dragPreview} onDrop={onDrop}/>)}
+        {tiles.map(tile => <AppDrawerTile key={tile.id} tile={tile} dragPreview={dragPreview} onDrop={onDrop}
+                                          onDelete={onDelete}/>)}
         {tiles.length === 0 && !!emptyLabel && (
             <Text style={{opacity: 0.6}}>{emptyLabel}</Text>
         )}
     </View>
 )
 
-const AppDrawerTile = ({tile, dragPreview, onDrop}: { tile: Tile } & Partial<DragProps>) => {
+const AppDrawerTile = ({tile, dragPreview, onDrop, onDelete}: { tile: Tile } & Partial<DragProps> & DeleteProps) => {
     const contrastColor = getContrastColor(tile.color)
     const tileSize = useContext(TileSizeContext)
 
@@ -301,9 +341,11 @@ const AppDrawerTile = ({tile, dragPreview, onDrop}: { tile: Tile } & Partial<Dra
             <Text style={{color: contrastColor, fontSize: 13, fontWeight: "600", textAlign: 'center'}} numberOfLines={2}>
                 {tile.name}
             </Text>
+            {onDelete && <RemoveBadge inset onPress={() => onDelete(tile)}/>}
         </View>
     )
 
+    if (onDelete) return content
     return (dragPreview && onDrop)
         ? <GestureDetector gesture={dragGesture}>{content}</GestureDetector>
         : content
