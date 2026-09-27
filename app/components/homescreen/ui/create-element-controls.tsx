@@ -2,8 +2,13 @@ import React, {useState} from "react";
 import {FAB} from "react-native-paper";
 import {ToastAndroid, View} from "react-native";
 import {SharedValue} from "react-native-reanimated";
-import {DragState, HS3Element, HS3Item} from "@homescreen/types";
-import {useCreateLayoutOverlay, useCreateTilePopup} from "@homescreen/hooks/useCreateTileOrFolderPopup";
+import {DragState, HS3Element, HS3Folder, HS3Item} from "@homescreen/types";
+import {
+    useCreateFolderPopup,
+    useCreateLayoutOverlay,
+    useCreateTilePopup,
+    usePlaceExistingTilePopup,
+} from "@homescreen/hooks/useCreateTileOrFolderPopup";
 import {getModifiedTempElements} from "@homescreen/util";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
@@ -16,8 +21,9 @@ type Props = {
 }
 
 /**
- * The "+" FAB and everything it opens: dragging out a new tile's position, naming it,
- * merging it into `folders` on confirm. Self-contained — Homescreen just needs to give
+ * The "+" FAB and everything it opens: a new tile (named, registered in the library), an
+ * existing library tile, or an empty folder — each then dragged out to its position and
+ * merged into `folders` on confirm. Self-contained — Homescreen just needs to give
  * it the shared drag state (it reuses the same "drag out a rectangle" preview machinery
  * as a normal drag) and folderId to place the new element into.
  */
@@ -69,6 +75,14 @@ export const CreateElementControls = ({
         currentLevel: folderId,
         onSubmit: (item: HS3Item) => createPositionOverlay.setElement(item)
     })
+    const placeExistingPopup = usePlaceExistingTilePopup({
+        currentLevel: folderId,
+        onSubmit: (item: HS3Item) => createPositionOverlay.setElement(item)
+    })
+    const folderCreatePopup = useCreateFolderPopup({
+        currentLevel: folderId,
+        onSubmit: (folder: HS3Folder) => createPositionOverlay.setElement(folder)
+    })
 
     const createFabProps = showCreateFABs
         ? {icon: "window-close", label: "Cancel", variant: "tertiary" as const}
@@ -77,6 +91,8 @@ export const CreateElementControls = ({
     return <>
         {createPositionOverlay.component}
         {tileCreatePopup.component}
+        {placeExistingPopup.component}
+        {folderCreatePopup.component}
         <FAB style={{
             position: "absolute",
             right: 20, bottom: 150,
@@ -102,10 +118,18 @@ export const CreateElementControls = ({
                      onPress={() => tileCreatePopup.setVisible(true)}
                 />
 
+                <FAB icon={"magnify"}
+                     variant={"secondary"}
+                     label={"Existing"}
+                     style={{zIndex: 100}}
+                     onPress={() => placeExistingPopup.setVisible(true)}
+                />
+
                 <FAB icon={"folder"}
                      variant={"secondary"}
                      label={"Folder"}
                      style={{zIndex: 100}}
+                     onPress={() => folderCreatePopup.setVisible(true)}
                 />
             </View>
             : null}

@@ -57,7 +57,13 @@ it go stale.
    in-homescreen drag has — it just finds a free cell (or the nearest one via
    `calculateNextPositionInFolder`) on drop. Both worth revisiting if this becomes a
    heavily-used path rather than an occasional one.
-4. **Creation flow decision** (see below) — implement once 1–3 exist to build on.
+4. ✅ **Creation flow** (direction below). The "+" menu now has three entries, all ending
+   in the same drag-out-a-rectangle layout overlay: **Tile** (new tile, registered in the
+   library — already true since step 1), **Existing** (search the library, pick a tile,
+   place a new item referencing it — the "same tile in multiple folders" path), and
+   **Folder** (named, empty — the FAB existed before but had no handler). Drag-onto-each-
+   other folder creation vs. move-into (#75) was already resolved via `dropTarget` +
+   FolderPopover's create/moveTo halves.
 5. **Real persistence + `.db` import**, only now. Wiring the exported prod DB
    (`local-data/`, gitignored) becomes a mechanical "swap the data source" step once the
    model/UX is proven, instead of a decision that constrains UX work while it's still in

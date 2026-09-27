@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from "react";
 import {usePopup} from "@components/hooks/usePopup";
 import {Text, TextInput} from "react-native-paper";
-import {HS3Element, HS3Item, HS3LayoutParams, PixelPoint, Tile} from "@homescreen/types";
+import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams, PixelPoint, Tile} from "@homescreen/types";
 import {TextField} from "rn-material-ui-textfield";
 import {clamp, getElementPath, getNextId, getNextTileId, getRandomColor} from "@homescreen/util";
+import {getContrastColor} from "@components/Colors";
 import {IconButton} from "@components/IconButton";
-import {View} from "react-native";
+import {ScrollView, TouchableOpacity, View} from "react-native";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {runOnJS, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {GRID_COLUMNS, pixelToGrid, pxToGrid} from "@homescreen/move_algo";
@@ -27,6 +28,7 @@ export const useCreateTilePopup = (props: Props) => {
 
     const onSubmit = () => {
         popup.setVisible(false)
+        setName("")
 
         const newTile: Tile = {
             id: getNextTileId(tiles.value),
@@ -49,6 +51,115 @@ export const useCreateTilePopup = (props: Props) => {
     const parent = folders.value.find(f => f.folderId === currentLevel)
     const popupContent = (<View style={{display: 'flex', flexDirection: 'column', gap: 20}}>
         <Text variant={"headlineSmall"}>Create Tile</Text>
+        <Text>Parent: {getElementPath(parent, folders.value)}</Text>
+
+        <TextInput label={"Name"}
+                   value={name}
+                   onChangeText={text => setName(text)}/>
+
+        <IconButton iconName={"add"} text={"Add"} disabled={name === ""} onPress={onSubmit}/>
+    </View>)
+    const popup = usePopup({children: popupContent})
+
+    return {
+        visible: popup.visible,
+        setVisible: popup.setVisible,
+        component: popup.component,
+    }
+}
+
+//The other half of "+": place a tile that already exists in the library, instead of
+//creating a new one — the only way to get the same tile into multiple folders from here
+//(BEHAVIOR.md's caffeinated-drinks-in-3-folders case). Picking a tile hands a new item
+//referencing it to onSubmit, which positions it with the same layout overlay as "Tile".
+export const usePlaceExistingTilePopup = (props: Props) => {
+    const {currentLevel, onSubmit: onSubmitP} = props
+    const {folders, tiles} = useHomescreenData()
+
+    const [query, setQuery] = React.useState<string>("")
+
+    const onPick = (tile: Tile) => {
+        popup.setVisible(false)
+        setQuery("")
+
+        onSubmitP({
+            itemId: getNextId("item", folders.value),
+            tileId: tile.id,
+            parentId: currentLevel,
+            layout: {x: 0, y: 0, width: 0, height: 0}
+        })
+    }
+
+    const trimmed = query.trim().toLowerCase()
+    const results = tiles.value.filter(t => t.name.toLowerCase().includes(trimmed))
+
+    const parent = folders.value.find(f => f.folderId === currentLevel)
+    const popupContent = (<View style={{display: 'flex', flexDirection: 'column', gap: 16}}>
+        <Text variant={"headlineSmall"}>Place existing Tile</Text>
+        <Text>Parent: {getElementPath(parent, folders.value)}</Text>
+
+        <TextInput label={"Search"}
+                   value={query}
+                   onChangeText={text => setQuery(text)}/>
+
+        <ScrollView style={{maxHeight: 320}}>
+            <View style={{flexDirection: "row", flexWrap: "wrap", gap: 8}}>
+                {results.map(tile => (
+                    <TouchableOpacity key={tile.id} onPress={() => onPick(tile)}>
+                        <View style={{
+                            paddingHorizontal: 12, paddingVertical: 10,
+                            borderRadius: 10,
+                            backgroundColor: tile.color,
+                        }}>
+                            <Text style={{color: getContrastColor(tile.color), fontWeight: "600"}}>
+                                {tile.name}
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+                ))}
+                {results.length === 0 && <Text style={{opacity: 0.6}}>No tiles found.</Text>}
+            </View>
+        </ScrollView>
+    </View>)
+    const popup = usePopup({children: popupContent})
+
+    return {
+        visible: popup.visible,
+        setVisible: popup.setVisible,
+        component: popup.component,
+    }
+}
+
+type CreateFolderProps = {
+    currentLevel: number
+    onSubmit: (folder: HS3Folder) => void
+}
+
+//an empty folder — the drag-onto-each-other gesture already covers "folder from existing
+//items", this is for setting one up ahead of time. Positioned by the same layout overlay.
+export const useCreateFolderPopup = (props: CreateFolderProps) => {
+    const {currentLevel, onSubmit: onSubmitP} = props
+    const {folders} = useHomescreenData()
+
+    const [name, setName] = React.useState<string>("")
+
+    const onSubmit = () => {
+        popup.setVisible(false)
+        setName("")
+
+        onSubmitP({
+            folderId: getNextId("folder", folders.value),
+            name,
+            color: getRandomColor(),
+            items: [],
+            parentId: currentLevel,
+            layout: {x: 0, y: 0, width: 0, height: 0}
+        })
+    }
+
+    const parent = folders.value.find(f => f.folderId === currentLevel)
+    const popupContent = (<View style={{display: 'flex', flexDirection: 'column', gap: 20}}>
+        <Text variant={"headlineSmall"}>Create Folder</Text>
         <Text>Parent: {getElementPath(parent, folders.value)}</Text>
 
         <TextInput label={"Name"}
