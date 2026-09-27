@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {createContext, useContext, useState} from "react";
 import {ScrollView, TouchableOpacity, View} from "react-native";
 import {Text, TextInput, useTheme} from "react-native-paper";
 import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle} from "react-native-reanimated";
@@ -10,7 +10,13 @@ import {useHomescreenData} from "@components/homescreen/homescreen-data-context"
 import {doRectanglesOverlap, getNextId, getSnappedGridPosition} from "@homescreen/util";
 import {calculateNextPositionInFolder} from "@homescreen/crud/move_elements";
 
-const TILE_SIZE = 88
+//fixed column count rather than a fixed tile size — a fixed 88px tile plus gaps came out
+//at 3 columns on narrower phones and 4 on wider ones. Tile size is derived from the
+//measured content width instead, so it's always exactly 4.
+const COLUMNS = 4
+const GAP = 10
+const FALLBACK_TILE_SIZE = 80
+const TileSizeContext = createContext(FALLBACK_TILE_SIZE)
 const UNCATEGORIZED = 0
 const DRAWER_OPEN_HEIGHT = 560
 //footprint of the cancel bar shown in the drawer's place while dragging — matches the
@@ -38,6 +44,7 @@ export function AppDrawer() {
     const [isOpen, setIsOpen] = useState(false)
     const [query, setQuery] = useState("")
     const [activeRoutine, setActiveRoutine] = useState<number | typeof UNCATEGORIZED_KEY | undefined>(undefined)
+    const [tileSize, setTileSize] = useState(FALLBACK_TILE_SIZE)
 
     //drop handling for a tile dragged out of the drawer — placed at the root level only
     //for now; dropping into whichever folder popup happens to be open isn't supported yet.
@@ -181,7 +188,12 @@ export function AppDrawer() {
                         onChangeText={setQuery}
                         style={{marginBottom: 12}}
                     />
-                    <ScrollView style={{flex: 1}}>
+                    <TileSizeContext.Provider value={tileSize}>
+                    <ScrollView style={{flex: 1}} onLayout={e => {
+                        const width = e.nativeEvent.layout.width
+                        const size = Math.floor((width - GAP * (COLUMNS - 1)) / COLUMNS)
+                        if (size > 0 && size !== tileSize) setTileSize(size)
+                    }}>
                         {isSearching
                             ? <TileGrid tiles={searchResults} emptyLabel="Keine Tiles gefunden."
                                         dragPreview={dragPreview} onDrop={handleDrop}/>
@@ -197,6 +209,7 @@ export function AppDrawer() {
                                 </>
                                 : <RoutineGrid groups={groups} onSelect={setActiveRoutine}/>}
                     </ScrollView>
+                    </TileSizeContext.Provider>
                 </View>
             )}
         </Animated.View>
@@ -212,15 +225,16 @@ const RoutineGrid = ({groups, onSelect}: {
     onSelect: (key: number | typeof UNCATEGORIZED_KEY) => void
 }) => {
     const {colors} = useTheme()
+    const tileSize = useContext(TileSizeContext)
 
     return (
-        <View style={{flexDirection: "row", flexWrap: "wrap", gap: 10, paddingBottom: 12}}>
+        <View style={{flexDirection: "row", flexWrap: "wrap", gap: GAP, paddingBottom: 12}}>
             {groups.map(group => {
                 const color = group.routine?.color ?? colors.onSurfaceVariant
                 return (
                     <TouchableOpacity key={group.key} onPress={() => onSelect(group.key)}>
                         <View style={{
-                            width: TILE_SIZE, height: TILE_SIZE,
+                            width: tileSize, height: tileSize,
                             backgroundColor: colors.elevation.level3,
                             borderRadius: 12,
                             borderWidth: 2,
@@ -252,7 +266,7 @@ type DragProps = {
 }
 
 const TileGrid = ({tiles, emptyLabel, dragPreview, onDrop}: { tiles: Tile[], emptyLabel?: string } & Partial<DragProps>) => (
-    <View style={{flexDirection: "row", flexWrap: "wrap", gap: 10, paddingBottom: 12}}>
+    <View style={{flexDirection: "row", flexWrap: "wrap", gap: GAP, paddingBottom: 12}}>
         {tiles.map(tile => <AppDrawerTile key={tile.id} tile={tile} dragPreview={dragPreview} onDrop={onDrop}/>)}
         {tiles.length === 0 && !!emptyLabel && (
             <Text style={{opacity: 0.6}}>{emptyLabel}</Text>
@@ -262,6 +276,7 @@ const TileGrid = ({tiles, emptyLabel, dragPreview, onDrop}: { tiles: Tile[], emp
 
 const AppDrawerTile = ({tile, dragPreview, onDrop}: { tile: Tile } & Partial<DragProps>) => {
     const contrastColor = getContrastColor(tile.color)
+    const tileSize = useContext(TileSizeContext)
 
     const dragGesture = Gesture.Pan()
         .onStart((e) => {
@@ -277,7 +292,7 @@ const AppDrawerTile = ({tile, dragPreview, onDrop}: { tile: Tile } & Partial<Dra
 
     const content = (
         <View style={{
-            width: TILE_SIZE, height: TILE_SIZE,
+            width: tileSize, height: tileSize,
             backgroundColor: tile.color,
             borderRadius: 12,
             alignItems: 'center', justifyContent: 'center',
