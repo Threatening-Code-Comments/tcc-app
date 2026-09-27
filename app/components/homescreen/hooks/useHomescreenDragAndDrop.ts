@@ -166,6 +166,9 @@ export function useHomescreenDragAndDrop(
 
     const onResizeUpdate = (element: HS3Element, position: DragPointPosition, deltaX: GridValue, deltaY: GridValue) => {
         const {layout} = element
+        //an item must keep at least one cell — width/height 0 crashes the app
+        deltaX = (position === "left") ? Math.min(deltaX, layout.width - 1) : Math.max(deltaX, 1 - layout.width)
+        deltaY = (position === "top") ? Math.min(deltaY, layout.height - 1) : Math.max(deltaY, 1 - layout.height)
         let newLayout = {}
         switch (position) {
             case "left": {

@@ -116,20 +116,25 @@ export function MovableItem(props: MovableItemProps) {
         if (!isResizing.value) {
             isResizing.value = true
         }
+        //never shrink below one grid cell — a 0-sized item crashes the app
         switch (pos) {
             case "right": {
+                deltaX = Math.max(deltaX, GRID_UNIT - itemWidth.value)
                 resizeRight.value = deltaX;
                 break
             }
             case "bottom": {
+                deltaY = Math.max(deltaY, GRID_UNIT - itemHeight.value)
                 resizeBottom.value = deltaY;
                 break
             }
             case "top": {
+                deltaY = Math.min(deltaY, itemHeight.value - GRID_UNIT)
                 resizeTop.value = deltaY;
                 break
             }
             case "left": {
+                deltaX = Math.min(deltaX, itemWidth.value - GRID_UNIT)
                 resizeLeft.value = deltaX;
                 break
             }
