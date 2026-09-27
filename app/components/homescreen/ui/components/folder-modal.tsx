@@ -5,6 +5,10 @@ import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {HS3Folder} from "@components/homescreen/types";
 import {Breadcrumb} from "@homescreen/ui/components/breadcrumb";
 import {Homescreen} from "@components/homescreen/homescreen";
+import {GRID_COLUMNS, GRID_UNIT} from "@homescreen/move_algo";
+
+//breathing room between the grid and the popup's rounded edges
+const GRID_PADDING = 8;
 
 type Props = {
     currentLevel: number | undefined,
@@ -34,7 +38,11 @@ export const FolderModal = ({currentLevel, folderPath, goUp, goToLevel}: Props) 
             <GestureHandlerRootView style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.35)'}}>
                 <View style={{
                     flex: 1,
-                    marginHorizontal: 50,
+                    //tiles are laid out in GRID_UNIT (derived from the full screen width), so
+                    //the popup has to be exactly as wide as the grid — a fixed margin would
+                    //cut off the rightmost column
+                    width: GRID_COLUMNS * GRID_UNIT + 2 * GRID_PADDING,
+                    alignSelf: 'center',
                     marginVertical: 150,
                     borderRadius: 20,
                     overflow: 'hidden',
@@ -42,7 +50,7 @@ export const FolderModal = ({currentLevel, folderPath, goUp, goToLevel}: Props) 
                 }}>
                     <Breadcrumb currentLevel={currentLevel} folderPath={folderPath} goUp={goUp}
                                 goToLevel={goToLevel}/>
-                    <View style={{flex: 1}}>
+                    <View style={{flex: 1, marginHorizontal: GRID_PADDING}}>
                         {currentLevel !== undefined && (
                             <Homescreen key={currentLevel} folderId={currentLevel}
                                         onEnterFolder={goToLevel}/>
