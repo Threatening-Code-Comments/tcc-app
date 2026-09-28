@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {FAB} from "react-native-paper";
 import {ToastAndroid, View} from "react-native";
-import {SharedValue} from "react-native-reanimated";
+import {runOnJS, SharedValue, useAnimatedReaction} from "react-native-reanimated";
 import {DragState, HS3Element, HS3Folder, HS3Item} from "@homescreen/types";
 import {
     useCreateFolderPopup,
@@ -9,7 +9,7 @@ import {
     useCreateTilePopup,
     usePlaceExistingTilePopup,
 } from "@homescreen/hooks/useCreateTileOrFolderPopup";
-import {getModifiedTempElements} from "@homescreen/util";
+import {getModifiedTempElements, isOutOfGridBounds} from "@homescreen/util";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
 type Props = {
@@ -33,7 +33,24 @@ export const CreateElementControls = ({
     const {folders} = useHomescreenData()
     const [showCreateFABs, setShowCreateFABs] = useState(false)
 
+    //the element being placed can't be saved if it (or a neighbour it would push away) ends
+    //up off the grid or overlapping — or if it's been dragged up/left to less than one cell
+    const [isPlacementImpossible, setIsPlacementImpossible] = useState(false)
+    useAnimatedReaction(
+        () => {
+            const state = dragState.value
+            if (state?.type !== "create") return false
+            const {layout} = state.element
+            return tempElementsImpossible.value.length > 0
+                || layout.width < 1 || layout.height < 1
+                || isOutOfGridBounds(layout)
+        },
+        (impossible, prev) => {
+            if (impossible !== prev) runOnJS(setIsPlacementImpossible)(impossible)
+        }, [dragState, tempElementsImpossible])
+
     const createPositionOverlay = useCreateLayoutOverlay({
+        canConfirm: !isPlacementImpossible,
         onStart: (layout, coordinate) => {
             dragState.value = {type: "create", element: layout, coordinate}
         },
@@ -45,8 +62,9 @@ export const CreateElementControls = ({
             setShowCreateFABs(false)
         },
         onConfirm: (element) => {
-            if (tempElementsImpossible.value.length > 0) {
-                ToastAndroid.show("Error......", ToastAndroid.SHORT)
+            //Save is disabled while the placement is impossible — this only guards a stale tap
+            if (isPlacementImpossible) {
+                ToastAndroid.show("Couldn't place", ToastAndroid.SHORT)
                 dragState.value = undefined
                 setShowCreateFABs(false)
                 return

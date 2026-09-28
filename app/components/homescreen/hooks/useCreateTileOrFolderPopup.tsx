@@ -227,6 +227,8 @@ export const useCreateFolderPopup = (props: CreateFolderProps) => {
 }
 
 type CreateLayoutProps = {
+    //false while the dragged-out layout can't be placed — disables Save
+    canConfirm: boolean
     onStart: (layout: HS3Element, coordinate: PixelPoint) => void;
     onUpdate: (layout: HS3Element, coordinate: PixelPoint) => void
     onConfirm: (layout: HS3Element) => void
@@ -301,7 +303,7 @@ export const useCreateLayoutOverlay = (props: CreateLayoutProps) => {
                             marginTop: -20
                         }}>
                         <IconButton iconName={"save"} text={"Save"}
-                                    disabled={!elementBuffer.value}
+                                    disabled={!elementBuffer.value || !props.canConfirm}
                                     onPress={() => {
                                         props.onConfirm(elementBuffer.value)
                                         dismiss()
@@ -316,7 +318,7 @@ export const useCreateLayoutOverlay = (props: CreateLayoutProps) => {
         } else {
             setComponent(null)
         }
-    }, [elementToCreate, !!elementBuffer.value])
+    }, [elementToCreate, !!elementBuffer.value, props.canConfirm])
 
 
     return {
