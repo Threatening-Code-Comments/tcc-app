@@ -11,6 +11,9 @@ export type FolderOperations = "moveTo" | "create"
 const POPOVER_WIDTH = 120
 const POPOVER_HEIGHT = 45;
 const POPOVER_PADDING = 10
+//"transparent" processes to the color 0, which the animated style doesn't push to the native
+//view — an area that was green then just stays green. A fully transparent green is non-zero.
+const AREA_INACTIVE_COLOR = "rgba(0, 128, 0, 0)"
 // const getOperationAreasHeight = (element: HS3Element) => element.layout.height * GRID_UNIT
 const getOperationAreasHeightWorklet = (element: HS3Element) => {
     "worklet"
@@ -51,7 +54,9 @@ export const FolderPopover = (props: Props) => {
             xFrom: pC.x,
             yFrom: pC.y + POPOVER_HEIGHT,
             xTo: pC.x + POPOVER_WIDTH,
-            yTo: pC.y + POPOVER_HEIGHT + getOperationAreasHeightWorklet(dragState.element),
+            //same height as the rendered areas below — those are sized by the hovered target,
+            //not by the dragged element
+            yTo: pC.y + POPOVER_HEIGHT + getOperationAreasHeightWorklet(isAddFolder),
         }
         if (bounds.xFrom <= cursor.x && cursor.x <= bounds.xTo &&
             bounds.yFrom <= cursor.y && cursor.y <= bounds.yTo) {
@@ -63,7 +68,7 @@ export const FolderPopover = (props: Props) => {
         }
 
         return "outside"
-    }, [dragState, coordinate]);
+    }, [dragState, coordinate, isAddFolder]);
 
     const shared = ({
         borderRadius: 12,
@@ -127,7 +132,7 @@ export const FolderPopover = (props: Props) => {
     const leftOperationAreaStyle = useAnimatedStyle(() => {
         if (!coordinate.value || !isAddFolder) return ({
             position: 'absolute', opacity: 0, top: 0, left: 0, zIndex: 20,
-            backgroundColor: 'transparent', height: 0, width: 0
+            backgroundColor: AREA_INACTIVE_COLOR, height: 0, width: 0
         })
 
         return ({
@@ -136,7 +141,7 @@ export const FolderPopover = (props: Props) => {
             top: POPOVER_HEIGHT + POPOVER_PADDING,
             left: 0,//coordinate.value.x,
             zIndex: 20,
-            backgroundColor: (dragStateStatus.value == "in_left" ? "green" : 'transparent'),
+            backgroundColor: (dragStateStatus.value == "in_left" ? "green" : AREA_INACTIVE_COLOR),
             height: getOperationAreasHeightWorklet(isAddFolder),
             width: POPOVER_WIDTH / 2
         })
@@ -144,7 +149,7 @@ export const FolderPopover = (props: Props) => {
     const rightOperationAreaStyle = useAnimatedStyle(() => {
         if (!coordinate.value || !isAddFolder) return ({
             position: 'absolute', opacity: 0, top: 0, left: 0, zIndex: 20,
-            backgroundColor: 'transparent', height: 0, width: 0
+            backgroundColor: AREA_INACTIVE_COLOR, height: 0, width: 0
         })
 
         return ({
@@ -153,7 +158,7 @@ export const FolderPopover = (props: Props) => {
             top: POPOVER_HEIGHT + POPOVER_PADDING,
             left: POPOVER_WIDTH / 2,
             zIndex: 20,
-            backgroundColor: (dragStateStatus.value == "in_right" ? "green" : 'transparent'),
+            backgroundColor: (dragStateStatus.value == "in_right" ? "green" : AREA_INACTIVE_COLOR),
             height: getOperationAreasHeightWorklet(isAddFolder),
             width: POPOVER_WIDTH / 2
         })
@@ -163,11 +168,9 @@ export const FolderPopover = (props: Props) => {
         () => dragStateStatus.value,
         (current, prev) => {
             if (current !== prev) {
-                //"outside" (hovering the target but not yet over either half of the popover)
-                //intentionally leaves the current choice as-is — there's always exactly one
-                //active choice while a folder is a drop target, never neither.
-                if (current === "outside" || !current) return
-
+                //leaving the left area (to "outside", or off the target entirely) falls back to
+                //the default "moveTo" — otherwise "create" would stay active while nothing is
+                //highlighted anymore, and even carry over to the next hovered folder
                 const op: FolderOperations = (current === "in_left") ? "create" : "moveTo"
                 runOnJS(props.onOperationChange)(op)
             }
