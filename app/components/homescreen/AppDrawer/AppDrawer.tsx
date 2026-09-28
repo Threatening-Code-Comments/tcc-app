@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useState} from "react";
-import {Alert, ScrollView, TouchableOpacity, View} from "react-native";
+import {Alert, Pressable, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
 import {Text, TextInput, useTheme} from "react-native-paper";
 import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle} from "react-native-reanimated";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
@@ -121,6 +121,10 @@ export function AppDrawer() {
         setIsOpen(v => !v)
         setDeleteMode(false)
     }
+    const close = () => {
+        setIsOpen(false)
+        setDeleteMode(false)
+    }
 
     const allTiles = tiles.value
     const allRoutines = routines.value
@@ -162,6 +166,14 @@ export function AppDrawer() {
 
     return (
         <>
+        {/*clickaway: while open, a tap anywhere above the drawer closes it instead of
+            reaching the homescreen underneath. Faded out along with the drawer while one of
+            its tiles is dragged (the drag's own gesture keeps the touch either way).*/}
+        {isOpen && (
+            <Animated.View style={[StyleSheet.absoluteFill, {zIndex: 1998}, hideWhileDraggingStyle]}>
+                <Pressable style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.2)'}} onPress={close}/>
+            </Animated.View>
+        )}
         <Animated.View
             pointerEvents="none"
             style={[{

@@ -1,5 +1,5 @@
 import React from "react";
-import {Modal, View} from "react-native";
+import {Modal, Pressable, StyleSheet, View} from "react-native";
 import {useTheme} from "react-native-paper";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {HS3Folder} from "@components/homescreen/types";
@@ -36,6 +36,10 @@ export const FolderModal = ({currentLevel, folderPath, goUp, goToLevel}: Props) 
             onRequestClose={goUp}
         >
             <GestureHandlerRootView style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.35)'}}>
+                {/*clickaway: a tap on the dimmed area around the popup closes the folder
+                    entirely (back to root) — back button/gesture still only goes up one level.
+                    Rendered before the panel, so the panel sits on top and keeps its own touches.*/}
+                <Pressable style={StyleSheet.absoluteFill} onPress={() => goToLevel(undefined)}/>
                 <View style={{
                     flex: 1,
                     //tiles are laid out in GRID_UNIT (derived from the full screen width), so
