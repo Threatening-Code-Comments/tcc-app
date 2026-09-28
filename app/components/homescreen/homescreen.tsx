@@ -4,11 +4,17 @@ import Animated, {runOnJS, useAnimatedReaction, useDerivedValue, useSharedValue}
 import {Folder, Item} from "@components/homescreen/ui/item-and-folder";
 import {MovableItemProps} from "@components/homescreen/ui/movable-item";
 import {PreviewItem} from "@homescreen/ui/components/preview-item";
-import {getElementKey, getFoldersForLevel, isSameElement} from "@components/homescreen/util";
+import {
+    getAppDrawerDragPoint,
+    getElementKey,
+    getFoldersForLevel,
+    getNextId,
+    isSameElement
+} from "@components/homescreen/util";
 import {FolderPopover} from "@components/homescreen/ui/folder-popover";
 import {DotGridBackground} from "@homescreen/ui/components/dot-grid";
 import {CreateElementControls} from "@homescreen/ui/create-element-controls";
-import {HS3Element} from "@components/homescreen/types";
+import {HS3Element, HS3Item} from "@components/homescreen/types";
 import {useHomescreenDragAndDrop} from "@homescreen/hooks/useHomescreenDragAndDrop";
 import {useHomescreenEditMode} from "@homescreen/hooks/useHomescreenEditMode";
 import {useElementPopup} from "@components/homescreen/hooks/useItemPopup";
@@ -28,7 +34,7 @@ type Props = {
  * popups, create-flow — naturally resets per level without manual cleanup.
  */
 export const Homescreen = ({folderId, onEnterFolder}: Props) => {
-    const {folders, dragPreview} = useHomescreenData()
+    const {folders, dragPreview, homescreenAreaBounds, appDrawerDrop} = useHomescreenData()
     //refresh: bridges Reanimated shared-value changes back into a React re-render,
     //since this component reads .value directly in its JSX below.
     const [, setRefreshTick] = useState(false)
@@ -49,12 +55,58 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
     const {
         dragState, previewElement, tempElements, tempElementsImpossible, dropTarget,
         folderOverlayStyle,
-        onDragStart, onDragUpdate, onDragEnd, onResizeUpdate, onResizeEnd,
+        onDragStart, onDragUpdate, onDragEnd, onDragCancel, onResizeUpdate, onResizeEnd,
         onFolderPopoverChange,
     } = useHomescreenDragAndDrop(
         folders, folderId, visibleElements,
         () => setMountKey(k => k + 1)
     )
+
+    //App Drawer drag → this level's own drag: the tile becomes a not-yet-placed item and runs
+    //through the exact same pipeline as dragging an existing one (push neighbours away,
+    //"Couldn't drop", create folder / move into folder). Root level only — a folder opens as
+    //a Modal on top of everything, so the drawer can't even be reached while one is open.
+    const isRootLevel = folderId === undefined
+    const onAppDrawerHover = (tileId: number, x: number, y: number) => {
+        const draggedItem: HS3Item = {
+            itemId: getNextId("item", folders.value),
+            tileId,
+            parentId: folderId,
+            layout: {x: 0, y: 0, width: 1, height: 1}, //position comes from the drag coordinate
+        }
+        onDragUpdate(draggedItem, {x, y})
+    }
+    useAnimatedReaction(
+        () => {
+            const preview = dragPreview.value
+            if (!preview) return undefined
+            const point = getAppDrawerDragPoint(preview, homescreenAreaBounds.value)
+            //null = over the cancel bar / off the homescreen: no preview, nothing pushed away
+            return point ? {tileId: preview.tile.id, x: point.x, y: point.y} : null
+        },
+        (current, previous) => {
+            //undefined = drag ended; the drop handler below resolves it
+            if (!isRootLevel || current === undefined) return
+            if (current === null) {
+                if (previous) runOnJS(onDragCancel)()
+                return
+            }
+            runOnJS(onAppDrawerHover)(current.tileId, current.x, current.y)
+        }, [dragPreview, homescreenAreaBounds]
+    )
+    useEffect(() => {
+        if (!isRootLevel) return
+        appDrawerDrop.current = (cancelled) => {
+            if (cancelled || !dragState.value) {
+                onDragCancel()
+                return false
+            }
+            return onDragEnd(dragState.value.element)
+        }
+        return () => {
+            appDrawerDrop.current = undefined
+        }
+    })
 
     const {homescreenState, longTap} = useHomescreenEditMode()
     //also treated as edit mode while a tile is being dragged in from the App Drawer —

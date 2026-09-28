@@ -102,7 +102,8 @@ export function useHomescreenDragAndDrop(
             element, coordinate, type: 'drag'
         }
     };
-    const onDragEnd = (element: HS3Element) => {
+    //returns whether the drop changed anything (false = "Couldn't drop")
+    const onDragEnd = (element: HS3Element): boolean => {
         const isImpossible = tempElementsImpossible.value.length > 0
         const modifiedElement: HS3Element =
             {...previewElement.value, layout: {...previewElement.value.layout}}
@@ -111,7 +112,7 @@ export function useHomescreenDragAndDrop(
             dragState.value = undefined
             folderOperation.value = "moveTo"
             ToastAndroid.show("Couldn't drop", ToastAndroid.SHORT);
-            return
+            return false
         }
 
         if (!!dropTarget.value) {
@@ -134,7 +135,7 @@ export function useHomescreenDragAndDrop(
             dragState.value = undefined
             folderOperation.value = "moveTo"
             onMutated()
-            return
+            return true
         }
 
         dragState.value = undefined
@@ -144,6 +145,13 @@ export function useHomescreenDragAndDrop(
             folders.value
         )
         onMutated()
+        return true
+    };
+    //drops the in-flight drag without applying it — an App Drawer drag hovering its cancel
+    //bar, or dropped there
+    const onDragCancel = () => {
+        dragState.value = undefined
+        folderOperation.value = "moveTo"
     };
 
     const onResizeUpdate = (element: HS3Element, position: DragPointPosition, deltaX: GridValue, deltaY: GridValue) => {
@@ -245,7 +253,7 @@ export function useHomescreenDragAndDrop(
     return {
         dragState, previewElement, tempElements, tempElementsImpossible, dropTarget,
         folderOverlayStyle,
-        onDragStart, onDragUpdate, onDragEnd, onResizeUpdate, onResizeEnd,
+        onDragStart, onDragUpdate, onDragEnd, onDragCancel, onResizeUpdate, onResizeEnd,
         onFolderPopoverChange,
     }
 }

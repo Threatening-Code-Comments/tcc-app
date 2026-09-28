@@ -1,8 +1,8 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {runOnJS, useAnimatedReaction, useSharedValue} from "react-native-reanimated";
 import {HS3Folder, Routine, Tile} from "@homescreen/types";
 import {getFoldersFromDb, getRoutinesFromDb, getTilesFromDb} from "@components/homescreen/db-mock";
-import {DragPreview} from "@components/homescreen/homescreen-data-context";
+import {AppDrawerDropHandler, DragPreview} from "@components/homescreen/homescreen-data-context";
 import {syncRoutineFolders} from "@homescreen/crud/routine_folders";
 
 /**
@@ -16,6 +16,7 @@ export function useHomescreenLibraryData() {
     const routines = useSharedValue<Routine[]>([]);
     const dragPreview = useSharedValue<DragPreview | undefined>(undefined);
     const homescreenAreaBounds = useSharedValue<{ x: number, y: number, width: number, height: number } | undefined>(undefined);
+    const appDrawerDrop = useRef<AppDrawerDropHandler | undefined>(undefined);
     const [dataLoaded, setDataLoaded] = useState(false)
 
     useEffect(() => {
@@ -50,5 +51,5 @@ export function useHomescreenLibraryData() {
         }, [folders, tiles, routines]
     )
 
-    return {folders, tiles, routines, dragPreview, homescreenAreaBounds, dataLoaded}
+    return {folders, tiles, routines, dragPreview, homescreenAreaBounds, appDrawerDrop, dataLoaded}
 }

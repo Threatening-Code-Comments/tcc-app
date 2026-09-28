@@ -3,17 +3,15 @@ import {Text} from "react-native-paper";
 import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle} from "react-native-reanimated";
 import {getContrastColor} from "@components/Colors";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
-import {GRID_UNIT, gridPointToPixel} from "@homescreen/move_algo";
-import {getSnappedGridPosition} from "@homescreen/util";
 
 const DRAG_TILE_SIZE = 88
 
 /**
- * The App-Drawer-tile-onto-homescreen drag, mirroring how an in-homescreen drag looks:
- * a dragged tile that follows the pointer pixel-for-pixel (centered on it), with a
- * grid-snapped preview underneath showing the cell it'll actually land on (the same role
- * PreviewItem plays for a normal drag). AppDrawer and the homescreen area are siblings, so
- * this lives at their shared parent instead of either one.
+ * The App-Drawer-tile-onto-homescreen drag: a dragged tile that follows the pointer
+ * pixel-for-pixel (centered on it). Where it'll land — and what gets pushed away or which
+ * folder it goes into — is shown by the root Homescreen itself, which runs the drawer drag
+ * as its own normal drag. AppDrawer and the homescreen area are siblings, so this lives at
+ * their shared parent instead of either one.
  */
 export const DragPreviewOverlay = () => {
     const {dragPreview, homescreenAreaBounds} = useHomescreenData()
@@ -28,35 +26,8 @@ export const DragPreviewOverlay = () => {
         }, [dragPreview]
     )
 
-    //both branches of each style return the exact same keys on purpose — Reanimated doesn't
+    //both branches of the style return the exact same keys on purpose — Reanimated doesn't
     //reset a key that disappears between frames (the value just sticks natively).
-    const snapStyle = useAnimatedStyle(() => {
-        const active = !!dragPreview.value && !!homescreenAreaBounds.value
-        const bounds = homescreenAreaBounds.value
-        const preview = dragPreview.value
-
-        let left = 0, top = 0
-        if (active && preview && bounds) {
-            const localPoint = {x: preview.x - bounds.x, y: preview.y - bounds.y}
-            const px = gridPointToPixel(getSnappedGridPosition(localPoint, 1, 1))
-            left = px.x
-            top = px.y
-        }
-
-        return {
-            opacity: active ? 1 : 0,
-            position: "absolute",
-            left, top,
-            width: GRID_UNIT,
-            height: GRID_UNIT,
-            borderRadius: 4,
-            borderWidth: 2,
-            borderColor: preview?.tile.color ?? "transparent",
-            backgroundColor: "transparent",
-            zIndex: 2900,
-        }
-    })
-
     const dragTileStyle = useAnimatedStyle(() => {
         const active = !!dragPreview.value && !!homescreenAreaBounds.value
         const bounds = homescreenAreaBounds.value
@@ -84,7 +55,6 @@ export const DragPreviewOverlay = () => {
 
     return (
         <>
-            <Animated.View style={snapStyle} pointerEvents="none"/>
             <Animated.View style={dragTileStyle} pointerEvents="none">
                 {!!dragPreview.value && (
                     <Text

@@ -5,10 +5,10 @@ import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle} from "react-na
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {IconButton} from "@components/IconButton";
 import {getContrastColor} from "@components/Colors";
-import {HS3Item, Routine, Tile} from "@components/homescreen/types";
+import {Routine, Tile} from "@components/homescreen/types";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
-import {doRectanglesOverlap, getNextId, getSnappedGridPosition} from "@homescreen/util";
-import {calculateNextPositionInFolder} from "@homescreen/crud/move_elements";
+import {getAppDrawerDragPoint} from "@homescreen/util";
+import {DRAWER_CANCEL_ZONE_HEIGHT} from "@homescreen/constants";
 import {RemoveBadge} from "@homescreen/ui/components/remove-badge";
 
 //fixed column count rather than a fixed tile size — a fixed 88px tile plus gaps came out
@@ -20,10 +20,6 @@ const FALLBACK_TILE_SIZE = 80
 const TileSizeContext = createContext(FALLBACK_TILE_SIZE)
 const UNCATEGORIZED = 0
 const DRAWER_OPEN_HEIGHT = 560
-//footprint of the cancel bar shown in the drawer's place while dragging — matches the
-//drawer's own collapsed-bar height, so the visible cancel target and the actual cancel
-//zone checked in handleDrop line up exactly.
-const CANCEL_ZONE_HEIGHT = 100
 //sentinel for the "no routine" bucket, distinct from a real routine.id and from
 //Tile.rootRoutineId's own UNCATEGORIZED (0) value used for tile-to-routine matching.
 const UNCATEGORIZED_KEY = "uncategorized"
@@ -41,7 +37,7 @@ type RoutineGroup = { key: number | typeof UNCATEGORIZED_KEY, routine?: Routine,
  * tiles from the library instead (the homescreen's own "×" only removes placements).
  */
 export function AppDrawer() {
-    const {tiles, routines, folders, dragPreview, homescreenAreaBounds} = useHomescreenData()
+    const {tiles, routines, folders, dragPreview, homescreenAreaBounds, appDrawerDrop} = useHomescreenData()
     const {colors} = useTheme()
     const [isOpen, setIsOpen] = useState(false)
     const [query, setQuery] = useState("")
@@ -70,41 +66,13 @@ export function AppDrawer() {
         )
     }
 
-    //drop handling for a tile dragged out of the drawer — placed at the root level only
-    //for now; dropping into whichever folder popup happens to be open isn't supported yet.
-    //Dropping back onto the drawer's own area (or off-screen) is the cancel gesture — a
-    //no-op, same as the in-homescreen drag's "impossible drop" case.
+    //a tile dragged out of the drawer is resolved by the root Homescreen, which runs it
+    //through its normal drag (preview, pushing neighbours away, folder create/move-into).
+    //Dropping back onto the drawer's cancel bar (or off-screen) cancels — a no-op.
     const handleDrop = (tile: Tile, absX: number, absY: number) => {
-        const bounds = homescreenAreaBounds.value
-        if (!bounds) return
-
-        const localX = absX - bounds.x
-        const localY = absY - bounds.y
-        const droppedOnDrawer = localY > bounds.height - CANCEL_ZONE_HEIGHT
-        const outOfBounds = localX < 0 || localY < 0 || localX > bounds.width || localY > bounds.height
-        if (droppedOnDrawer || outOfBounds) return //cancelled
-
-        const {x: gx, y: gy} = getSnappedGridPosition({x: localX, y: localY}, 1, 1)
-
-        const rootFolder = folders.value.find(f => f.folderId === undefined)
-        const existingLayouts = [
-            ...(rootFolder?.items.map(i => i.layout) ?? []),
-            ...folders.value.filter(f => f.parentId === undefined && f.folderId !== undefined).map(f => f.layout),
-        ]
-        const wanted = {x: gx, y: gy, width: 1, height: 1}
-        const isOccupied = existingLayouts.some(l => doRectanglesOverlap(l, wanted))
-        const position = isOccupied ? calculateNextPositionInFolder(existingLayouts, 1, 1) : {x: gx, y: gy}
-
-        const newItem: HS3Item = {
-            itemId: getNextId("item", folders.value),
-            tileId: tile.id,
-            parentId: undefined,
-            layout: {...position, width: 1, height: 1},
-        }
-        folders.value = folders.value.map(f =>
-            f.folderId === undefined ? {...f, items: [...f.items, newItem]} : f
-        )
-        setIsOpen(false) //placed it — get out of the way and show the result
+        const cancelled = !getAppDrawerDragPoint({x: absX, y: absY}, homescreenAreaBounds.value)
+        const placed = appDrawerDrop.current?.(cancelled) ?? false
+        if (placed) setIsOpen(false) //placed it — get out of the way and show the result
     }
 
     //bridges tiles.value/routines.value changes (e.g. a new tile created elsewhere) into
@@ -151,16 +119,16 @@ export function AppDrawer() {
         opacity: dragPreview.value ? 0 : 1,
     }))
     //shown in the drawer's place while dragging — the visible, discoverable version of the
-    //same cancel zone handleDrop already checks (dropping anywhere in this bar cancels).
+    //same cancel zone getAppDrawerDragPoint checks (dropping anywhere in this bar cancels).
     const cancelBarStyle = useAnimatedStyle(() => ({
         opacity: dragPreview.value ? 1 : 0,
     }))
     //grows the button when the drag is actually hovering the cancel zone — the same
-    //localY math handleDrop itself uses to decide whether a drop there cancels.
+    //localY math getAppDrawerDragPoint uses to decide whether a drop there cancels.
     const cancelButtonStyle = useAnimatedStyle(() => {
         if (!dragPreview.value || !homescreenAreaBounds.value) return {transform: [{scale: 1}]}
         const localY = dragPreview.value.y - homescreenAreaBounds.value.y
-        const hovering = localY > homescreenAreaBounds.value.height - CANCEL_ZONE_HEIGHT
+        const hovering = localY > homescreenAreaBounds.value.height - DRAWER_CANCEL_ZONE_HEIGHT
         return {transform: [{scale: hovering ? 1.15 : 1}]}
     })
 
@@ -181,7 +149,7 @@ export function AppDrawer() {
                 bottom: 0,
                 left: 0,
                 width: "100%",
-                height: CANCEL_ZONE_HEIGHT,
+                height: DRAWER_CANCEL_ZONE_HEIGHT,
                 zIndex: 1999,
                 alignItems: "center",
                 justifyContent: "center",

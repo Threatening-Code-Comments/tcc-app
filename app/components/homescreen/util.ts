@@ -8,7 +8,7 @@ import {
     snapPxToGridAsPx
 } from "@components/homescreen/move_algo";
 import {DragState, FolderDisplayLevel, GridPoint, GridValue, PixelPoint, Tile} from "@components/homescreen/types";
-import {FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants"
+import {DRAWER_CANCEL_ZONE_HEIGHT, FOLDER_HOVER_OVERLAY_INSET} from "@components/homescreen/constants"
 
 export function getElementId(e: HS3Element) {
     return "itemId" in e ? e.itemId : e.folderId;
@@ -162,12 +162,16 @@ export const getModifiedTempElements = (
             const parent = folders1.find(
                 f => f.folderId === tempElement.parentId
             )
-            parent.items = parent.items.map(
-                //@ts-ignore
-                i => i.itemId === tempElement.itemId
-                    ? tempElement as HS3Item
-                    : i
-            )
+            //an item dragged in from the App Drawer isn't in its parent yet — it's added here
+            const isNew = !parent.items.some(i => i.itemId === (tempElement as HS3Item).itemId)
+            parent.items = isNew
+                ? [...parent.items, tempElement as HS3Item]
+                : parent.items.map(
+                    //@ts-ignore
+                    i => i.itemId === tempElement.itemId
+                        ? tempElement as HS3Item
+                        : i
+                )
             folders1 = folders1.map(
                 f => f.folderId === parent.folderId
                     ? parent : f
@@ -358,21 +362,21 @@ export function getTargetLayout(dragState: DragState): HS3Element {
     }
 }
 
-//same snapping convention as getTargetLayout above (point = the dragged element's center,
-//clamped so the element stays fully on the grid) — factored out so the App Drawer's drag
-//preview and its actual drop placement snap to exactly the same cell.
-export function getSnappedGridPosition(localPoint: PixelPoint, width: GridValue, height: GridValue): GridPoint {
+//where an App Drawer drag currently points, in homescreen-local pixels (the root grid's own
+//coordinate space). Undefined while it's over the drawer's cancel bar or off the homescreen
+//area — both mean "a drop here cancels". Shared by the hover preview and the drop itself,
+//so what's previewed is exactly what a drop does.
+export function getAppDrawerDragPoint(
+    absPoint: PixelPoint,
+    bounds: { x: number, y: number, width: number, height: number } | undefined,
+): PixelPoint | undefined {
     "worklet"
-    return {
-        x: clamp(
-            pxToGrid(snapPxToGridAsPx(localPoint.x - gridToPx(width) / 2)),
-            0, GRID_COLUMNS - width
-        ),
-        y: clamp(
-            pxToGrid(snapPxToGridAsPx(localPoint.y - gridToPx(height) / 2)),
-            0, GRID_ROWS - height
-        ),
-    }
+    if (!bounds) return undefined
+    const x = absPoint.x - bounds.x
+    const y = absPoint.y - bounds.y
+    const outOfBounds = x < 0 || y < 0 || x > bounds.width || y > bounds.height
+    const overCancelZone = y > bounds.height - DRAWER_CANCEL_ZONE_HEIGHT
+    return (outOfBounds || overCancelZone) ? undefined : {x, y}
 }
 
 export const getParentLevel = (folders: HS3Folder[], level: number | undefined): number | undefined => {
