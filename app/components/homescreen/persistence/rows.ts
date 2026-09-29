@@ -1,4 +1,4 @@
-import {HS3Folder, HS3Item} from "@homescreen/types";
+import {HS3Folder, HS3Item, Tile} from "@homescreen/types";
 
 //row shapes of hs_folders / hs_items (see app/db/schema.ts) — kept here as plain types so
 //the mapping stays a pure function that tests can feed without a database.
@@ -16,6 +16,22 @@ export type HsItemRow = {
     parentId: number | null,
     syncedFromRoutine: number | null,
     x: number, y: number, w: number, h: number,
+}
+//the library tile itself (tiles table) — without its events, which the homescreen never
+//edits (they're only ever added elsewhere, and removed along with their tile)
+export type HsTileRow = {
+    id: number,
+    name: string,
+    mode: number,
+    color: string,
+    rootRoutineId: number,
+}
+
+//everything the homescreen persists, as rows — what gets diffed between two saves
+export type HomescreenSnapshot = {
+    folders: HsFolderRow[],
+    items: HsItemRow[],
+    tiles: HsTileRow[],
 }
 
 //the root level has no row of its own — it's the folder with folderId undefined that the
@@ -61,4 +77,40 @@ export function rowsToFolders(folderRows: HsFolderRow[], itemRows: HsItemRow[]):
         return folder
     })
     return [root, ...folders]
+}
+
+/**
+ * The reverse of rowsToFolders: the in-memory state as rows. The root level isn't stored;
+ * an item's parent is taken from the folder that actually holds it (not the item's own
+ * parentId, which isn't guaranteed to be kept in step everywhere). Key order is fixed, so
+ * two rows describing the same thing compare equal as JSON.
+ */
+export function toSnapshot(folders: HS3Folder[], tiles: Tile[]): HomescreenSnapshot {
+    const folderRows: HsFolderRow[] = []
+    const itemRows: HsItemRow[] = []
+    for (const folder of folders) {
+        const parentOfItems = folder.folderId ?? null
+        for (const item of folder.items) {
+            itemRows.push({
+                id: item.itemId,
+                tileId: item.tileId,
+                parentId: parentOfItems,
+                syncedFromRoutine: item.syncedFromRoutine ?? null,
+                x: item.layout.x, y: item.layout.y, w: item.layout.width, h: item.layout.height,
+            })
+        }
+        if (folder.folderId === undefined) continue
+        folderRows.push({
+            id: folder.folderId,
+            parentId: folder.parentId ?? null,
+            name: folder.name,
+            color: folder.color,
+            routineId: folder.routineId ?? null,
+            x: folder.layout.x, y: folder.layout.y, w: folder.layout.width, h: folder.layout.height,
+        })
+    }
+    const tileRows: HsTileRow[] = tiles.map(t => ({
+        id: t.id, name: t.name, mode: t.mode, color: t.color, rootRoutineId: t.rootRoutineId,
+    }))
+    return {folders: folderRows, items: itemRows, tiles: tileRows}
 }

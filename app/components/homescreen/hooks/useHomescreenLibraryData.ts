@@ -1,9 +1,11 @@
 import {useEffect, useRef, useState} from "react";
 import {runOnJS, useAnimatedReaction, useSharedValue} from "react-native-reanimated";
 import {HS3Folder, Routine, Tile} from "@homescreen/types";
-import {getFoldersFromDb, getRoutinesFromDb, getTilesFromDb} from "@components/homescreen/data-source";
+import {getFoldersFromDb, getRoutinesFromDb, getTilesFromDb, HOMESCREEN_DATA_SOURCE} from "@components/homescreen/data-source";
 import {AppDrawerDropHandler, DragPreview} from "@components/homescreen/homescreen-data-context";
 import {syncRoutineFolders} from "@homescreen/crud/routine_folders";
+import {HomescreenSnapshot, toSnapshot} from "@homescreen/persistence/rows";
+import {usePersistHomescreen} from "@homescreen/hooks/usePersistHomescreen";
 
 /**
  * Loads the folder tree + tile library once, and owns the App-Drawer-drag bridge state.
@@ -18,6 +20,8 @@ export function useHomescreenLibraryData() {
     const homescreenAreaBounds = useSharedValue<{ x: number, y: number, width: number, height: number } | undefined>(undefined);
     const appDrawerDrop = useRef<AppDrawerDropHandler | undefined>(undefined);
     const [dataLoaded, setDataLoaded] = useState(false)
+    //what the database held at load time — the persistence baseline (only with the real db)
+    const [loadedSnapshot, setLoadedSnapshot] = useState<HomescreenSnapshot | undefined>(undefined)
 
     useEffect(() => {
         Promise.all([getFoldersFromDb(), getTilesFromDb(), getRoutinesFromDb()])
@@ -31,6 +35,7 @@ export function useHomescreenLibraryData() {
                     folders.value = loadedFolders
                     tiles.value = loadedTiles
                     routines.value = loadedRoutines
+                    if (HOMESCREEN_DATA_SOURCE === "db") setLoadedSnapshot(toSnapshot(loadedFolders, loadedTiles))
                     setDataLoaded(true)
                 }
             })
@@ -50,6 +55,8 @@ export function useHomescreenLibraryData() {
             if (current !== previous) runOnJS(syncLinkedFolders)()
         }, [folders, tiles, routines]
     )
+
+    usePersistHomescreen(folders, tiles, loadedSnapshot)
 
     return {folders, tiles, routines, dragPreview, homescreenAreaBounds, appDrawerDrop, dataLoaded}
 }
