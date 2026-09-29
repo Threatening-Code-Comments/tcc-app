@@ -1,6 +1,6 @@
 import {HS3Element, HS3Folder, HS3Item, HS3LayoutParams} from '../types'
 import {calculateNextPositionInFolder, moveElementsToFolder} from "@components/homescreen/crud/move_elements";
-import {getRandomColor, isSameElement} from "@homescreen/util";
+import {getNextId, getRandomColor, isSameElement} from "@homescreen/util";
 
 export const addToNewFolder = (
     draggedElement: HS3Element,
@@ -35,16 +35,10 @@ export const addToNewFolder = (
 export function createFolder(children: HS3Element[], folders: HS3Folder[], currentLevel: number, location: HS3LayoutParams | undefined): HS3Folder[] {
     let newFolders = folders.map(f => f)
 
-    const highestId: number = folders
-        .reduce(
-            (prev, curr) =>
-                (prev > curr.folderId)
-                    ? prev : curr.folderId,
-            -1
-        )
-
     const newFolder: HS3Folder = {
-        folderId: highestId + 1,
+        //getNextId skips the root level's undefined id — a hand-rolled max here used to
+        //yield NaN whenever the root was the only folder yet
+        folderId: getNextId("folder", folders),
         layout: location,
         parentId: currentLevel,
         name: 'New Folder',
