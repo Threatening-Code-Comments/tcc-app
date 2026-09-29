@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useRef, useState} from "react";
-import {Alert, Pressable, ScrollView, StyleSheet, TextInput as NativeTextInput, TouchableOpacity, View} from "react-native";
+import {Alert, FlatList, Keyboard, Pressable, ScrollView, StyleSheet, TextInput as NativeTextInput, TouchableOpacity, View} from "react-native";
 import {Text, TextInput, useTheme} from "react-native-paper";
 import Animated, {
     Extrapolation,
@@ -110,7 +110,12 @@ export function AppDrawer() {
     }
     const animateTo = (open: boolean) => {
         if (open) setIsOpen(true)
-        else setDeleteMode(false)
+        else {
+            setDeleteMode(false)
+            //every way of closing (arrow, clickaway, pull down, placing a tile) ends here —
+            //a still-focused search field would otherwise leave the keyboard up
+            Keyboard.dismiss()
+        }
         drawerHeight.value = withSpring(open ? DRAWER_OPEN_HEIGHT : DRAWER_CLOSED_HEIGHT, SNAP_SPRING, finished => {
             if (finished && !open) runOnJS(finishClose)()
         })
@@ -284,28 +289,42 @@ export function AppDrawer() {
             {isOpen && (
                 <View style={{flex: 1, paddingHorizontal: 12}}>
                     <TileSizeContext.Provider value={tileSize}>
-                    <ScrollView style={{flex: 1}} onLayout={e => {
-                        const width = e.nativeEvent.layout.width
-                        const size = Math.floor((width - GAP * (COLUMNS - 1)) / COLUMNS)
-                        if (size > 0 && size !== tileSize) setTileSize(size)
-                    }}>
-                        {isSearching
-                            ? <TileGrid tiles={searchResults} emptyLabel="Keine Tiles gefunden."
-                                        dragPreview={dragPreview} onDrop={handleDrop}
-                                        onDelete={isDeleteMode ? deleteTile : undefined}/>
-                            : activeGroup
-                                ? <>
-                                    <TouchableOpacity onPress={() => setActiveRoutine(undefined)}
-                                                       style={{flexDirection: "row", alignItems: "center", marginBottom: 14}}>
-                                        <Text variant="titleMedium" style={{opacity: 0.8}}>{"< "}
-                                            {activeGroup.routine?.name ?? "Ohne Routine"}
-                                        </Text>
-                                    </TouchableOpacity>
-                                    <TileGrid tiles={activeGroup.tiles} dragPreview={dragPreview} onDrop={handleDrop}
-                                              onDelete={isDeleteMode ? deleteTile : undefined}/>
-                                </>
-                                : <RoutineGrid groups={groups} onSelect={setActiveRoutine}/>}
-                    </ScrollView>
+                    {(() => {
+                        //tile size still measured off the container's own width — a plain
+                        //View onLayout, shared by whichever of the three views below mounts.
+                        const measureTileSize = (width: number) => {
+                            const size = Math.floor((width - GAP * (COLUMNS - 1)) / COLUMNS)
+                            if (size > 0 && size !== tileSize) setTileSize(size)
+                        }
+                        const onLayout = e => measureTileSize(e.nativeEvent.layout.width)
+
+                        if (isSearching) {
+                            return <TileGrid tiles={searchResults} emptyLabel="Keine Tiles gefunden."
+                                              dragPreview={dragPreview} onDrop={handleDrop}
+                                              onDelete={isDeleteMode ? deleteTile : undefined} onLayout={onLayout}/>
+                        }
+                        if (activeGroup) {
+                            const header = (
+                                <TouchableOpacity onPress={() => setActiveRoutine(undefined)}
+                                                   style={{flexDirection: "row", alignItems: "center", marginBottom: 14}}>
+                                    <Text variant="titleMedium" style={{opacity: 0.8}}>{"< "}
+                                        {activeGroup.routine?.name ?? "Ohne Routine"}
+                                    </Text>
+                                </TouchableOpacity>
+                            )
+                            return <TileGrid tiles={activeGroup.tiles} dragPreview={dragPreview} onDrop={handleDrop}
+                                              onDelete={isDeleteMode ? deleteTile : undefined} header={header} onLayout={onLayout}/>
+                        }
+                        //~20 routines max, cheap TouchableOpacity items — a plain ScrollView
+                        //is fine here, unlike the (up to 180+) individually pan-gesture-wrapped
+                        //tiles above, which need a FlatList's windowing to not overwhelm the
+                        //gesture handler with hundreds of simultaneously mounted recognizers.
+                        return (
+                            <ScrollView style={{flex: 1}} onLayout={onLayout}>
+                                <RoutineGrid groups={groups} onSelect={setActiveRoutine}/>
+                            </ScrollView>
+                        )
+                    })()}
                     </TileSizeContext.Provider>
                 </View>
             )}
@@ -367,14 +386,25 @@ type DeleteProps = {
     onDelete?: (tile: Tile) => void
 }
 
-const TileGrid = ({tiles, emptyLabel, dragPreview, onDrop, onDelete}: { tiles: Tile[], emptyLabel?: string } & Partial<DragProps> & DeleteProps) => (
-    <View style={{flexDirection: "row", flexWrap: "wrap", gap: GAP, paddingBottom: 12}}>
-        {tiles.map(tile => <AppDrawerTile key={tile.id} tile={tile} dragPreview={dragPreview} onDrop={onDrop}
-                                          onDelete={onDelete}/>)}
-        {tiles.length === 0 && !!emptyLabel && (
-            <Text style={{opacity: 0.6}}>{emptyLabel}</Text>
-        )}
-    </View>
+//a routine can hold 50+ tiles, and a broad search can match all of them at once — each
+//AppDrawerTile carries its own GestureDetector/Pan recognizer, and mounting hundreds of
+//those simultaneously (as the previous plain View+map inside a ScrollView did) overwhelms
+//react-native-gesture-handler. FlatList only ever mounts what's near the viewport.
+const TileGrid = ({tiles, emptyLabel, dragPreview, onDrop, onDelete, header, onLayout}: {
+    tiles: Tile[], emptyLabel?: string, header?: React.ReactNode, onLayout?: (e: any) => void
+} & Partial<DragProps> & DeleteProps) => (
+    <FlatList
+        style={{flex: 1}}
+        onLayout={onLayout}
+        data={tiles}
+        keyExtractor={tile => String(tile.id)}
+        numColumns={COLUMNS}
+        columnWrapperStyle={{gap: GAP}}
+        contentContainerStyle={{gap: GAP, paddingBottom: 12}}
+        ListHeaderComponent={header as any}
+        renderItem={({item}) => <AppDrawerTile tile={item} dragPreview={dragPreview} onDrop={onDrop} onDelete={onDelete}/>}
+        ListEmptyComponent={!!emptyLabel ? <Text style={{opacity: 0.6}}>{emptyLabel}</Text> : null}
+    />
 )
 
 const AppDrawerTile = ({tile, dragPreview, onDrop, onDelete}: { tile: Tile } & Partial<DragProps> & DeleteProps) => {
