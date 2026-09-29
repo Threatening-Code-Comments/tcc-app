@@ -1,6 +1,6 @@
 import { ElementTypeNames } from "@app/constants/DbTypes";
 import { relations } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { AnySQLiteColumn, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const tiles = sqliteTable('tiles', {
     id: integer('id').primaryKey().notNull(),
@@ -83,6 +83,61 @@ export const dashboardSettingsRelations = relations(dashboardSettings, ({ one })
         fields: [dashboardSettings.elementId],
         references: [tiles.id || routines.id || pages.id]
     })
+}))
+
+//homescreen (HS3): folders and item placements, stored flat — the folder tree is rebuilt
+//from parentId on load. The root level isn't a row: parentId null means "on the root".
+//ids are the app's own folderId/itemId (see getNextId), not autoincrement.
+//The ON DELETE actions only fire with `PRAGMA foreign_keys = ON` on the connection.
+export const hsFolders = sqliteTable('hs_folders', {
+    id: integer('id').primaryKey().notNull(),
+    //deleting a folder takes its contents along, same as deleteElement does in memory
+    parentId: integer('parentId').references((): AnySQLiteColumn => hsFolders.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    color: text('color', { mode: 'text', length: 7 }).notNull(),
+    //live link to a routine; if the routine goes away the folder just becomes a normal one
+    routineId: integer('routineId').references(() => routines.id, { onDelete: 'set null' }),
+    x: integer('x').notNull(),
+    y: integer('y').notNull(),
+    w: integer('w').notNull(),
+    h: integer('h').notNull(),
+})
+
+export const hsItems = sqliteTable('hs_items', {
+    id: integer('id').primaryKey().notNull(),
+    //deleting a tile (App Drawer) removes all its placements
+    tileId: integer('tileId').notNull().references(() => tiles.id, { onDelete: 'cascade' }),
+    parentId: integer('parentId').references(() => hsFolders.id, { onDelete: 'cascade' }),
+    //routine id when a routine-linked folder's sync put this item here (see routine_folders.ts)
+    syncedFromRoutine: integer('syncedFromRoutine'),
+    x: integer('x').notNull(),
+    y: integer('y').notNull(),
+    w: integer('w').notNull(),
+    h: integer('h').notNull(),
+})
+
+export const hsFolderRelations = relations(hsFolders, ({ one, many }) => ({
+    parent: one(hsFolders, {
+        fields: [hsFolders.parentId],
+        references: [hsFolders.id],
+        relationName: 'hsFolderParent',
+    }),
+    subFolders: many(hsFolders, { relationName: 'hsFolderParent' }),
+    items: many(hsItems),
+    routine: one(routines, {
+        fields: [hsFolders.routineId],
+        references: [routines.id]
+    }),
+}))
+export const hsItemRelations = relations(hsItems, ({ one }) => ({
+    tile: one(tiles, {
+        fields: [hsItems.tileId],
+        references: [tiles.id]
+    }),
+    parent: one(hsFolders, {
+        fields: [hsItems.parentId],
+        references: [hsFolders.id]
+    }),
 }))
 
 // export const pageRoutines = sqliteTable('page_routines', {

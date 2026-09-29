@@ -15,6 +15,13 @@
       "when": 1718645229443,
       "tag": "0001_talented_brother_voodoo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790696655532,
+      "tag": "0002_purple_punisher",
+      "breakpoints": true
     }
   ]
 }
