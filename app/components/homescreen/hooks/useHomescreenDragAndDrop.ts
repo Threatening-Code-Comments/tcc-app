@@ -112,6 +112,9 @@ export function useHomescreenDragAndDrop(
             dragState.value = undefined
             folderOperation.value = "moveTo"
             ToastAndroid.show("Couldn't drop", ToastAndroid.SHORT);
+            //remount anyway — the dragged item only snaps back to its layout on remount,
+            //otherwise it stays wherever it was let go
+            onMutated()
             return false
         }
 
