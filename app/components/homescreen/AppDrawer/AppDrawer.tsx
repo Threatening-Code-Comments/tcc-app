@@ -1,5 +1,5 @@
-import React, {createContext, useContext, useState} from "react";
-import {Alert, Pressable, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
+import React, {createContext, useContext, useRef, useState} from "react";
+import {Alert, Pressable, ScrollView, StyleSheet, TextInput as NativeTextInput, TouchableOpacity, View} from "react-native";
 import {Text, TextInput, useTheme} from "react-native-paper";
 import Animated, {
     Extrapolation,
@@ -142,6 +142,17 @@ export function AppDrawer() {
             runOnJS(animateTo)(shouldOpen)
         })
 
+    //collapsed, the search field doesn't take touches itself (a native TextInput would
+    //swallow them and the whole bar should pull up) — a plain tap focuses it instead, which
+    //opens the drawer. Moving further than a tap fails it and leaves the drag to the pan.
+    const searchInputRef = useRef<NativeTextInput>(null)
+    const focusSearch = () => searchInputRef.current?.focus()
+    const searchTapGesture = Gesture.Tap()
+        .maxDistance(10)
+        .onEnd((_e, success) => {
+            if (success) runOnJS(focusSearch)()
+        })
+
     const allTiles = tiles.value
     const allRoutines = routines.value
     const matchesQuery = (t: Tile) => t.name.toLowerCase().includes(query.trim().toLowerCase())
@@ -245,7 +256,10 @@ export function AppDrawer() {
                     <View style={{flexDirection: "row", alignItems: "center", gap: 8}}>
                         <IconButton iconName={isOpen ? "arrowDown" : "arrowUp"} type={"transparent"}
                                     onPress={toggleModal}/>
+                        <GestureDetector gesture={searchTapGesture}>
+                        <View style={{flex: 1}} pointerEvents={isOpen ? "auto" : "box-only"}>
                         <TextInput
+                            ref={searchInputRef}
                             mode="outlined"
                             dense
                             placeholder="Apps suchen..."
@@ -255,8 +269,9 @@ export function AppDrawer() {
                                 open()
                             }}
                             onFocus={open}
-                            style={{flex: 1}}
                         />
+                        </View>
+                        </GestureDetector>
                         {isOpen && (
                             <IconButton iconName={isDeleteMode ? "close" : "edit"}
                                         type={isDeleteMode ? "error" : "transparent"}
