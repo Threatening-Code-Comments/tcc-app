@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from "react";
 import {runOnJS, useAnimatedReaction, useSharedValue} from "react-native-reanimated";
 import {HS3Folder, Routine, Tile} from "@homescreen/types";
-import {getFoldersFromDb, getRoutinesFromDb, getTilesFromDb} from "@components/homescreen/db-mock";
+import {getFoldersFromDb, getRoutinesFromDb, getTilesFromDb} from "@components/homescreen/data-source";
 import {AppDrawerDropHandler, DragPreview} from "@components/homescreen/homescreen-data-context";
 import {syncRoutineFolders} from "@homescreen/crud/routine_folders";
 
