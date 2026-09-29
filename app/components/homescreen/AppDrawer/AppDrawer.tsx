@@ -1,7 +1,15 @@
 import React, {createContext, useContext, useState} from "react";
 import {Alert, Pressable, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
 import {Text, TextInput, useTheme} from "react-native-paper";
-import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle} from "react-native-reanimated";
+import Animated, {
+    Extrapolation,
+    interpolate,
+    runOnJS,
+    useAnimatedReaction,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring
+} from "react-native-reanimated";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import {IconButton} from "@components/IconButton";
 import {getContrastColor} from "@components/Colors";
@@ -20,6 +28,11 @@ const FALLBACK_TILE_SIZE = 80
 const TileSizeContext = createContext(FALLBACK_TILE_SIZE)
 const UNCATEGORIZED = 0
 const DRAWER_OPEN_HEIGHT = 560
+//same as the cancel bar that takes its place while dragging a tile out
+const DRAWER_CLOSED_HEIGHT = DRAWER_CANCEL_ZONE_HEIGHT
+//a fling faster than this (px/s) decides open/close on its own, regardless of how far it got
+const FLING_VELOCITY = 500
+const SNAP_SPRING = {damping: 22, stiffness: 220, overshootClamping: true}
 //sentinel for the "no routine" bucket, distinct from a real routine.id and from
 //Tile.rootRoutineId's own UNCATEGORIZED (0) value used for tile-to-routine matching.
 const UNCATEGORIZED_KEY = "uncategorized"
@@ -72,7 +85,7 @@ export function AppDrawer() {
     const handleDrop = (tile: Tile, absX: number, absY: number) => {
         const cancelled = !getAppDrawerDragPoint({x: absX, y: absY}, homescreenAreaBounds.value)
         const placed = appDrawerDrop.current?.(cancelled) ?? false
-        if (placed) setIsOpen(false) //placed it — get out of the way and show the result
+        if (placed) close() //placed it — get out of the way and show the result
     }
 
     //bridges tiles.value/routines.value changes (e.g. a new tile created elsewhere) into
@@ -85,14 +98,49 @@ export function AppDrawer() {
         }, [tiles, routines]
     )
 
-    const toggleModal = () => {
-        setIsOpen(v => !v)
-        setDeleteMode(false)
-    }
-    const close = () => {
+    //the drawer's height is driven directly (drag, then spring to open/closed), isOpen only
+    //decides whether the content is mounted: it goes true as soon as the drawer starts moving
+    //up and back to false once it has fully settled closed.
+    const drawerHeight = useSharedValue(DRAWER_CLOSED_HEIGHT)
+    const dragStartHeight = useSharedValue(DRAWER_CLOSED_HEIGHT)
+
+    const finishClose = () => {
         setIsOpen(false)
         setDeleteMode(false)
     }
+    const animateTo = (open: boolean) => {
+        if (open) setIsOpen(true)
+        else setDeleteMode(false)
+        drawerHeight.value = withSpring(open ? DRAWER_OPEN_HEIGHT : DRAWER_CLOSED_HEIGHT, SNAP_SPRING, finished => {
+            if (finished && !open) runOnJS(finishClose)()
+        })
+    }
+    const toggleModal = () => animateTo(!isOpen)
+    const close = () => animateTo(false)
+    const open = () => {
+        if (!isOpen) animateTo(true)
+    }
+
+    //pull the header up to open, down to close — the height follows the finger, then snaps
+    //to whichever end the fling points at (or the nearer one for a slow release). Vertical
+    //only, so taps on the arrow / search field and horizontal cursor drags still go through.
+    const headerDragGesture = Gesture.Pan()
+        .activeOffsetY([-10, 10])
+        .failOffsetX([-20, 20])
+        .onStart(() => {
+            dragStartHeight.value = drawerHeight.value
+            runOnJS(setIsOpen)(true)
+        })
+        .onUpdate(e => {
+            drawerHeight.value = Math.min(DRAWER_OPEN_HEIGHT, Math.max(DRAWER_CLOSED_HEIGHT,
+                dragStartHeight.value - e.translationY))
+        })
+        .onEnd(e => {
+            const shouldOpen = Math.abs(e.velocityY) > FLING_VELOCITY
+                ? e.velocityY < 0
+                : drawerHeight.value > (DRAWER_OPEN_HEIGHT + DRAWER_CLOSED_HEIGHT) / 2
+            runOnJS(animateTo)(shouldOpen)
+        })
 
     const allTiles = tiles.value
     const allRoutines = routines.value
@@ -115,8 +163,14 @@ export function AppDrawer() {
     //hidden (not unmounted, so isOpen/activeRoutine/query all survive) while one of its own
     //tiles is being dragged — it's just in the way of seeing the homescreen underneath.
     //Dropping back into this same area (still there, just invisible) still cancels the drag.
-    const hideWhileDraggingStyle = useAnimatedStyle(() => ({
+    const drawerStyle = useAnimatedStyle(() => ({
+        height: drawerHeight.value,
         opacity: dragPreview.value ? 0 : 1,
+    }))
+    //the clickaway dims in step with how far the drawer is pulled up
+    const clickawayStyle = useAnimatedStyle(() => ({
+        opacity: dragPreview.value ? 0 : interpolate(drawerHeight.value,
+            [DRAWER_CLOSED_HEIGHT, DRAWER_OPEN_HEIGHT], [0, 1], Extrapolation.CLAMP),
     }))
     //shown in the drawer's place while dragging — the visible, discoverable version of the
     //same cancel zone getAppDrawerDragPoint checks (dropping anywhere in this bar cancels).
@@ -138,7 +192,7 @@ export function AppDrawer() {
             reaching the homescreen underneath. Faded out along with the drawer while one of
             its tiles is dragged (the drag's own gesture keeps the touch either way).*/}
         {isOpen && (
-            <Animated.View style={[StyleSheet.absoluteFill, {zIndex: 1998}, hideWhileDraggingStyle]}>
+            <Animated.View style={[StyleSheet.absoluteFill, {zIndex: 1998}, clickawayStyle]}>
                 <Pressable style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.2)'}} onPress={close}/>
             </Animated.View>
         )}
@@ -172,34 +226,48 @@ export function AppDrawer() {
                 bottom: 0,
                 left: 0,
                 width: "100%",
-                height: isOpen ? DRAWER_OPEN_HEIGHT : 100,
                 zIndex: 2000,
+                overflow: "hidden",
                 borderTopLeftRadius: 16,
                 borderTopRightRadius: 16,
                 backgroundColor: colors.elevation.level2,
                 elevation: 8,
-            }, hideWhileDraggingStyle]}
+            }, drawerStyle]}
         >
-            <View style={{alignItems: "center", justifyContent: "center", paddingTop: 8}}>
-                <IconButton iconName={isOpen ? "arrowDown" : "arrowUp"} type={"transparent"}
-                            onPress={toggleModal}
-                            text={"Apps"}/>
-            </View>
+            {/*header: grab handle + expand arrow + search, always visible — also the drag
+                area for pulling the drawer open/closed. Focusing (or typing into) the search
+                opens the drawer, so searching works straight from the collapsed bar.*/}
+            <GestureDetector gesture={headerDragGesture}>
+                <View style={{paddingHorizontal: 12, paddingBottom: 12}}>
+                    <View style={{alignItems: "center", paddingVertical: 6}}>
+                        <View style={{width: 36, height: 4, borderRadius: 2, backgroundColor: colors.onSurfaceVariant, opacity: 0.4}}/>
+                    </View>
+                    <View style={{flexDirection: "row", alignItems: "center", gap: 8}}>
+                        <IconButton iconName={isOpen ? "arrowDown" : "arrowUp"} type={"transparent"}
+                                    onPress={toggleModal}/>
+                        <TextInput
+                            mode="outlined"
+                            dense
+                            placeholder="Apps suchen..."
+                            value={query}
+                            onChangeText={text => {
+                                setQuery(text)
+                                open()
+                            }}
+                            onFocus={open}
+                            style={{flex: 1}}
+                        />
+                        {isOpen && (
+                            <IconButton iconName={isDeleteMode ? "close" : "edit"}
+                                        type={isDeleteMode ? "error" : "transparent"}
+                                        onPress={() => setDeleteMode(v => !v)}/>
+                        )}
+                    </View>
+                </View>
+            </GestureDetector>
 
             {isOpen && (
                 <View style={{flex: 1, paddingHorizontal: 12}}>
-                    <View style={{flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12}}>
-                        <TextInput
-                            mode="outlined"
-                            placeholder="Suchen..."
-                            value={query}
-                            onChangeText={setQuery}
-                            style={{flex: 1}}
-                        />
-                        <IconButton iconName={isDeleteMode ? "close" : "edit"}
-                                    type={isDeleteMode ? "error" : "transparent"}
-                                    onPress={() => setDeleteMode(v => !v)}/>
-                    </View>
                     <TileSizeContext.Provider value={tileSize}>
                     <ScrollView style={{flex: 1}} onLayout={e => {
                         const width = e.nativeEvent.layout.width
