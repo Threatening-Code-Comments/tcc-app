@@ -1,4 +1,4 @@
-import {HS3Folder, Routine, Tile} from "@components/homescreen/types";
+import {HS3Folder, Routine, Tile, TileEventStats} from "@components/homescreen/types";
 import realData from "../../../local-data/homescreen-mock-data.json";
 
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -18,6 +18,17 @@ export async function getRoutinesFromDb() {
     return routinesFromDb
 }
 
+export async function getTileEventStatsFromDb(): Promise<TileEventStats> {
+    await wait(200)
+    const stats: TileEventStats = new Map()
+    for (const t of realData.tiles) {
+        if (t.events.length === 0) continue
+        const lastAt = new Date(t.events.reduce((max, e) => Math.max(max, new Date(e.timestamp).getTime()), 0))
+        stats.set(t.id, {count: t.events.length, lastAt})
+    }
+    return stats
+}
+
 //real Routines/Tiles/events from an exported prod backup (see local-data/README or the
 //session that generated homescreen-mock-data.json), used purely as realistic dev-build
 //data — not real persistence, still in-memory only and reset on reload. The file lives
@@ -32,11 +43,8 @@ const tilesFromDb: Tile[] = realData.tiles.map(t => ({
     mode: t.mode,
     color: t.color,
     rootRoutineId: t.rootRoutineId,
-    events: t.events.map(e => ({
-        tileId: e.tileId,
-        timestamp: new Date(e.timestamp),
-        data: e.data,
-    })),
+    //events stay out of the tiles list, see TileEventStats — getTileEventStatsFromDb sums them up
+    events: [],
 }))
 
 //homescreen starts with just a handful of real tiles pre-placed (so there's something to

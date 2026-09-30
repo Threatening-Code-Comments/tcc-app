@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from "react";
 import {runOnJS, useAnimatedReaction, useSharedValue} from "react-native-reanimated";
-import {HS3Folder, Routine, Tile} from "@homescreen/types";
-import {getFoldersFromDb, getRoutinesFromDb, getTilesFromDb, HOMESCREEN_DATA_SOURCE} from "@components/homescreen/data-source";
+import {HS3Folder, Routine, Tile, TileEventStats} from "@homescreen/types";
+import {getFoldersFromDb, getRoutinesFromDb, getTileEventStatsFromDb, getTilesFromDb, HOMESCREEN_DATA_SOURCE} from "@components/homescreen/data-source";
 import {AppDrawerDropHandler, DragPreview} from "@components/homescreen/homescreen-data-context";
 import {syncRoutineFolders} from "@homescreen/crud/routine_folders";
 import {HomescreenSnapshot, toSnapshot} from "@homescreen/persistence/rows";
@@ -22,19 +22,22 @@ export function useHomescreenLibraryData() {
     const [dataLoaded, setDataLoaded] = useState(false)
     //what the database held at load time — the persistence baseline (only with the real db)
     const [loadedSnapshot, setLoadedSnapshot] = useState<HomescreenSnapshot | undefined>(undefined)
+    //plain React state, deliberately not a SharedValue — see TileEventStats
+    const [tileEventStats, setTileEventStats] = useState<TileEventStats>(new Map())
 
     useEffect(() => {
-        Promise.all([getFoldersFromDb(), getTilesFromDb(), getRoutinesFromDb()])
+        Promise.all([getFoldersFromDb(), getTilesFromDb(), getRoutinesFromDb(), getTileEventStatsFromDb()])
             .catch(err => {
                 console.log(err)
                 return undefined
             })
             .then(res => {
                 if (!!res) {
-                    const [loadedFolders, loadedTiles, loadedRoutines] = res
+                    const [loadedFolders, loadedTiles, loadedRoutines, loadedStats] = res
                     folders.value = loadedFolders
                     tiles.value = loadedTiles
                     routines.value = loadedRoutines
+                    setTileEventStats(loadedStats)
                     if (HOMESCREEN_DATA_SOURCE === "db") setLoadedSnapshot(toSnapshot(loadedFolders, loadedTiles))
                     setDataLoaded(true)
                 }
@@ -58,5 +61,5 @@ export function useHomescreenLibraryData() {
 
     usePersistHomescreen(folders, tiles, loadedSnapshot)
 
-    return {folders, tiles, routines, dragPreview, homescreenAreaBounds, appDrawerDrop, dataLoaded}
+    return {folders, tiles, routines, tileEventStats, dragPreview, homescreenAreaBounds, appDrawerDrop, dataLoaded}
 }

@@ -33,6 +33,12 @@ export type PixelItem = PixelTile & {
     id: number
 }
 
+//what the homescreen shows of a tile's events: how many, and the latest. Kept apart from
+//the tiles themselves (whose `events` stay empty in homescreen state): the tiles live in a
+//SharedValue, and thousands of Date objects there crash the worklets runtime — Date isn't
+//a type worklets can carry over to the UI thread.
+export type TileEventStats = Map<number, { count: number, lastAt: Date }>
+
 export type HS3Element = HS3Item | HS3Folder
 
 //a homescreen-item is just a placement — position/size + which library tile it shows.

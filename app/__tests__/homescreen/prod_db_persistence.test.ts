@@ -119,13 +119,18 @@ describeProd('homescreen persistence on a real prod backup', () => {
 
     it('loads the full library quickly, homescreen empty', async () => {
         const t0 = Date.now()
-        const [folders, tiles, routines] = await Promise.all([m.repo.getFoldersFromDb(), m.repo.getTilesFromDb(), m.repo.getRoutinesFromDb()])
+        const [folders, tiles, routines, stats] = await Promise.all([
+            m.repo.getFoldersFromDb(), m.repo.getTilesFromDb(), m.repo.getRoutinesFromDb(), m.repo.getTileEventStatsFromDb(),
+        ])
         const ms = Date.now() - t0
-        console.log(`prod load: ${tiles.length} tiles, ${tiles.reduce((n, t) => n + t.events.length, 0)} events, ${routines.length} routines in ${ms} ms`)
+        const eventTotal = [...stats.values()].reduce((n, s) => n + s.count, 0)
+        console.log(`prod load: ${tiles.length} tiles, ${eventTotal} events (as ${stats.size} per-tile stats), ${routines.length} routines in ${ms} ms`)
 
         expect(tiles.length).toBe(counts.tiles)
-        expect(tiles.reduce((n, t) => n + t.events.length, 0)).toBe(counts.tile_events)
-        expect(tiles.every(t => t.events.every(e => e.timestamp instanceof Date && !isNaN(e.timestamp.getTime())))).toBe(true)
+        //no events in the tiles list — Date objects there crash the worklets runtime
+        expect(tiles.every(t => t.events.length === 0)).toBe(true)
+        expect(eventTotal).toBe(counts.tile_events)
+        expect([...stats.values()].every(s => s.lastAt instanceof Date && !isNaN(s.lastAt.getTime()) && s.lastAt.getFullYear() > 2020)).toBe(true)
         expect(routines.length).toBe(counts.routines)
         expect(folders).toHaveLength(1)
         expect(folders[0].folderId).toBeUndefined()
@@ -168,17 +173,19 @@ describeProd('homescreen persistence on a real prod backup', () => {
         save()
 
         //a tile deleted in the App Drawer (with its placements), and an item removed by hand
-        const doomed = tiles.find(t => t.events.length > 0 && t.rootRoutineId !== biggest.id)
+        const statsBefore = await repo.getTileEventStatsFromDb()
+        const doomed = tiles.find(t => statsBefore.has(t.id) && t.rootRoutineId !== biggest.id)
         memory = memory.map(f => ({...f, items: f.items.filter(i => i.tileId !== doomed.id)}))
         tiles = tiles.filter(t => t.id !== doomed.id)
         memory = deleteElement(memory[0].items[5], memory)
         save()
 
-        const [reloadedFolders, reloadedTiles] = await Promise.all([repo.getFoldersFromDb(), repo.getTilesFromDb()])
+        const [reloadedFolders, reloadedTiles, statsAfter] = await Promise.all([repo.getFoldersFromDb(), repo.getTilesFromDb(), repo.getTileEventStatsFromDb()])
         const normalize = (f: typeof memory) => rows.rowsToFolders(rows.toSnapshot(f, []).folders, rows.toSnapshot(f, []).items)
         expect(reloadedFolders).toEqual(normalize(memory))
         expect(reloadedTiles.map(t => t.id)).toEqual(tiles.map(t => t.id))
-        expect(reloadedTiles.reduce((n, t) => n + t.events.length, 0)).toBe(counts.tile_events - doomed.events.length)
+        expect(statsAfter.has(doomed.id)).toBe(false)
+        expect([...statsAfter.values()].reduce((n, s) => n + s.count, 0)).toBe(counts.tile_events - statsBefore.get(doomed.id).count)
         expect(reloadedFolders.find(f => f.routineId === biggest.id).items.length)
             .toBe(tiles.filter(t => t.rootRoutineId === biggest.id).length)
         expect(syncRoutineFolders(reloadedFolders, reloadedTiles, routines)).toBeUndefined()

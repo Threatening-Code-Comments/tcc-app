@@ -141,18 +141,17 @@ export function Item(props: ItemProps) {
         item, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
         onResizeUpdate, onResizeEnd, onRemove
     } = props
-    const {tiles} = useHomescreenData()
+    const {tiles, tileEventStats} = useHomescreenData()
     const tile = getTileById(tiles.value, item.tileId)
+    const stats = tileEventStats.get(item.tileId)
 
     const slotAmounts = item.layout.width + 1
 
-    /*time_since_last is still a placeholder — needs the tile's actual last event once
-    the events list is real, not just mocked as empty*/
     const slotTypes: ConcreteItemSlot[] = [
         {index: 0, type: "name", valueCallback: () => tile?.name},
-        {index: 1, type: "time_since_last", valueCallback: () => new Date(2026, 1, 2, 19, 34)},
-        {index: 2, type: "taps_total", valueCallback: () => tile?.events.length ?? 0},
-        {index: 3, type: "taps_total", valueCallback: () => tile?.events.length ?? 0},
+        {index: 1, type: "time_since_last", valueCallback: () => stats?.lastAt},
+        {index: 2, type: "taps_total", valueCallback: () => stats?.count ?? 0},
+        {index: 3, type: "taps_total", valueCallback: () => stats?.count ?? 0},
     ]
     const sortedSlotTypes = slotTypes.sort((a, b) => a.index - b.index)
 

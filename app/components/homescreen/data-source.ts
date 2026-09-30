@@ -11,3 +11,4 @@ const source = HOMESCREEN_DATA_SOURCE === "db" ? realDb : mockDb
 export const getFoldersFromDb = source.getFoldersFromDb
 export const getTilesFromDb = source.getTilesFromDb
 export const getRoutinesFromDb = source.getRoutinesFromDb
+export const getTileEventStatsFromDb = source.getTileEventStatsFromDb

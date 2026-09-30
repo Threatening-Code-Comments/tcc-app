@@ -1,6 +1,6 @@
 import React, {createContext, MutableRefObject, useContext} from "react";
 import {SharedValue} from "react-native-reanimated";
-import {HS3Folder, Routine, Tile} from "@components/homescreen/types";
+import {HS3Folder, Routine, Tile, TileEventStats} from "@components/homescreen/types";
 
 /**
  * The central, relatively-stable data both the navigator and every homescreen level
@@ -26,6 +26,8 @@ export type HomescreenDataValue = {
     folders: SharedValue<HS3Folder[]>,
     tiles: SharedValue<Tile[]>,
     routines: SharedValue<Routine[]>,
+    //tap count + last tap per tile — plain JS, not a SharedValue (see TileEventStats)
+    tileEventStats: TileEventStats,
     //the App-Drawer-drag-onto-homescreen bridge: AppDrawer and the Homescreen area are
     //siblings (not parent/child), so this is how a drag started in one reaches the other.
     dragPreview: SharedValue<DragPreview | undefined>,
