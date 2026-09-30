@@ -93,7 +93,8 @@ export const importDbFile = async () => {
     if (pick.canceled) return
 
     const picked = new File(pick.assets[0].uri)
-    const head = picked.bytes().slice(0, SQLITE_MAGIC.length)
+    //bytes() is async in the new expo-file-system API — slicing the promise used to throw
+    const head = (await picked.bytes()).slice(0, SQLITE_MAGIC.length)
     const headStr = String.fromCharCode(...head)
     if (headStr !== SQLITE_MAGIC) {
         toast('Datei ist keine gültige SQLite-Datenbank.')
@@ -102,6 +103,11 @@ export const importDbFile = async () => {
 
     const target = dbFile()
     if (target.exists) target.delete()
+    //the old database's journal files must not survive next to the imported one
+    for (const suffix of ['-wal', '-shm', '-journal']) {
+        const companion = new File(Paths.document, SQLITE_DIR, dbName + suffix)
+        if (companion.exists) companion.delete()
+    }
     picked.copy(target)
 
     toast('Backup importiert — App wird neu geladen.')
