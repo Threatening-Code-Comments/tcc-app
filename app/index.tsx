@@ -10,7 +10,7 @@ import {DashboardEntry, Page} from './constants/DbTypes'
 import {db} from '@db/database'
 import {deletePage, getPages, insertPages} from '@db/pages'
 import * as schema from './db/schema'
-import {exportDbFile, importDbFile, saveDbFileToDownloads} from './db/backup'
+import {AppMenu} from '@components/AppMenu'
 import {HomescreenTempWrapper} from '@homescreen/homescreenTempWrapper'
 
 const HomePage = () => {
@@ -51,31 +51,6 @@ const HomePage = () => {
                     addPage(data['Page Name'], data.Color)
                 },
                 icon: 'add'
-            }
-        }
-    });
-
-    const migrationModal = useModal<{
-        "Speichern (Datei)": "button"
-        "Teilen (Datei)": "button"
-        "Import (Datei)": "button"
-    }>({
-        title: "Backup",
-        inputTypes: {
-            "Speichern (Datei)": {
-                icon: 'save',
-                type: 'button',
-                onClick: saveDbFileToDownloads
-            },
-            "Teilen (Datei)": {
-                icon: 'arrowUp',
-                type: 'button',
-                onClick: exportDbFile
-            },
-            "Import (Datei)": {
-                icon: 'add',
-                type: 'button',
-                onClick: importDbFile
             }
         }
     });
@@ -136,10 +111,6 @@ const HomePage = () => {
             )
     }
 
-    const migrationButton = async () => {
-        migrationModal.setVisible(true)
-    }
-
     // return (
     //     <SafeAreaView style={{ flex: 1 }}>
     //         <Card>
@@ -174,10 +145,14 @@ const HomePage = () => {
             {/*</View>*/}
 
             {AddPageModal}
-            {migrationModal.component}
+
+            {/*top bar: burger menu for app-wide actions (backup import/export, later settings)*/}
+            <View style={{flexDirection: 'row', alignItems: 'center', paddingHorizontal: '3%'}}>
+                <AppMenu/>
+            </View>
 
             {/* <View style={{  }}> */}
-            <Card elevation={1} style={{flexGrow: 1, margin: '5%', width: '90%'}}>
+            <Card elevation={1} style={{flexGrow: 1, marginHorizontal: '5%', marginBottom: '5%', width: '90%'}}>
 
                 {/* <Dashboard isEditMode={isEditMode} dashboardList={{ list: dashboardList, setList: setDashboardList }} /> */}
 
