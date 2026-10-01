@@ -186,37 +186,42 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
     )
 
     //🔁 same "bridge SharedValue changes into a React re-render" pattern as elsewhere
+    //Runs on the UI thread on every drag frame, so it stays cheap: the small drag values are
+    //compared as strings, visibleElements/popupItem by reference (they're only reassigned on
+    //real changes). Stringifying visibleElements — every visible folder with all its items —
+    //twice per frame used to grow with the number of elements on the level.
     useAnimatedReaction(
         () => ({
-            previewElement: previewElement.value,
+            previewElement: JSON.stringify(previewElement.value),
             tempElements: JSON.stringify(tempElements.value),
             tempElementsImpossible: JSON.stringify(tempElementsImpossible.value),
-            visibleElements: JSON.stringify(visibleElements.value),
+            visibleElements: visibleElements.value,
             homescreenState: homescreenState.value,
             popupItem: popupItem.value,
             isExternalDrag: !!dragPreview.value,
+            //which element is the folder target (if any) — the popover/preview swap needs one
+            //render when it changes; the hovered half is the popover's own UI-thread business
+            dropTargetKey: !dropTarget.value ? ""
+                : ("itemId" in dropTarget.value.element)
+                    ? `t-${dropTarget.value.element.itemId}`
+                    : `f-${dropTarget.value.element.folderId}`,
         }),
         (current, previous) => {
-            if (JSON.stringify(current) !== JSON.stringify(previous)) {
-                runOnJS(refreshState)();
-            }
-        }, [previewElement, tempElements, tempElementsImpossible, visibleElements, homescreenState, popupItem, dragPreview]
+            const changed = !previous
+                || current.dropTargetKey !== previous.dropTargetKey
+                || current.previewElement !== previous.previewElement
+                || current.tempElements !== previous.tempElements
+                || current.tempElementsImpossible !== previous.tempElementsImpossible
+                || current.visibleElements !== previous.visibleElements
+                || current.homescreenState !== previous.homescreenState
+                || current.popupItem !== previous.popupItem
+                || current.isExternalDrag !== previous.isExternalDrag
+            if (changed) runOnJS(refreshState)();
+        }, [previewElement, tempElements, tempElementsImpossible, visibleElements, homescreenState, popupItem, dragPreview, dropTarget]
     )
-    const RESOLUTION = 10 //pixels
-    useAnimatedReaction(
-        () => ({
-            cursorX: Math.floor(dragState.value?.coordinate?.x / RESOLUTION),
-            cursorY: Math.floor(dragState.value?.coordinate?.y / RESOLUTION),
-        }),
-        (prepared, previous) => {
-            if (!dropTarget.value)
-                return //this level of accuracy is only needed when there is no bigger movement
-
-            if (JSON.stringify(prepared) !== JSON.stringify(previous)) {
-                runOnJS(refreshState)();
-            }
-        }, [dropTarget, dragState]
-    )
+    //(a second reaction used to re-render the whole level every 10px of cursor movement while
+    //a folder target was hovered, only so FolderPopover saw the new cursor — it reads the
+    //dragState shared value on the UI thread now)
     //🔁
 
     //the rest of the render's shared-value reads, once each (see foldersNow above)
@@ -271,7 +276,7 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
             isCreateElement={dragStateNow?.type === "create"}
         />)}
         <Animated.View style={folderOverlayStyle}/>
-        <FolderPopover isAddFolder={dropTargetNow?.element} dragState={dragStateNow}
+        <FolderPopover isAddFolder={dropTargetNow?.element} dragState={dragState}
                        onOperationChange={(op) => onFolderPopoverChange(op)}/>
 
         {itemPopupComponent}

@@ -256,7 +256,7 @@ export function useHomescreenDragAndDrop(
             backgroundColor: 'green',
             zIndex: 7
         }
-    }, [isAddFolder.value]);
+    }, [isAddFolder]);
 
     return {
         dragState, previewElement, tempElements, tempElementsImpossible, dropTarget,

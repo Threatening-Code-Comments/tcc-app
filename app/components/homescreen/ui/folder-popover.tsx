@@ -1,4 +1,4 @@
-import Animated, {runOnJS, useAnimatedReaction, useAnimatedStyle, useDerivedValue} from "react-native-reanimated";
+import Animated, {runOnJS, SharedValue, useAnimatedReaction, useAnimatedStyle, useDerivedValue} from "react-native-reanimated";
 import {View} from "react-native";
 import React from "react";
 import {GRID_UNIT} from "@components/homescreen/move_algo";
@@ -22,7 +22,9 @@ const getOperationAreasHeightWorklet = (element: HS3Element) => {
 
 type Props = {
     isAddFolder: HS3Element;
-    dragState: DragState;
+    //the shared value itself, not a snapshot: which half is hovered is worked out from the
+    //live cursor on the UI thread — a prop only changed with a re-render of the whole level
+    dragState: SharedValue<DragState | undefined>;
     onOperationChange: (operation: FolderOperations) => void
 }
 export const FolderPopover = (props: Props) => {
@@ -30,7 +32,7 @@ export const FolderPopover = (props: Props) => {
     const {isAddFolder, dragState} = props;
 
     const coordinate = useDerivedValue<PixelPoint>(() => {
-        if (!isAddFolder || !dragState) {
+        if (!isAddFolder || !dragState.value) {
             return undefined;
         }
 
@@ -44,11 +46,12 @@ export const FolderPopover = (props: Props) => {
     }, [isAddFolder, dragState]);
 
     const dragStateStatus = useDerivedValue<PointAlignment>(() => {
-        if (!dragState || !coordinate.value) return undefined;
+        const state = dragState.value
+        if (!state || !coordinate.value) return undefined;
 
         //popover coordinate
         const pC = coordinate.value;
-        const cursor = dragState.coordinate
+        const cursor = state.coordinate
 
         const bounds = {
             xFrom: pC.x,
