@@ -1,6 +1,7 @@
 import React, {useEffect} from "react";
 import {HS3Element} from "@homescreen/types";
 import Animated, {
+    SharedValue,
     useAnimatedStyle,
     useSharedValue,
     withRepeat,
@@ -18,11 +19,15 @@ export type PreviewItemProps = {
     impossible?: boolean;
     isDragElement?: boolean
     isCreateElement?: boolean
+    //when set, position and size follow this shared value on the UI thread instead of
+    //`element.layout` — for the drag preview, so it keeps up with the finger without
+    //waiting for a React re-render of the whole level
+    layoutSource?: SharedValue<HS3Element | undefined>
 }
 
 // type AnimatedPropsPreviewItem = Partial<PreviewItemProps>;
 export const PreviewItem = (props: PreviewItemProps) => {
-    const {element, impossible, isDragElement = false} = props;
+    const {element, impossible, isDragElement = false, layoutSource} = props;
     const {colors} = useTheme();
     const {tileById} = useHomescreenData();
 
@@ -47,19 +52,24 @@ export const PreviewItem = (props: PreviewItemProps) => {
         )
         ;
     }
+    //only when `impossible` flips — depending on the whole props object restarted both
+    //looping animations on every single re-render
     useEffect(() => {
         if (impossible)
             impossibleAnimation();
         else
             yShakeEffect()
-    }, [props])
+    }, [impossible])
 
-    const itemStyle = useAnimatedStyle(() => ({
+    const itemStyle = useAnimatedStyle(() => {
+        const live = layoutSource?.value?.layout
+        const l = live ?? {x, y, width, height}
+        return {
         position: "absolute",
-        left: x * GRID_UNIT,
-        top: y * GRID_UNIT,
-        width: width * GRID_UNIT,
-        height: height * GRID_UNIT,
+        left: l.x * GRID_UNIT,
+        top: l.y * GRID_UNIT,
+        width: l.width * GRID_UNIT,
+        height: l.height * GRID_UNIT,
         backgroundColor: (impossible) ? "#ff000040" : "transparent",
         borderColor: (isDragElement) ? "purple" : (impossible) ? "red" : (elementColor ?? "black"),
         borderWidth: 2,
@@ -70,7 +80,8 @@ export const PreviewItem = (props: PreviewItemProps) => {
         ] as any,
         zIndex: 10,
         justifyContent: "center",
-    }))
+        }
+    })
     const yShakeEffect = () => {
         translationXShakeOffset.value = 0
         translationYShakeOffset.value = withRepeat(

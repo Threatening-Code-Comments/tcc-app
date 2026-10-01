@@ -235,7 +235,11 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         //and only differ in the item/folder prop itself plus Folder's own `children` (sub-folders).
         const sharedProps: Omit<MovableItemProps, "children" | "layout"> = {
             onDragStart: () => onDragStart(e),
-            onDragUpdate: (coordinate) => onDragUpdate(e, coordinate),
+            //a worklet, called by the pan gesture on the UI thread (see useHomescreenDragAndDrop)
+            onDragUpdate: (coordinate) => {
+                "worklet"
+                onDragUpdate(e, coordinate)
+            },
             onDragEnd: () => onDragEnd(e),
             onTap: () => onElementTap(e),
             onLongPress: () => onLongTap(e),
@@ -261,6 +265,7 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
 
         {!dropTargetNow && (<PreviewItem
             element={previewElementNow}
+            layoutSource={previewElement}
             impossible={false}
             isDragElement={true}
             isCreateElement={dragStateNow?.type === "create"}

@@ -28,6 +28,7 @@ export type MovableItemProps = {
     layout: HS3LayoutParams
     onTap?: () => void
     onDragStart?: () => void
+    //must be a worklet — called on the UI thread on every pan update, without a JS hop
     onDragUpdate?: (coordinate: PixelPoint) => void
     onDragEnd?: () => void
     onLongPress?: (coordinate: PixelPoint) => void
@@ -45,6 +46,7 @@ export function MovableItem(props: MovableItemProps) {
         onTap = () => {
         }, onDragStart = () => {
         }, onDragUpdate = () => {
+            "worklet"
         }, onDragEnd = () => {
         }, onLongPress = () => {
         }, onResizeUpdate: onResizeUpdateP = () => {
@@ -88,7 +90,7 @@ export function MovableItem(props: MovableItemProps) {
             translateX.value = withSpring(startX.value + event.translationX, config);
             translateY.value = withSpring(startY.value + event.translationY, config);
 
-            runOnJS(onDragUpdate)({
+            onDragUpdate({
                 x: itemX.value + translateX.value + itemWidth.value / 2,
                 y: itemY.value + translateY.value + itemHeight.value / 2,
             });

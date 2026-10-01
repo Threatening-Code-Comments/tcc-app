@@ -97,7 +97,12 @@ export function useHomescreenDragAndDrop(
 
     const onDragStart = (element: HS3Element) => {
     };
+    //a worklet: the pan gesture calls it straight on the UI thread every frame, so the whole
+    //dragState -> preview -> temp-elements chain stays there. It used to hop over to the JS
+    //thread first (runOnJS) and back, which queued up behind React renders during a drag.
+    //Calling it from JS (App Drawer hover) works too.
     const onDragUpdate = (element: HS3Element, coordinate: PixelPoint) => {
+        "worklet"
         dragState.value = {
             element, coordinate, type: 'drag'
         }
