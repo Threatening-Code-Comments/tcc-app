@@ -25,6 +25,9 @@ export type AppDrawerDropHandler = (cancelled: boolean) => boolean
 export type HomescreenDataValue = {
     folders: SharedValue<HS3Folder[]>,
     tiles: SharedValue<Tile[]>,
+    //read-only JS mirror of `tiles` — what components look tiles up in while rendering
+    //(tiles.value during render is a sync copy from the UI runtime, see useHomescreenLibraryData)
+    tileById: Map<number, Tile>,
     routines: SharedValue<Routine[]>,
     //tap count + last tap per tile — plain JS, not a SharedValue (see TileEventStats)
     tileEventStats: TileEventStats,

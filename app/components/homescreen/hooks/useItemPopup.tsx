@@ -5,7 +5,7 @@ import {Text} from 'react-native-paper'
 import {getElementPath} from "@components/homescreen/util";
 import {usePopup} from "@components/hooks/usePopup";
 import {IconButton} from "@components/IconButton";
-import {getTileById, useHomescreenData} from "@components/homescreen/homescreen-data-context";
+import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
 type Props = {
     element: HS3Element | undefined,
@@ -20,7 +20,7 @@ type Props = {
 //folder takes its whole contents with it.
 export const useElementPopup = (props: Props) => {
     const {element, folders, onDelete, managedByRoutine = false} = props
-    const {tiles} = useHomescreenData()
+    const {tileById} = useHomescreenData()
     const [confirming, setConfirming] = useState(false)
 
     useEffect(() => setConfirming(false), [element])
@@ -28,7 +28,7 @@ export const useElementPopup = (props: Props) => {
     const isItem = !!element && "itemId" in element
     const title = !element ? ""
         : ("itemId" in element)
-            ? getTileById(tiles.value, element.tileId)?.name ?? `Item ${element.itemId}`
+            ? tileById.get(element.tileId)?.name ?? `Item ${element.itemId}`
             : element.name
     const childCount = (!element || "itemId" in element) ? 0
         : element.items.length + folders.filter(f => f.parentId === element.folderId).length

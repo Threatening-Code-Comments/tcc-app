@@ -6,7 +6,7 @@ import {View} from "react-native";
 import {Icon} from "@components/Icon";
 import {GRID_COLUMNS} from "@components/homescreen/move_algo";
 import {ConcreteItemSlot, ItemDisplaySlot} from "@homescreen/ui/components/item-display-slots";
-import {getTileById, useHomescreenData} from "@components/homescreen/homescreen-data-context";
+import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
 type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     folder: HS3Folder,
@@ -92,14 +92,14 @@ export const getPercentageString = (gridValue: number, maxV: number) => {
 export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[] }) => {
     const {folderToView, children} = props
     const {items} = folderToView
-    const {tiles} = useHomescreenData()
+    const {tileById} = useHomescreenData()
 
     const maxWidth = GRID_COLUMNS
     const maxHeight = 3
 
     const getElementLayout = (item: HS3Element, index: number) => {
         const {layout: {x, y, width, height}} = item
-        const name = ("itemId" in item) ? getTileById(tiles.value, item.tileId)?.name : item.name
+        const name = ("itemId" in item) ? tileById.get(item.tileId)?.name : item.name
 
         return (
             //@ts-expect-error
@@ -141,8 +141,8 @@ export function Item(props: ItemProps) {
         item, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
         onResizeUpdate, onResizeEnd, onRemove
     } = props
-    const {tiles, tileEventStats} = useHomescreenData()
-    const tile = getTileById(tiles.value, item.tileId)
+    const {tileById, tileEventStats} = useHomescreenData()
+    const tile = tileById.get(item.tileId)
     const stats = tileEventStats.get(item.tileId)
 
     const slotAmounts = item.layout.width + 1

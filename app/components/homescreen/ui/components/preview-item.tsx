@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import {GRID_UNIT} from "@homescreen/move_algo";
 import {Text, useTheme} from "react-native-paper";
-import {getTileById, useHomescreenData} from "@components/homescreen/homescreen-data-context";
+import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
 
 const SHAKE_OFFSET = 5;
 
@@ -24,9 +24,9 @@ export type PreviewItemProps = {
 export const PreviewItem = (props: PreviewItemProps) => {
     const {element, impossible, isDragElement = false} = props;
     const {colors} = useTheme();
-    const {tiles} = useHomescreenData();
+    const {tileById} = useHomescreenData();
 
-    const tile = (element && "itemId" in element) ? getTileById(tiles.value, element.tileId) : undefined
+    const tile = (element && "itemId" in element) ? tileById.get(element.tileId) : undefined
     const elementColor = element ? (("itemId" in element) ? tile?.color : element.color) : undefined
     const elementName = element ? (("itemId" in element) ? tile?.name : element.name) : undefined
 

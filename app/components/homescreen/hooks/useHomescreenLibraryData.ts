@@ -24,6 +24,18 @@ export function useHomescreenLibraryData() {
     const [loadedSnapshot, setLoadedSnapshot] = useState<HomescreenSnapshot | undefined>(undefined)
     //plain React state, deliberately not a SharedValue — see TileEventStats
     const [tileEventStats, setTileEventStats] = useState<TileEventStats>(new Map())
+    //JS-side mirror of `tiles` for rendering. Reading tiles.value during render is a
+    //synchronous call into the UI runtime that copies the whole library back — once per
+    //item and per folder-preview child, on every re-render while dragging. The mirror is
+    //refreshed once per actual change of `tiles` instead.
+    const [tileById, setTileById] = useState<Map<number, Tile>>(new Map())
+    const mirrorTiles = (list: Tile[]) => setTileById(new Map(list.map(t => [t.id, t])))
+    useAnimatedReaction(
+        () => tiles.value,
+        (current, previous) => {
+            if (current !== previous) runOnJS(mirrorTiles)(current)
+        }, [tiles]
+    )
 
     useEffect(() => {
         Promise.all([getFoldersFromDb(), getTilesFromDb(), getRoutinesFromDb(), getTileEventStatsFromDb()])
@@ -37,6 +49,7 @@ export function useHomescreenLibraryData() {
                     folders.value = loadedFolders
                     tiles.value = loadedTiles
                     routines.value = loadedRoutines
+                    mirrorTiles(loadedTiles)
                     setTileEventStats(loadedStats)
                     if (HOMESCREEN_DATA_SOURCE === "db") setLoadedSnapshot(toSnapshot(loadedFolders, loadedTiles))
                     setDataLoaded(true)
@@ -61,5 +74,5 @@ export function useHomescreenLibraryData() {
 
     usePersistHomescreen(folders, tiles, loadedSnapshot)
 
-    return {folders, tiles, routines, tileEventStats, dragPreview, homescreenAreaBounds, appDrawerDrop, dataLoaded}
+    return {folders, tiles, tileById, routines, tileEventStats, dragPreview, homescreenAreaBounds, appDrawerDrop, dataLoaded}
 }

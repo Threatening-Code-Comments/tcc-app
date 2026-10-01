@@ -9,7 +9,7 @@ import {DragPreviewOverlay} from "@components/homescreen/ui/components/drag-prev
 
 export const HomescreenTempWrapper = () => {
     const {colors} = useTheme();
-    const {folders, tiles, routines, tileEventStats, dragPreview, homescreenAreaBounds, appDrawerDrop, dataLoaded} = useHomescreenLibraryData()
+    const {folders, tiles, tileById, routines, tileEventStats, dragPreview, homescreenAreaBounds, appDrawerDrop, dataLoaded} = useHomescreenLibraryData()
     const gridRef = useRef<View>(null)
 
     //measures this view's window-absolute bounds — the shared coordinate origin an App
@@ -24,7 +24,7 @@ export const HomescreenTempWrapper = () => {
     return (
         <View ref={gridRef} onLayout={measureBounds} style={[styles.grid, {backgroundColor: colors.background}]}>
             {dataLoaded
-                ? <HomescreenDataProvider value={{folders, tiles, routines, tileEventStats, dragPreview, homescreenAreaBounds, appDrawerDrop}}>
+                ? <HomescreenDataProvider value={{folders, tiles, tileById, routines, tileEventStats, dragPreview, homescreenAreaBounds, appDrawerDrop}}>
                     <HomescreenNavigator/>
                     <AppDrawer/>
                     <DragPreviewOverlay/>
