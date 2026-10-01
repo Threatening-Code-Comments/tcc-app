@@ -18,15 +18,18 @@ type ItemDisplaySlotType = "debug" | "name" | "taps_total" | "time_since_last"
 type ItemDisplaySlotValue = string | number | Date
 
 function ItemDisplaySlotName({value, orientation, contrastColor}: {
-    value: string,
+    //undefined while the item's tile isn't known (yet) — e.g. a render before the tile
+    //lookup has it, or a placement whose tile is gone; shows empty instead of crashing
+    value: string | undefined,
     orientation: SlotOrientation,
     contrastColor: string
 }) {
+    const name = value ?? ""
     return (<View style={{...utilStyles.full, ...utilStyles.centerColumn}}>
         <Text
-            variant={(value.length > 9) ? "labelMedium" : "labelLarge"}
+            variant={(name.length > 9) ? "labelMedium" : "labelLarge"}
             style={{textAlign: orientation, color: contrastColor}}>
-            {value}
+            {name}
         </Text>
     </View>);
 }
