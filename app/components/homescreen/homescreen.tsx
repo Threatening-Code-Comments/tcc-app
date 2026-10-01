@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {Alert, View} from "react-native";
 import Animated, {
     runOnJS,
@@ -59,6 +59,8 @@ type LevelView = {
 export const Homescreen = ({folderId, onEnterFolder}: Props) => {
     const {folders, dragPreview, homescreenAreaBounds, appDrawerDrop} = useHomescreenData()
     const [mountKey, setMountKey] = useState(0)
+    //stable, so memoized children (CreateElementControls) don't re-render because of it
+    const remount = useCallback(() => setMountKey(k => k + 1), [])
 
     const currentFolderLevel = useDerivedValue(() => {
         return getFoldersForLevel(folders.value, folderId)
@@ -267,7 +269,7 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         <CreateElementControls
             folderId={folderId}
             dragState={dragState} tempElements={tempElements} tempElementsImpossible={tempElementsImpossible}
-            onMutated={() => setMountKey(k => k + 1)}
+            onMutated={remount}
         />
 
         {stableElements.map(renderElement)}

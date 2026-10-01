@@ -90,9 +90,13 @@ export function MovableItem(props: MovableItemProps) {
             translateX.value = withSpring(startX.value + event.translationX, config);
             translateY.value = withSpring(startY.value + event.translationY, config);
 
+            //the drag point is where the finger is: the centre of the (n-scaled) dragged item at
+            //its target offset. It used to take the unscaled half size and the spring's current,
+            //still-catching-up offset, which put it off to the side of (and behind) the finger —
+            //noticeable on small targets like the folder popover's two halves.
             onDragUpdate({
-                x: itemX.value + translateX.value + itemWidth.value / 2,
-                y: itemY.value + translateY.value + itemHeight.value / 2,
+                x: itemX.value + startX.value + event.translationX + itemWidth.value * n / 2,
+                y: itemY.value + startY.value + event.translationY + itemWidth.value * n / 2,
             });
         })
         .onEnd(() => {

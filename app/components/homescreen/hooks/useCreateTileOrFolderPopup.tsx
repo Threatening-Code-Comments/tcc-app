@@ -115,16 +115,24 @@ export const usePlaceExistingTilePopup = (props: PlaceExistingProps) => {
         onSubmitP(syncRoutineFolder(linkedFolder, folders.value, tiles.value, routines.value))
     }
 
+    //each shared value read once per render — a .value read is a synchronous copy from the UI
+    //thread, and this used to read the whole tile library once per routine (inside the filter)
+    const allTiles = tiles.value
+    const allRoutines = routines.value
+    const allFolders = folders.value
+    const tileCountByRoutine = new Map<number, number>()
+    for (const t of allTiles) tileCountByRoutine.set(t.rootRoutineId, (tileCountByRoutine.get(t.rootRoutineId) ?? 0) + 1)
+
     const trimmed = query.trim().toLowerCase()
-    const results = tiles.value.filter(t => t.name.toLowerCase().includes(trimmed))
-    const routineResults = routines.value.filter(r =>
-        r.name.toLowerCase().includes(trimmed) && tiles.value.some(t => t.rootRoutineId === r.id)
+    const results = allTiles.filter(t => t.name.toLowerCase().includes(trimmed))
+    const routineResults = allRoutines.filter(r =>
+        r.name.toLowerCase().includes(trimmed) && tileCountByRoutine.has(r.id)
     )
 
-    const parent = folders.value.find(f => f.folderId === currentLevel)
+    const parent = allFolders.find(f => f.folderId === currentLevel)
     const popupContent = (<View style={{display: 'flex', flexDirection: 'column', gap: 16}}>
         <Text variant={"headlineSmall"}>Place existing</Text>
-        <Text>Parent: {getElementPath(parent, folders.value)}</Text>
+        <Text>Parent: {getElementPath(parent, allFolders)}</Text>
 
         <TextInput label={"Search"}
                    value={query}
@@ -144,7 +152,7 @@ export const usePlaceExistingTilePopup = (props: PlaceExistingProps) => {
                                 borderColor: routine.color,
                             }}>
                                 <Text style={{color: routine.color, fontWeight: "600"}}>
-                                    {routine.name} ({tiles.value.filter(t => t.rootRoutineId === routine.id).length})
+                                    {routine.name} ({tileCountByRoutine.get(routine.id) ?? 0})
                                 </Text>
                             </View>
                         </TouchableOpacity>

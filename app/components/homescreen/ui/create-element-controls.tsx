@@ -27,7 +27,11 @@ type Props = {
  * it the shared drag state (it reuses the same "drag out a rectangle" preview machinery
  * as a normal drag) and folderId to place the new element into.
  */
-export const CreateElementControls = ({
+//memoized: its props are shared values (stable), folderId and a stable onMutated, so it no
+//longer re-renders — and re-runs its popups' hooks — with every re-render of the level
+export const CreateElementControls = React.memo((props: Props) => <CreateElementControlsView {...props}/>)
+
+const CreateElementControlsView = ({
     folderId, dragState, tempElements, tempElementsImpossible, onMutated,
 }: Props) => {
     const {folders} = useHomescreenData()
