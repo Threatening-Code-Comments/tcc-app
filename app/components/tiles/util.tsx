@@ -39,15 +39,3 @@ export const DeleteButton = ({ isEditMode, onPress }: DeleteButtonProps) => {
 export const getFlex = (numCols: number | undefined) => {
     return 1 / ((numCols) ? numCols : 2)
 }
-
-export const DashboardButton: React.FC<{ isEditMode: boolean, onPress: () => void, isOnDashboard: boolean }> = ({ isEditMode, onPress, isOnDashboard }) => {
-    if (!isEditMode) return <></>
-
-    return (
-        <View style={{ zIndex: 2, marginBottom: -50, height: 50, aspectRatio: 1, alignSelf: 'flex-start', }}>
-            <IconButton
-                iconName={(isOnDashboard) ? 'starCheck' : 'starOutline'}
-                type='secondary'
-                onPress={onPress} />
-        </View >)
-}

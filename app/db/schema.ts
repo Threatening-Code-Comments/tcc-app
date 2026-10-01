@@ -1,4 +1,3 @@
-import { ElementTypeNames } from "@app/constants/DbTypes";
 import { relations } from "drizzle-orm";
 import { AnySQLiteColumn, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
@@ -57,33 +56,8 @@ export const tileEventsRelations = relations(tileEvents, ({ one }) => ({
     })
 }))
 
-export const dashboard = sqliteTable('dashboard', {
-    elementId: integer('elementId').notNull().primaryKey(),
-    elementType: text('elementType', { enum: [ElementTypeNames.Page, ElementTypeNames.Routine, ElementTypeNames.Tile] }).notNull().primaryKey(),
-    posX: integer('posX').notNull(),
-    posY: integer('posY').notNull(),
-    spanX: integer('spanX').notNull(),
-    spanY: integer('spanY').notNull(),
-    timeAdded: integer('timeAdded', { mode: 'timestamp_ms' }).notNull().default(new Date())
-})
-export const dashboardRelations = relations(dashboard, ({ many, one }) => ({
-    element: one(pages || routines || tiles, {
-        fields: [dashboard.elementId],
-        references: [pages.id || routines.id || tiles.id]
-    })
-}))
-export const dashboardSettings = sqliteTable('dashboard_settings', {
-    elementId: integer('elementId').notNull(),
-    elementType: text('elementType', { enum: [ElementTypeNames.Page, ElementTypeNames.Routine, ElementTypeNames.Tile] }).notNull(),
-    settingsType: text('settingsType').notNull(),
-    settingsValue: text('settingsValue').notNull()
-})
-export const dashboardSettingsRelations = relations(dashboardSettings, ({ one }) => ({
-    element: one(tiles || routines || pages, {
-        fields: [dashboardSettings.elementId],
-        references: [tiles.id || routines.id || pages.id]
-    })
-}))
+//the old dashboard / dashboard_settings tables are gone: migration 0003 carried their
+//entries over into the homescreen (hs_folders/hs_items) and dropped them
 
 //homescreen (HS3): folders and item placements, stored flat — the folder tree is rebuilt
 //from parentId on load. The root level isn't a row: parentId null means "on the root".

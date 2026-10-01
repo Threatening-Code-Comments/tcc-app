@@ -1,7 +1,7 @@
-import { and, eq, inArray } from "drizzle-orm"
-import { ElementTypeNames, InsertPage, Page } from "../constants/DbTypes"
+import { eq, inArray } from "drizzle-orm"
+import { InsertPage, Page } from "../constants/DbTypes"
 import { InsertCallback, ResultCallback, db } from "./database"
-import { dashboard, pages, routines, tileEvents, tiles } from "./schema"
+import { pages, routines, tileEvents, tiles } from "./schema"
 
 export const getPages = (callback: ResultCallback<Page>) => {
     db()
@@ -99,11 +99,6 @@ export const deleteChildrenOfPage = async (pageId: number) => {
     await db().delete(routines).where(inArray(routines.id, routineIds))
     await db().delete(tiles).where(inArray(tiles.id, tileIds))
     await db().delete(tileEvents).where(inArray(tileEvents.tileId, tileIds))
-    await db().delete(dashboard).where(
-        and(
-            eq(dashboard.elementType, ElementTypeNames.Page),
-            eq(dashboard.elementId, pageId)
-        ))
 }
 export const deletePage = (page: Page, callback: InsertCallback) => {
     deleteChildrenOfPage(page.id)

@@ -99,6 +99,10 @@ describeProd('homescreen persistence on a real prod backup', () => {
         const probe = new nodeSqlite.DatabaseSync(mockDbCopy)
         counts = Object.fromEntries(['pages', 'routines', 'tiles', 'tile_events'].map(t =>
             [t, probe.prepare(`select count(*) n from ${t}`).get().n]))
+        //what migration 0003 should carry over into the homescreen (entries whose element exists)
+        for (const [type, table] of [['Tile', 'tiles'], ['Routine', 'routines'], ['Page', 'pages']])
+            counts[`dashboard${type}`] = probe.prepare(
+                `select count(*) n from dashboard where elementType = '${type}' and elementId in (select id from ${table})`).get().n
         probe.close()
 
         const {migrate} = require('drizzle-orm/expo-sqlite/migrator')
@@ -109,15 +113,20 @@ describeProd('homescreen persistence on a real prod backup', () => {
         fs.rmSync(mockDbCopy, {force: true})
     })
 
-    it('migrates the backup without touching its data', async () => {
+    it('migrates the backup: library untouched, old dashboard carried over into the homescreen', async () => {
         const {schema, db} = m
-        expect(await db.db().select().from(schema.hsFolders)).toEqual([])
-        expect(await db.db().select().from(schema.hsItems)).toEqual([])
+        const folders = await db.db().select().from(schema.hsFolders)
+        const items = await db.db().select().from(schema.hsItems)
+        console.log(`dashboard -> homescreen: ${items.length} items, ${folders.length} folders`)
+        expect(items.length).toBe(counts.dashboardTile)
+        //on the root: a linked folder per dashboard routine and a folder per dashboard page
+        expect(folders.filter(f => f.parentId === null).length).toBe(counts.dashboardRoutine + counts.dashboardPage)
         expect((await db.db().select().from(schema.pages)).length).toBe(counts.pages)
         expect((await db.db().select().from(schema.routines)).length).toBe(counts.routines)
+        expect((await db.db().select().from(schema.tiles)).length).toBe(counts.tiles)
     })
 
-    it('loads the full library quickly, homescreen empty', async () => {
+    it('loads the full library quickly, with the carried-over homescreen', async () => {
         const t0 = Date.now()
         const [folders, tiles, routines, stats] = await Promise.all([
             m.repo.getFoldersFromDb(), m.repo.getTilesFromDb(), m.repo.getRoutinesFromDb(), m.repo.getTileEventStatsFromDb(),
@@ -132,9 +141,8 @@ describeProd('homescreen persistence on a real prod backup', () => {
         expect(eventTotal).toBe(counts.tile_events)
         expect([...stats.values()].every(s => s.lastAt instanceof Date && !isNaN(s.lastAt.getTime()) && s.lastAt.getFullYear() > 2020)).toBe(true)
         expect(routines.length).toBe(counts.routines)
-        expect(folders).toHaveLength(1)
         expect(folders[0].folderId).toBeUndefined()
-        expect(folders[0].items).toEqual([])
+        expect(folders[0].items.length).toBe(counts.dashboardTile)
         expect(ms).toBeLessThan(2000)
     })
 

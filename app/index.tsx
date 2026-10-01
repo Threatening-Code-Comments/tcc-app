@@ -1,4 +1,4 @@
-import {desc, eq} from 'drizzle-orm'
+import {eq} from 'drizzle-orm'
 import {useLiveQuery} from 'drizzle-orm/expo-sqlite'
 import {useMigrations} from 'drizzle-orm/expo-sqlite/migrator'
 import migrations from 'drizzle/migrations'
@@ -6,7 +6,7 @@ import React, {useEffect, useState} from 'react'
 import {LogBox, View} from 'react-native'
 import {Card, Text} from 'react-native-paper'
 import {useModal} from '@components/modal/Modal'
-import {DashboardEntry, Page} from './constants/DbTypes'
+import {Page} from './constants/DbTypes'
 import {db} from '@db/database'
 import {deletePage, getPages, insertPages} from '@db/pages'
 import * as schema from './db/schema'
@@ -18,14 +18,8 @@ const HomePage = () => {
 
     const [pages, setPages] = useState<Page[]>([])
     const [isEditMode, setIsEditMode] = useState(false)
-    const [dashboardList, setDashboardList] = useState<DashboardEntry[]>([])
 
     const {success: migrationSuccess, error: migrationError} = useMigrations(db(), migrations)
-    const {data: dashboardLiveQuery} = useLiveQuery(db().select().from(schema.dashboard).orderBy(desc(schema.dashboard.timeAdded)))
-    useEffect(() => {
-        const list = dashboardLiveQuery.sort((a, b) => b.timeAdded.getTime() - a.timeAdded.getTime())
-        setDashboardList(list)
-    }, [dashboardLiveQuery])
     const {data: pagesLiveQuery} = useLiveQuery(db().select().from(schema.pages))
     useEffect(() => {
         setPages(pagesLiveQuery)

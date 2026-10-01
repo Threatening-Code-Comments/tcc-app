@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import Animated from 'react-native-reanimated'
-import { ElementType, ElementTypeNames, Tile, isPage, isRoutineOnPage, isTile } from '../../constants/DbTypes'
-import { DashboardList } from '../../Dashboard'
-import { addElementToDashboard, checkIfElementOnDashboard, removeElementFromDashboard } from '../../db/dashboard'
+import { ElementType, Tile, isPage, isRoutineOnPage, isTile } from '../../constants/DbTypes'
 import { updatePage } from '../../db/pages'
 import { updateRoutine } from '../../db/routines'
 import { updateTile } from '../../db/tiles'
-import { showToast } from '../../util/comms'
 import { useModal } from '../modal/Modal'
 import { PageTileComponent } from './PageTile'
 import { RoutineTileComponent } from './RoutineTile'
 import { TileComponent } from './TileTile'
-import { DashboardButton, DeleteButton, getFlex } from './util'
+import { DeleteButton, getFlex } from './util'
 import { Modal, Pressable, View, StyleSheet, Text } from 'react-native'
 import { modalStyles } from '../modal/ModalStyles'
 
@@ -26,20 +23,14 @@ type GenericTileProps<TElement extends ElementType> = {
     onPressDelete: () => void,
     doAfterEdit: (element: TElement) => void
     isOnDashboard?: boolean,
-    dashboardList?: DashboardList
 }
-export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit, isEditMode, onPressDelete, numColumns, isOnDashboard = false, dashboardList: dashboardList2 }: GenericTileProps<TElement>) => {
+//the old dashboard (and its "star to add" button here) is gone — the homescreen replaced it
+export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit, isEditMode, onPressDelete, numColumns, isOnDashboard = false }: GenericTileProps<TElement>) => {
     const useIfElementType = (element: ElementType, tileValue: any, routineValue: any, pageValue: any,) => {
         if (isTile(element)) return tileValue
         if (isRoutineOnPage(element)) return routineValue
         if (isPage(element)) return pageValue
     }
-
-    const dashboardList = dashboardList2 ?? { list: [], setList: () => { } }
-    const elementType: ElementTypeNames = useIfElementType(element, "Tile", "Routine", "Page")
-    const checkIfOnList = () => dashboardList.list.some((el) => el && el.elementId === element.id && el.elementType === elementType)
-    const addToList = () => { if (!checkIfOnList()) dashboardList.setList([...dashboardList.list, { elementId: element.id, elementType: elementType, timeAdded: new Date() }]) }
-    const removeFromList = () => { if (checkIfOnList) dashboardList.setList(dashboardList.list.filter((el) => el.elementId !== element.id)) }
 
     const link = useIfElementType(
         element,
@@ -48,11 +39,6 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
         `/pages/${element.id}`,
     )
 
-    const [elementIsOnDashboard, setElementIsOnDashboard] = useState(false)
-    useEffect(() => {
-        checkIfElementOnDashboard(element).then((res) => setElementIsOnDashboard(res))
-    }, [])
-
     const title = useIfElementType(element, "Edit Tile", "Edit Routine", "Edit Page",)
     const saveOnClick = useIfElementType(
         element,
@@ -60,29 +46,6 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
         () => { updateRoutine(element, (_err, _res) => { }) },
         () => { updatePage(element, (_err, _res) => { }) },
     )
-
-    const addToDashboard = () => {
-        addToList()
-        setElementIsOnDashboard(true)
-        addElementToDashboard(element, (error, res) => {
-            if (error) {
-                setElementIsOnDashboard(false)
-                removeFromList()
-                showToast("Error adding to dashboard!")
-            }
-        })
-        showToast("Added to dashboard!")
-    }
-
-    const removeFromDashboard = () => {
-        removeFromList()
-        setElementIsOnDashboard(false)
-        removeElementFromDashboard(element, (err, res) => {
-            if (err) { showToast("ERROR removing to dashboard!"); console.error(err); addToList() }
-            else console.log("removed from dashboard")
-        })
-        showToast("Removed from dashboard!")
-    }
 
     const onSave = (data) => {
         element.name = data.Name
@@ -126,7 +89,6 @@ export const GenericTile = <TElement extends ElementType>({ element, doAfterEdit
         }}>
             {editElementModal.component}
             <DeleteButton isEditMode={isEditMode} onPress={onPressDelete} />
-            <DashboardButton isEditMode={isEditMode} onPress={elementIsOnDashboard ? removeFromDashboard : addToDashboard} isOnDashboard={elementIsOnDashboard} />
             {isTile(element)
                 ? <TileComponent tile={element} numColumns={numColumns} onPressInEditMode={displayModal} isEditMode={isEditMode} isOnDashboard={isOnDashboard} />
                 : isRoutineOnPage(element)
