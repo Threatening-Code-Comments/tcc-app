@@ -1,5 +1,18 @@
 import {HS3Folder, Routine, Tile, TileEventStats} from "@components/homescreen/types";
-import realData from "../../../local-data/homescreen-mock-data.json";
+
+type MockData = {
+    routines: Routine[]
+    tiles: (Omit<Tile, "events"> & { events: { timestamp: string }[] })[]
+}
+
+//optional on purpose: local-data/ is gitignored (real personal data), so it's missing from EAS
+//builds and fresh checkouts. Expo's Metro config allows optional requires, so a missing file
+//just means an empty mock instead of a failed bundle — the app reads the real db anyway.
+let realData: MockData = {routines: [], tiles: []}
+try {
+    realData = require("../../../local-data/homescreen-mock-data.json")
+} catch {
+}
 
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
@@ -50,14 +63,15 @@ const tilesFromDb: Tile[] = realData.tiles.map(t => ({
 //homescreen starts with just a handful of real tiles pre-placed (so there's something to
 //see immediately) — everything else lives in the App Drawer, the now-standard way to get a
 //tile onto the homescreen (drag it out), rather than a fully hand-laid-out example screen.
-const [firstTile, secondTile, thirdTile] = tilesFromDb
+const preplacedLayouts = [
+    {x: 0, y: 0, width: 1, height: 1},
+    {x: 1, y: 0, width: 2, height: 1},
+    {x: 2, y: 1, width: 1, height: 1},
+]
 const rootLevel: HS3Folder = {
     folderId: undefined, name: "", color: "#888888", parentId: undefined, layout: undefined,
-    items: [
-        {itemId: 1, tileId: firstTile.id, layout: {x: 0, y: 0, width: 1, height: 1}},
-        {itemId: 2, tileId: secondTile.id, layout: {x: 1, y: 0, width: 2, height: 1}},
-        {itemId: 3, tileId: thirdTile.id, layout: {x: 2, y: 1, width: 1, height: 1}},
-    ]
+    items: tilesFromDb.slice(0, preplacedLayouts.length)
+        .map((tile, i) => ({itemId: i + 1, tileId: tile.id, layout: preplacedLayouts[i]})),
 }
 
 const foldersFromDb: HS3Folder[] = [rootLevel]
