@@ -108,6 +108,13 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         }
     })
 
+    //Shared values are read into locals once per render and only the locals are used below.
+    //Each .value read on the JS thread is a synchronous round trip to the UI thread — which
+    //is busy while dragging — and reading them per element (folders per item/folder, temp
+    //elements per visible element) made every re-render wait dozens of times. The preview
+    //only moves as fast as this component re-renders, so that showed up as a laggy drag.
+    const foldersNow = folders.value
+
     const {homescreenState, longTap} = useHomescreenEditMode()
     //also treated as edit mode while a tile is being dragged in from the App Drawer —
     //the same wiggle/dot-grid signal applies, it just wasn't triggered by a long-press here.
@@ -131,7 +138,7 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         }
         if ("itemId" in e) return apply()
 
-        const childCount = e.items.length + folders.value.filter(f => f.parentId === e.folderId).length
+        const childCount = e.items.length + foldersNow.filter(f => f.parentId === e.folderId).length
         if (childCount === 0) return apply()
 
         Alert.alert(
@@ -145,6 +152,7 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
     }
 
     const popupItem = useSharedValue<HS3Element | undefined>(undefined)
+    const popupItemNow = popupItem.value
     const onLongTap = (e: HS3Element) => {
         popupItem.value = e
     }
@@ -153,10 +161,10 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         setVisible: setItemPopupOpen,
         component: itemPopupComponent
     } = useElementPopup({
-        element: popupItem.value,
-        folders: folders.value,
-        managedByRoutine: !!popupItem.value && "itemId" in popupItem.value
-            && isManagedByRoutine(popupItem.value, folders.value),
+        element: popupItemNow,
+        folders: foldersNow,
+        managedByRoutine: !!popupItemNow && "itemId" in popupItemNow
+            && isManagedByRoutine(popupItemNow, foldersNow),
         onDelete: (e) => {
             folders.value = deleteElement(e, folders.value)
             popupItem.value = undefined
@@ -211,10 +219,16 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
     )
     //🔁
 
+    //the rest of the render's shared-value reads, once each (see foldersNow above)
+    const tempElementsNow = tempElements.value
+    const dropTargetNow = dropTarget.value
+    const dragStateNow = dragState.value
+    const previewElementNow = previewElement.value
+
     const impossibleElementKeys = new Set(tempElementsImpossible.value.map(getElementKey))
 
     const stableElements = visibleElements.value
-        .filter(e => !tempElements.value.some(e2 => isSameElement(e, e2)))
+        .filter(e => !tempElementsNow.some(e2 => isSameElement(e, e2)))
 
     const renderElement = (e: HS3Element) => {
         //shared between Item and Folder — both are Omit<MovableItemProps, "children"|"layout">,
@@ -229,13 +243,13 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
             onResizeUpdate: (pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY),
             onResizeEnd: (pos) => onResizeEnd(e, pos),
             //a routine's own tile in its linked folder would just come back on the next sync
-            onRemove: ("itemId" in e && isManagedByRoutine(e, folders.value)) ? undefined : () => removeElement(e),
+            onRemove: ("itemId" in e && isManagedByRoutine(e, foldersNow)) ? undefined : () => removeElement(e),
         }
 
         return ("itemId" in e)
             ? <Item key={`${mountKey}-t-${e.itemId}`} item={e} {...sharedProps}/>
             : <Folder key={`${mountKey}-f-${e.folderId}`} folder={e} {...sharedProps}
-                      children={folders.value.filter(f => f.parentId === e.folderId)}/>
+                      children={foldersNow.filter(f => f.parentId === e.folderId)}/>
     }
 
     return <>
@@ -245,19 +259,19 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
             </View>
         </GestureDetector>
 
-        {!dropTarget.value && (<PreviewItem
-            element={previewElement.value}
+        {!dropTargetNow && (<PreviewItem
+            element={previewElementNow}
             impossible={false}
             isDragElement={true}
-            isCreateElement={dragState.value?.type === "create"}
+            isCreateElement={dragStateNow?.type === "create"}
         />)}
         <Animated.View style={folderOverlayStyle}/>
-        <FolderPopover isAddFolder={dropTarget.value?.element} dragState={dragState.value}
+        <FolderPopover isAddFolder={dropTargetNow?.element} dragState={dragStateNow}
                        onOperationChange={(op) => onFolderPopoverChange(op)}/>
 
         {itemPopupComponent}
 
-        {tempElements.value.map(i => (
+        {tempElementsNow.map(i => (
             <PreviewItem
                 key={getElementKey(i)}
                 element={i}
