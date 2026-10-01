@@ -111,14 +111,17 @@ export const FolderPopover = (props: Props) => {
         shadowColor: 'black'
     })
 
-    const buttonStyle = (half: PointAlignment) => {
+    //The shared values are read in each useAnimatedStyle itself and handed to the helpers:
+    //Reanimated only tracks shared values found in a style's own closure, so reading them
+    //inside a helper left the styles stuck on whatever was hovered at the last React render.
+    const buttonStyle = (half: PointAlignment, status: PointAlignment | undefined) => {
         "worklet"
-        return (dragStateStatus.value === half)
+        return (status === half)
             ? ({...shared, backgroundColor: "green", flex: 1.5, elevation: 18})
             : ({...shared, backgroundColor: "grey", flex: 1})
     }
-    const leftButtonStyle = useAnimatedStyle(() => buttonStyle("in_left"))
-    const rightButtonStyle = useAnimatedStyle(() => buttonStyle("in_right"))
+    const leftButtonStyle = useAnimatedStyle(() => buttonStyle("in_left", dragStateStatus.value))
+    const rightButtonStyle = useAnimatedStyle(() => buttonStyle("in_right", dragStateStatus.value))
 
     const popoverStyle = useAnimatedStyle(() => {
         const t = target.value
@@ -147,9 +150,8 @@ export const FolderPopover = (props: Props) => {
         })
     })
 
-    const areaStyle = (half: PointAlignment) => {
+    const areaStyle = (half: PointAlignment, t: HS3Element | undefined, status: PointAlignment | undefined) => {
         "worklet"
-        const t = target.value
         if (!t) return ({
             position: 'absolute' as const, opacity: 0, top: 0, left: 0, zIndex: 20,
             backgroundColor: AREA_INACTIVE_COLOR, height: 0, width: 0
@@ -160,13 +162,13 @@ export const FolderPopover = (props: Props) => {
             top: POPOVER_HEIGHT + POPOVER_PADDING,
             left: half === "in_left" ? 0 : POPOVER_WIDTH / 2,
             zIndex: 20,
-            backgroundColor: (dragStateStatus.value === half ? "green" : AREA_INACTIVE_COLOR),
+            backgroundColor: (status === half ? "green" : AREA_INACTIVE_COLOR),
             height: getOperationAreasHeightWorklet(t),
             width: POPOVER_WIDTH / 2
         })
     }
-    const leftOperationAreaStyle = useAnimatedStyle(() => areaStyle("in_left"))
-    const rightOperationAreaStyle = useAnimatedStyle(() => areaStyle("in_right"))
+    const leftOperationAreaStyle = useAnimatedStyle(() => areaStyle("in_left", target.value, dragStateStatus.value))
+    const rightOperationAreaStyle = useAnimatedStyle(() => areaStyle("in_right", target.value, dragStateStatus.value))
 
     return (
         <Animated.View style={popoverStyle} pointerEvents="none">
