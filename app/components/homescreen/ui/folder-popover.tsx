@@ -1,4 +1,4 @@
-import Animated, {runOnJS, SharedValue, useAnimatedReaction, useAnimatedStyle, useDerivedValue} from "react-native-reanimated";
+import Animated, {SharedValue, useAnimatedReaction, useAnimatedStyle, useDerivedValue} from "react-native-reanimated";
 import {View} from "react-native";
 import React from "react";
 import {GRID_UNIT} from "@components/homescreen/move_algo";
@@ -91,21 +91,6 @@ export const FolderPopover = (props: Props) => {
         }
         return "outside"
     }, [target, dragState]);
-
-    //TEMP DEBUG (POPDBG) — remove after measuring
-    const debugLog = (msg: string) => console.log("POPDBG " + msg)
-    useAnimatedReaction(
-        () => {
-            const t = target.value
-            const st = dragState.value
-            if (!t || !st) return ""
-            const o = getFolderPopoverOrigin(t)
-            return `cursor=${Math.round(st.coordinate.x)},${Math.round(st.coordinate.y)} origin=${Math.round(o.x)},${Math.round(o.y)} split=${Math.round(o.x + POPOVER_WIDTH / 2)} status=${dragStateStatus.value} GU=${Math.round(GRID_UNIT)}`
-        },
-        (c, p) => {
-            if (c && c !== p) runOnJS(debugLog)(c)
-        }, [target, dragState, dragStateStatus]
-    )
 
     useAnimatedReaction(
         () => dragStateStatus.value,
