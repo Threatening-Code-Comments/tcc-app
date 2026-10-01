@@ -13,7 +13,25 @@ type FolderProps = Omit<MovableItemProps, "children" | "layout"> & {
     children: HS3Folder[]
 }
 
-export function Folder(props: FolderProps) {
+//Item and Folder re-render only when what they show changes. The level re-creates their
+//callbacks on every render, but those only act on `e` itself and on shared values read at
+//call time, so an older set behaves the same — comparing them would defeat the memo and
+//re-render every element whenever a neighbour gets pushed during a drag.
+const sameElements = (a: HS3Folder[], b: HS3Folder[]) =>
+    a.length === b.length && a.every((f, i) => f === b[i])
+
+export const Folder = React.memo(FolderView, (prev, next) =>
+    prev.folder === next.folder
+    && prev.isEditMode === next.isEditMode
+    && !!prev.onRemove === !!next.onRemove
+    && sameElements(prev.children, next.children))
+
+export const Item = React.memo(ItemView, (prev, next) =>
+    prev.item === next.item
+    && prev.isEditMode === next.isEditMode
+    && !!prev.onRemove === !!next.onRemove)
+
+function FolderView(props: FolderProps) {
     const {
         folder, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
         onResizeUpdate, onResizeEnd, onRemove
@@ -136,7 +154,7 @@ type ItemProps = Omit<MovableItemProps, "children" | "layout"> & {
     item: HS3Item
 }
 
-export function Item(props: ItemProps) {
+function ItemView(props: ItemProps) {
     const {
         item, onDragStart, onDragUpdate, onDragEnd, onTap, onLongPress,
         onResizeUpdate, onResizeEnd, onRemove

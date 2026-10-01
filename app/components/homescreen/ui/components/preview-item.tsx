@@ -23,11 +23,13 @@ export type PreviewItemProps = {
     //`element.layout` — for the drag preview, so it keeps up with the finger without
     //waiting for a React re-render of the whole level
     layoutSource?: SharedValue<HS3Element | undefined>
+    //when set and true, the preview is invisible (UI thread, no re-render needed)
+    hiddenSource?: SharedValue<boolean>
 }
 
 // type AnimatedPropsPreviewItem = Partial<PreviewItemProps>;
 export const PreviewItem = (props: PreviewItemProps) => {
-    const {element, impossible, isDragElement = false, layoutSource} = props;
+    const {element, impossible, isDragElement = false, layoutSource, hiddenSource} = props;
     const {colors} = useTheme();
     const {tileById} = useHomescreenData();
 
@@ -65,6 +67,7 @@ export const PreviewItem = (props: PreviewItemProps) => {
         const live = layoutSource?.value?.layout
         const l = live ?? {x, y, width, height}
         return {
+        opacity: hiddenSource?.value ? 0 : 1,
         position: "absolute",
         left: l.x * GRID_UNIT,
         top: l.y * GRID_UNIT,

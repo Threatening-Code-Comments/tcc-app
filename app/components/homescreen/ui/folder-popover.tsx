@@ -1,4 +1,4 @@
-import Animated, {runOnJS, SharedValue, useAnimatedReaction, useAnimatedStyle, useDerivedValue} from "react-native-reanimated";
+import Animated, {SharedValue, useAnimatedReaction, useAnimatedStyle, useDerivedValue} from "react-native-reanimated";
 import {View} from "react-native";
 import React from "react";
 import {GRID_UNIT} from "@components/homescreen/move_algo";
@@ -14,158 +14,83 @@ const POPOVER_PADDING = 10
 //"transparent" processes to the color 0, which the animated style doesn't push to the native
 //view — an area that was green then just stays green. A fully transparent green is non-zero.
 const AREA_INACTIVE_COLOR = "rgba(0, 128, 0, 0)"
-// const getOperationAreasHeight = (element: HS3Element) => element.layout.height * GRID_UNIT
 const getOperationAreasHeightWorklet = (element: HS3Element) => {
     "worklet"
     return element.layout.height * GRID_UNIT * 1.3
 }
 
+//where the popover sits for a folder target: centred just above it
+export function getFolderPopoverOrigin(target: HS3Element): PixelPoint {
+    "worklet"
+    const {layout: {x, y, width}} = target
+    return {
+        y: -50 + y * GRID_UNIT,
+        x: (GRID_UNIT - POPOVER_WIDTH) / 2 + x * GRID_UNIT +
+            ((width > 1) ? (width / 4 * GRID_UNIT) : 0),
+    }
+}
+
+//the two hover areas below the popover buttons (left = create folder, right = move into)
+function getOperationAreasBounds(target: HS3Element) {
+    "worklet"
+    const pC = getFolderPopoverOrigin(target)
+    return {
+        xFrom: pC.x,
+        yFrom: pC.y + POPOVER_HEIGHT,
+        xTo: pC.x + POPOVER_WIDTH,
+        yTo: pC.y + POPOVER_HEIGHT + getOperationAreasHeightWorklet(target),
+    }
+}
+
+/**
+ * Whether the cursor is anywhere on a folder target's popover — its button row or the hover
+ * areas below. While it is, the folder stays the drop target even outside the folder's own
+ * centre region, otherwise the (wider) areas could barely be reached.
+ */
+export function isInFolderPopover(target: HS3Element, cursor: PixelPoint): boolean {
+    "worklet"
+    const pC = getFolderPopoverOrigin(target)
+    const areas = getOperationAreasBounds(target)
+    return cursor.x >= pC.x - POPOVER_PADDING && cursor.x <= pC.x + POPOVER_WIDTH + POPOVER_PADDING
+        && cursor.y >= pC.y && cursor.y <= areas.yTo
+}
+
 type Props = {
-    isAddFolder: HS3Element;
-    //the shared value itself, not a snapshot: which half is hovered is worked out from the
-    //live cursor on the UI thread — a prop only changed with a re-render of the whole level
+    //the current folder/item drop target (see useHomescreenDragAndDrop) — the popover only
+    //shows for folder targets
+    dropTarget: SharedValue<{ element: HS3Element } | undefined>;
     dragState: SharedValue<DragState | undefined>;
+    //a worklet: called on the UI thread whenever the hovered half changes
     onOperationChange: (operation: FolderOperations) => void
 }
+
+/**
+ * The "create folder | move into folder" choice shown above a hovered folder. Lives entirely
+ * on the UI thread: it's always mounted, and whether it shows, where, and which half is
+ * hovered all follow the shared drag values directly — no React re-render involved, so it
+ * appears the moment a folder becomes the target and keeps up with the finger.
+ */
 export const FolderPopover = (props: Props) => {
+    const {dropTarget, dragState, onOperationChange} = props;
 
-    const {isAddFolder, dragState} = props;
+    const target = useDerivedValue<HS3Element | undefined>(() => {
+        const element = dropTarget.value?.element
+        return (element && "folderId" in element) ? element : undefined
+    }, [dropTarget]);
 
-    const coordinate = useDerivedValue<PixelPoint>(() => {
-        if (!isAddFolder || !dragState.value) {
-            return undefined;
-        }
-
-        const {layout: {x, y, width}} = isAddFolder;
-
-        return ({
-            y: -50 + y * GRID_UNIT,
-            x: (GRID_UNIT - 120) / 2 + x * GRID_UNIT +
-                ((width > 1) ? (width / 4 * GRID_UNIT) : 0),
-        })
-    }, [isAddFolder, dragState]);
-
-    const dragStateStatus = useDerivedValue<PointAlignment>(() => {
+    const dragStateStatus = useDerivedValue<PointAlignment | undefined>(() => {
+        const t = target.value
         const state = dragState.value
-        if (!state || !coordinate.value) return undefined;
+        if (!t || !state) return undefined;
 
-        //popover coordinate
-        const pC = coordinate.value;
         const cursor = state.coordinate
-
-        const bounds = {
-            xFrom: pC.x,
-            yFrom: pC.y + POPOVER_HEIGHT,
-            xTo: pC.x + POPOVER_WIDTH,
-            //same height as the rendered areas below — those are sized by the hovered target,
-            //not by the dragged element
-            yTo: pC.y + POPOVER_HEIGHT + getOperationAreasHeightWorklet(isAddFolder),
-        }
+        const bounds = getOperationAreasBounds(t)
         if (bounds.xFrom <= cursor.x && cursor.x <= bounds.xTo &&
             bounds.yFrom <= cursor.y && cursor.y <= bounds.yTo) {
-            if (cursor.x <= pC.x + POPOVER_WIDTH / 2) {
-                return "in_left"
-            } else {
-                return "in_right"
-            }
+            return (cursor.x <= bounds.xFrom + POPOVER_WIDTH / 2) ? "in_left" : "in_right"
         }
-
         return "outside"
-    }, [dragState, coordinate, isAddFolder]);
-
-    const shared = ({
-        borderRadius: 12,
-        justifyContent: 'center' as const,
-        elevation: 8,
-        shadowColor: 'black'
-    })
-
-    const leftButtonStyle = useAnimatedStyle(() => {
-        if (dragStateStatus.value === "in_left") return ({
-            ...shared,
-            backgroundColor: "green",
-            flex: 1.5,
-            elevation: 18
-        })
-
-        return ({
-            ...shared,
-            backgroundColor: "grey",
-            flex: 1
-        })
-    }, [dragStateStatus])
-    const rightButtonStyle = useAnimatedStyle(() => {
-        if (dragStateStatus.value === "in_right") return ({
-            ...shared,
-            backgroundColor: "green",
-            flex: 1.5,
-            elevation: 18
-        })
-
-        return ({
-            ...shared,
-            backgroundColor: "grey",
-            flex: 1
-        })
-    }, [dragStateStatus])
-
-    const createFolderPopoverStyle = useAnimatedStyle(() =>
-        (!!isAddFolder && "folderId" in isAddFolder)
-            ? ({
-                backgroundColor: '#00000000',
-                opacity: 1,
-                width: POPOVER_WIDTH + 2 * POPOVER_PADDING, height: POPOVER_HEIGHT + 2 * POPOVER_PADDING,
-                padding: POPOVER_PADDING,
-                position: 'absolute',
-                top: coordinate.value.y,
-                left: coordinate.value.x,
-                zIndex: 20,
-                display: 'flex', flexDirection: 'row', justifyContent: 'space-between',
-                overflow: 'visible'
-            }) : ({
-                backgroundColor: 'transparent',
-                opacity: 0,
-                position: 'absolute',
-                top: 0, left: 0,
-                width: 0, height: 0,
-                elevation: 0,
-                display: 'flex', flexDirection: 'row',
-                overflow: 'hidden'
-            }), [isAddFolder, coordinate])
-    const leftOperationAreaStyle = useAnimatedStyle(() => {
-        if (!coordinate.value || !isAddFolder) return ({
-            position: 'absolute', opacity: 0, top: 0, left: 0, zIndex: 20,
-            backgroundColor: AREA_INACTIVE_COLOR, height: 0, width: 0
-        })
-
-        return ({
-            position: 'absolute',
-            opacity: 0.5,
-            top: POPOVER_HEIGHT + POPOVER_PADDING,
-            left: 0,//coordinate.value.x,
-            zIndex: 20,
-            backgroundColor: (dragStateStatus.value == "in_left" ? "green" : AREA_INACTIVE_COLOR),
-            height: getOperationAreasHeightWorklet(isAddFolder),
-            width: POPOVER_WIDTH / 2
-        })
-    }, [coordinate, dragStateStatus, dragState])
-    const rightOperationAreaStyle = useAnimatedStyle(() => {
-        if (!coordinate.value || !isAddFolder) return ({
-            position: 'absolute', opacity: 0, top: 0, left: 0, zIndex: 20,
-            backgroundColor: AREA_INACTIVE_COLOR, height: 0, width: 0
-        })
-
-        return ({
-            position: 'absolute',
-            opacity: 0.5,
-            top: POPOVER_HEIGHT + POPOVER_PADDING,
-            left: POPOVER_WIDTH / 2,
-            zIndex: 20,
-            backgroundColor: (dragStateStatus.value == "in_right" ? "green" : AREA_INACTIVE_COLOR),
-            height: getOperationAreasHeightWorklet(isAddFolder),
-            width: POPOVER_WIDTH / 2
-        })
-    }, [coordinate, dragStateStatus, dragState])
+    }, [target, dragState]);
 
     useAnimatedReaction(
         () => dragStateStatus.value,
@@ -174,14 +99,77 @@ export const FolderPopover = (props: Props) => {
                 //leaving the left area (to "outside", or off the target entirely) falls back to
                 //the default "moveTo" — otherwise "create" would stay active while nothing is
                 //highlighted anymore, and even carry over to the next hovered folder
-                const op: FolderOperations = (current === "in_left") ? "create" : "moveTo"
-                runOnJS(props.onOperationChange)(op)
+                onOperationChange((current === "in_left") ? "create" : "moveTo")
             }
-        }, [dragState, dragStateStatus]
+        }, [dragStateStatus]
     )
 
+    const shared = ({
+        borderRadius: 12,
+        justifyContent: 'center' as const,
+        elevation: 8,
+        shadowColor: 'black'
+    })
+
+    const buttonStyle = (half: PointAlignment) => {
+        "worklet"
+        return (dragStateStatus.value === half)
+            ? ({...shared, backgroundColor: "green", flex: 1.5, elevation: 18})
+            : ({...shared, backgroundColor: "grey", flex: 1})
+    }
+    const leftButtonStyle = useAnimatedStyle(() => buttonStyle("in_left"))
+    const rightButtonStyle = useAnimatedStyle(() => buttonStyle("in_right"))
+
+    const popoverStyle = useAnimatedStyle(() => {
+        const t = target.value
+        if (!t) return ({
+            backgroundColor: 'transparent',
+            opacity: 0,
+            position: 'absolute',
+            top: 0, left: 0,
+            width: 0, height: 0,
+            elevation: 0,
+            display: 'flex', flexDirection: 'row',
+            overflow: 'hidden'
+        })
+        const pC = getFolderPopoverOrigin(t)
+        return ({
+            backgroundColor: '#00000000',
+            opacity: 1,
+            width: POPOVER_WIDTH + 2 * POPOVER_PADDING, height: POPOVER_HEIGHT + 2 * POPOVER_PADDING,
+            padding: POPOVER_PADDING,
+            position: 'absolute',
+            top: pC.y,
+            left: pC.x,
+            zIndex: 20,
+            display: 'flex', flexDirection: 'row', justifyContent: 'space-between',
+            overflow: 'visible'
+        })
+    })
+
+    const areaStyle = (half: PointAlignment) => {
+        "worklet"
+        const t = target.value
+        if (!t) return ({
+            position: 'absolute' as const, opacity: 0, top: 0, left: 0, zIndex: 20,
+            backgroundColor: AREA_INACTIVE_COLOR, height: 0, width: 0
+        })
+        return ({
+            position: 'absolute' as const,
+            opacity: 0.5,
+            top: POPOVER_HEIGHT + POPOVER_PADDING,
+            left: half === "in_left" ? 0 : POPOVER_WIDTH / 2,
+            zIndex: 20,
+            backgroundColor: (dragStateStatus.value === half ? "green" : AREA_INACTIVE_COLOR),
+            height: getOperationAreasHeightWorklet(t),
+            width: POPOVER_WIDTH / 2
+        })
+    }
+    const leftOperationAreaStyle = useAnimatedStyle(() => areaStyle("in_left"))
+    const rightOperationAreaStyle = useAnimatedStyle(() => areaStyle("in_right"))
+
     return (
-        <Animated.View style={createFolderPopoverStyle}>
+        <Animated.View style={popoverStyle} pointerEvents="none">
             <>
                 <Animated.View style={leftOperationAreaStyle}>
                     <View style={{

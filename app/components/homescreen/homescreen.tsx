@@ -1,6 +1,12 @@
 import React, {useEffect, useState} from "react";
 import {Alert, View} from "react-native";
-import Animated, {runOnJS, useAnimatedReaction, useDerivedValue, useSharedValue} from "react-native-reanimated";
+import Animated, {
+    runOnJS,
+    SharedValue,
+    useAnimatedReaction,
+    useDerivedValue,
+    useSharedValue
+} from "react-native-reanimated";
 import {Folder, Item} from "@components/homescreen/ui/item-and-folder";
 import {MovableItemProps} from "@components/homescreen/ui/movable-item";
 import {PreviewItem} from "@homescreen/ui/components/preview-item";
@@ -14,7 +20,7 @@ import {
 import {FolderPopover} from "@components/homescreen/ui/folder-popover";
 import {DotGridBackground} from "@homescreen/ui/components/dot-grid";
 import {CreateElementControls} from "@homescreen/ui/create-element-controls";
-import {HS3Element, HS3Item} from "@components/homescreen/types";
+import {DragState, HomescreenState, HS3Element, HS3Folder, HS3Item} from "@components/homescreen/types";
 import {useHomescreenDragAndDrop} from "@homescreen/hooks/useHomescreenDragAndDrop";
 import {useHomescreenEditMode} from "@homescreen/hooks/useHomescreenEditMode";
 import {useElementPopup} from "@components/homescreen/hooks/useItemPopup";
@@ -33,12 +39,25 @@ type Props = {
  * whenever the active folder changes, so everything in here — drag state, edit mode,
  * popups, create-flow — naturally resets per level without manual cleanup.
  */
+//What this level renders, as plain React state. The drag/folder state itself lives in shared
+//values on the UI thread; a reaction below pushes the parts React needs into here whenever
+//they actually change (see useLevelView). Rendering never reads .value — each read on the JS
+//thread is a synchronous round trip to the (during a drag: busy) UI thread.
+type LevelView = {
+    folders: HS3Folder[],
+    visibleElements: HS3Element[],
+    //pushed-away neighbours while dragging, and which of them can't go where they'd be pushed
+    tempElements: HS3Element[],
+    impossibleElements: HS3Element[],
+    //the element being dragged/created (for the preview's name and colour), undefined = no drag
+    dragElement: HS3Element | undefined,
+    isCreate: boolean,
+    isEditMode: boolean,
+    popupItem: HS3Element | undefined,
+}
+
 export const Homescreen = ({folderId, onEnterFolder}: Props) => {
     const {folders, dragPreview, homescreenAreaBounds, appDrawerDrop} = useHomescreenData()
-    //refresh: bridges Reanimated shared-value changes back into a React re-render,
-    //since this component reads .value directly in its JSX below.
-    const [, setRefreshTick] = useState(false)
-    const refreshState = () => setRefreshTick(t => !t)
     const [mountKey, setMountKey] = useState(0)
 
     const currentFolderLevel = useDerivedValue(() => {
@@ -108,17 +127,7 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         }
     })
 
-    //Shared values are read into locals once per render and only the locals are used below.
-    //Each .value read on the JS thread is a synchronous round trip to the UI thread — which
-    //is busy while dragging — and reading them per element (folders per item/folder, temp
-    //elements per visible element) made every re-render wait dozens of times. The preview
-    //only moves as fast as this component re-renders, so that showed up as a laggy drag.
-    const foldersNow = folders.value
-
     const {homescreenState, longTap} = useHomescreenEditMode()
-    //also treated as edit mode while a tile is being dragged in from the App Drawer —
-    //the same wiggle/dot-grid signal applies, it just wasn't triggered by a long-press here.
-    const isEditMode = homescreenState.value === "edit" || !!dragPreview.value
 
     const onElementTap = (e: HS3Element) => {
         if ("itemId" in e) {
@@ -138,7 +147,8 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         }
         if ("itemId" in e) return apply()
 
-        const childCount = e.items.length + foldersNow.filter(f => f.parentId === e.folderId).length
+        //an event handler, not render — reading the current value here is fine
+        const childCount = e.items.length + folders.value.filter(f => f.parentId === e.folderId).length
         if (childCount === 0) return apply()
 
         Alert.alert(
@@ -152,19 +162,24 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
     }
 
     const popupItem = useSharedValue<HS3Element | undefined>(undefined)
-    const popupItemNow = popupItem.value
     const onLongTap = (e: HS3Element) => {
         popupItem.value = e
     }
+
+    const view = useLevelView({
+        folders, visibleElements, tempElements, tempElementsImpossible, previewElement, dragState,
+        homescreenState, dragPreview, popupItem, folderId,
+    })
+
     const {
         visible: itemPopupOpen,
         setVisible: setItemPopupOpen,
         component: itemPopupComponent
     } = useElementPopup({
-        element: popupItemNow,
-        folders: foldersNow,
-        managedByRoutine: !!popupItemNow && "itemId" in popupItemNow
-            && isManagedByRoutine(popupItemNow, foldersNow),
+        element: view.popupItem,
+        folders: view.folders,
+        managedByRoutine: !!view.popupItem && "itemId" in view.popupItem
+            && isManagedByRoutine(view.popupItem, view.folders),
         onDelete: (e) => {
             folders.value = deleteElement(e, folders.value)
             popupItem.value = undefined
@@ -185,55 +200,14 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         }, [popupItem]
     )
 
-    //🔁 same "bridge SharedValue changes into a React re-render" pattern as elsewhere
-    //Runs on the UI thread on every drag frame, so it stays cheap: the small drag values are
-    //compared as strings, visibleElements/popupItem by reference (they're only reassigned on
-    //real changes). Stringifying visibleElements — every visible folder with all its items —
-    //twice per frame used to grow with the number of elements on the level.
-    useAnimatedReaction(
-        () => ({
-            previewElement: JSON.stringify(previewElement.value),
-            tempElements: JSON.stringify(tempElements.value),
-            tempElementsImpossible: JSON.stringify(tempElementsImpossible.value),
-            visibleElements: visibleElements.value,
-            homescreenState: homescreenState.value,
-            popupItem: popupItem.value,
-            isExternalDrag: !!dragPreview.value,
-            //which element is the folder target (if any) — the popover/preview swap needs one
-            //render when it changes; the hovered half is the popover's own UI-thread business
-            dropTargetKey: !dropTarget.value ? ""
-                : ("itemId" in dropTarget.value.element)
-                    ? `t-${dropTarget.value.element.itemId}`
-                    : `f-${dropTarget.value.element.folderId}`,
-        }),
-        (current, previous) => {
-            const changed = !previous
-                || current.dropTargetKey !== previous.dropTargetKey
-                || current.previewElement !== previous.previewElement
-                || current.tempElements !== previous.tempElements
-                || current.tempElementsImpossible !== previous.tempElementsImpossible
-                || current.visibleElements !== previous.visibleElements
-                || current.homescreenState !== previous.homescreenState
-                || current.popupItem !== previous.popupItem
-                || current.isExternalDrag !== previous.isExternalDrag
-            if (changed) runOnJS(refreshState)();
-        }, [previewElement, tempElements, tempElementsImpossible, visibleElements, homescreenState, popupItem, dragPreview, dropTarget]
-    )
-    //(a second reaction used to re-render the whole level every 10px of cursor movement while
-    //a folder target was hovered, only so FolderPopover saw the new cursor — it reads the
-    //dragState shared value on the UI thread now)
-    //🔁
+    //the drag preview steps aside while a drop target is hovered (the popover/overlay show)
+    const previewHidden = useDerivedValue(() => !!dropTarget.value, [dropTarget])
 
-    //the rest of the render's shared-value reads, once each (see foldersNow above)
-    const tempElementsNow = tempElements.value
-    const dropTargetNow = dropTarget.value
-    const dragStateNow = dragState.value
-    const previewElementNow = previewElement.value
+    const isEditMode = view.isEditMode
+    const impossibleElementKeys = new Set(view.impossibleElements.map(getElementKey))
 
-    const impossibleElementKeys = new Set(tempElementsImpossible.value.map(getElementKey))
-
-    const stableElements = visibleElements.value
-        .filter(e => !tempElementsNow.some(e2 => isSameElement(e, e2)))
+    const stableElements = view.visibleElements
+        .filter(e => !view.tempElements.some(e2 => isSameElement(e, e2)))
 
     const renderElement = (e: HS3Element) => {
         //shared between Item and Folder — both are Omit<MovableItemProps, "children"|"layout">,
@@ -252,13 +226,13 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
             onResizeUpdate: (pos, deltaX, deltaY) => onResizeUpdate(e, pos, deltaX, deltaY),
             onResizeEnd: (pos) => onResizeEnd(e, pos),
             //a routine's own tile in its linked folder would just come back on the next sync
-            onRemove: ("itemId" in e && isManagedByRoutine(e, foldersNow)) ? undefined : () => removeElement(e),
+            onRemove: ("itemId" in e && isManagedByRoutine(e, view.folders)) ? undefined : () => removeElement(e),
         }
 
         return ("itemId" in e)
             ? <Item key={`${mountKey}-t-${e.itemId}`} item={e} {...sharedProps}/>
             : <Folder key={`${mountKey}-f-${e.folderId}`} folder={e} {...sharedProps}
-                      children={foldersNow.filter(f => f.parentId === e.folderId)}/>
+                      children={view.folders.filter(f => f.parentId === e.folderId)}/>
     }
 
     return <>
@@ -268,20 +242,21 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
             </View>
         </GestureDetector>
 
-        {!dropTargetNow && (<PreviewItem
-            element={previewElementNow}
+        {!!view.dragElement && (<PreviewItem
+            element={view.dragElement}
             layoutSource={previewElement}
+            hiddenSource={previewHidden}
             impossible={false}
             isDragElement={true}
-            isCreateElement={dragStateNow?.type === "create"}
+            isCreateElement={view.isCreate}
         />)}
         <Animated.View style={folderOverlayStyle}/>
-        <FolderPopover isAddFolder={dropTargetNow?.element} dragState={dragState}
-                       onOperationChange={(op) => onFolderPopoverChange(op)}/>
+        <FolderPopover dropTarget={dropTarget} dragState={dragState}
+                       onOperationChange={onFolderPopoverChange}/>
 
         {itemPopupComponent}
 
-        {tempElementsNow.map(i => (
+        {view.tempElements.map(i => (
             <PreviewItem
                 key={getElementKey(i)}
                 element={i}
@@ -297,4 +272,111 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
 
         {stableElements.map(renderElement)}
     </>
+}
+
+type LevelViewSources = {
+    folders: SharedValue<HS3Folder[]>,
+    visibleElements: SharedValue<HS3Element[]>,
+    tempElements: SharedValue<HS3Element[]>,
+    tempElementsImpossible: SharedValue<HS3Element[]>,
+    previewElement: SharedValue<HS3Element | undefined>,
+    dragState: SharedValue<DragState | undefined>,
+    homescreenState: SharedValue<HomescreenState>,
+    dragPreview: SharedValue<unknown>,
+    popupItem: SharedValue<HS3Element | undefined>,
+    folderId: number | undefined,
+}
+
+/**
+ * Keeps a LevelView in React state in step with the shared values: a reaction on the UI
+ * thread notices what changed and pushes just those fields over (runOnJS with the values
+ * themselves). That replaces the old pattern of poking a dummy state to re-render and then
+ * pulling every value back with .value during render. It runs on every drag frame, so the
+ * comparisons stay cheap: references for the big lists (only reassigned on real changes),
+ * small strings for the temp elements and the dragged element.
+ */
+function useLevelView(s: LevelViewSources): LevelView {
+    const [view, setView] = useState<LevelView>(() => {
+        //one-off when the level mounts; afterwards the reaction keeps it current
+        const all = s.folders.value
+        const level = getFoldersForLevel(all, s.folderId)
+        return {
+            folders: all,
+            visibleElements: level.main ? [...level.main.items, ...level.more] : [],
+            tempElements: [],
+            impossibleElements: [],
+            dragElement: undefined,
+            isCreate: false,
+            isEditMode: s.homescreenState.value === "edit" || !!s.dragPreview.value,
+            popupItem: undefined,
+        }
+    })
+    const applyPatch = (patch: Partial<LevelView>) => setView(v => ({...v, ...patch}))
+
+    useAnimatedReaction(
+        () => {
+            const temp = s.tempElements.value
+            const impossible = s.tempElementsImpossible.value
+            const state = s.dragState.value
+            const dragElement = (s.previewElement.value && state) ? state.element : undefined
+            return {
+                folders: s.folders.value,
+                visibleElements: s.visibleElements.value,
+                temp, impossible,
+                tempKey: JSON.stringify(temp),
+                impossibleKey: JSON.stringify(impossible),
+                dragElement,
+                //an App Drawer drag hands in a fresh object every frame — compare by identity
+                //of what's dragged, not by reference
+                dragKey: !dragElement ? ""
+                    : ("itemId" in dragElement)
+                        ? `t${dragElement.itemId}:${dragElement.tileId}`
+                        : `f${dragElement.folderId}`,
+                isCreate: state?.type === "create",
+                //also edit mode while a tile is dragged in from the App Drawer — the same
+                //wiggle/dot-grid signal, it just wasn't triggered by a long-press here
+                isEditMode: s.homescreenState.value === "edit" || !!s.dragPreview.value,
+                popupItem: s.popupItem.value,
+            }
+        },
+        (cur, prev) => {
+            const patch: Partial<LevelView> = {}
+            let changed = false
+            if (!prev || cur.folders !== prev.folders) {
+                patch.folders = cur.folders
+                changed = true
+            }
+            if (!prev || cur.visibleElements !== prev.visibleElements) {
+                patch.visibleElements = cur.visibleElements
+                changed = true
+            }
+            if (!prev || cur.tempKey !== prev.tempKey) {
+                patch.tempElements = cur.temp
+                changed = true
+            }
+            if (!prev || cur.impossibleKey !== prev.impossibleKey) {
+                patch.impossibleElements = cur.impossible
+                changed = true
+            }
+            if (!prev || cur.dragKey !== prev.dragKey) {
+                patch.dragElement = cur.dragElement
+                changed = true
+            }
+            if (!prev || cur.isCreate !== prev.isCreate) {
+                patch.isCreate = cur.isCreate
+                changed = true
+            }
+            if (!prev || cur.isEditMode !== prev.isEditMode) {
+                patch.isEditMode = cur.isEditMode
+                changed = true
+            }
+            if (!prev || cur.popupItem !== prev.popupItem) {
+                patch.popupItem = cur.popupItem
+                changed = true
+            }
+            if (changed) runOnJS(applyPatch)(patch)
+        }, [s.folders, s.visibleElements, s.tempElements, s.tempElementsImpossible, s.previewElement,
+            s.dragState, s.homescreenState, s.dragPreview, s.popupItem]
+    )
+    return view
 }

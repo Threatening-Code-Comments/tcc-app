@@ -1,8 +1,8 @@
-import {SharedValue, useAnimatedStyle, useDerivedValue, useSharedValue} from "react-native-reanimated";
+import {SharedValue, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from "react-native-reanimated";
 import {ToastAndroid} from "react-native";
 import {DragState, GridValue, HS3Element, HS3Folder, PixelPoint} from "@homescreen/types";
 import {DragPointPosition} from "@homescreen/ui/components/drag-point";
-import {FolderOperations} from "@homescreen/ui/folder-popover";
+import {FolderOperations, isInFolderPopover} from "@homescreen/ui/folder-popover";
 import {
     createResizeTempElements,
     createTempElements,
@@ -51,16 +51,34 @@ export function useHomescreenDragAndDrop(
         return generateElementResults(dragState.value, previewElement.value, visibleElements.value);
     }, [dragState, visibleElements, previewElement])
 
-    //elementResults -> isAddFolder
-    const isAddFolder = useDerivedValue(() => {
-        if (!elementResults.value) return undefined
+    //the folder that was the target a moment ago — see isAddFolder
+    const heldFolderTarget = useSharedValue<HS3Element | undefined>(undefined)
 
-        for (let result of elementResults.value) {
-            const {element, dirs: {isAddFolder: isAddFolderR}} = result
-            if (isAddFolderR) return element
+    //elementResults -> isAddFolder: the element the cursor is over the centre of. A folder
+    //target is also kept while the cursor is on its popover (button row + hover areas): those
+    //reach past the folder's centre region, and would otherwise vanish on the way to them.
+    const isAddFolder = useDerivedValue(() => {
+        if (elementResults.value) {
+            for (let result of elementResults.value) {
+                const {element, dirs: {isAddFolder: isAddFolderR}} = result
+                if (isAddFolderR) return element
+            }
         }
+        const held = heldFolderTarget.value
+        const state = dragState.value
+        if (held && state?.type === "drag" && isInFolderPopover(held, state.coordinate)) return held
         return undefined
-    }, [elementResults])
+    }, [elementResults, heldFolderTarget, dragState])
+    useAnimatedReaction(
+        () => isAddFolder.value,
+        (current) => {
+            const next = (current && "folderId" in current) ? current : undefined
+            const held = heldFolderTarget.value
+            //only on an actual change — re-assigning the same target would re-run isAddFolder
+            if ((next as HS3Folder | undefined)?.folderId !== (held as HS3Folder | undefined)?.folderId)
+                heldFolderTarget.value = next
+        }, [isAddFolder]
+    )
 
     //elementResults, previewElement, visibleElements -> TEMP ELEMENTS
     const tempElements = useDerivedValue(() => {
@@ -78,7 +96,9 @@ export function useHomescreenDragAndDrop(
     //set by FolderPopover depending on which half of it the drag is hovering over. Defaults
     //to "moveTo" so there's always a defined choice, even before the popover reports one.
     const folderOperation = useSharedValue<FolderOperations>("moveTo")
+    //a worklet: FolderPopover calls it on the UI thread when the hovered half changes
     const onFolderPopoverChange = (op: FolderOperations) => {
+        "worklet"
         folderOperation.value = op
     }
 
