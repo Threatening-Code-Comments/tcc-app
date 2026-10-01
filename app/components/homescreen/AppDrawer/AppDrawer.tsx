@@ -11,6 +11,7 @@ import Animated, {
     withSpring
 } from "react-native-reanimated";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
+import * as Haptics from "expo-haptics";
 import {IconButton} from "@components/IconButton";
 import {getContrastColor} from "@components/Colors";
 import {Routine, Tile} from "@components/homescreen/types";
@@ -28,6 +29,9 @@ const FALLBACK_TILE_SIZE = 80
 const TileSizeContext = createContext(FALLBACK_TILE_SIZE)
 const UNCATEGORIZED = 0
 const DRAWER_OPEN_HEIGHT = 560
+//a tile only starts dragging after being held this long — an instant pan took every touch
+//away from the list, so a full routine was barely scrollable without grabbing a tile
+const TILE_DRAG_DELAY_MS = 250
 //same as the cancel bar that takes its place while dragging a tile out
 const DRAWER_CLOSED_HEIGHT = DRAWER_CANCEL_ZONE_HEIGHT
 //a fling faster than this (px/s) decides open/close on its own, regardless of how far it got
@@ -412,8 +416,10 @@ const AppDrawerTile = ({tile, dragPreview, onDrop, onDelete}: { tile: Tile } & P
     const tileSize = useContext(TileSizeContext)
 
     const dragGesture = Gesture.Pan()
+        .activateAfterLongPress(TILE_DRAG_DELAY_MS)
         .onStart((e) => {
             if (dragPreview) dragPreview.value = {tile, x: e.absoluteX, y: e.absoluteY}
+            runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
         })
         .onUpdate((e) => {
             if (dragPreview) dragPreview.value = {tile, x: e.absoluteX, y: e.absoluteY}
