@@ -31,7 +31,7 @@ const UNCATEGORIZED = 0
 const DRAWER_OPEN_HEIGHT = 560
 //a tile only starts dragging after being held this long — an instant pan took every touch
 //away from the list, so a full routine was barely scrollable without grabbing a tile
-const TILE_DRAG_DELAY_MS = 250
+const TILE_DRAG_DELAY_MS = 350
 //same as the cancel bar that takes its place while dragging a tile out
 const DRAWER_CLOSED_HEIGHT = DRAWER_CANCEL_ZONE_HEIGHT
 //a fling faster than this (px/s) decides open/close on its own, regardless of how far it got
