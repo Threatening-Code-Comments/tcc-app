@@ -30,6 +30,8 @@ export const n = 0.8
 const HOLD_TO_DRAG_MS = 350
 //how far the finger has to move after the hold before it counts as a drag, not a long press
 const HOLD_MOVE_SLOP = 8
+//how much a held item grows once the hold kicks in
+const HOLD_SCALE = 1.08
 
 export type MovableItemProps = {
     layout: HS3LayoutParams
@@ -84,6 +86,9 @@ export function MovableItem(props: MovableItemProps) {
 
     //held but not moved yet (default mode only) / actually dragging
     const isHolding = useSharedValue(false)
+    //the visible "picked up" signal next to the haptic tick: the item pops up a little
+    //while it's held, then hands over to the drag look (or springs back on release)
+    const holdScale = useSharedValue(1)
     const isDragActive = useSharedValue(false)
     const beginDrag = () => {
         "worklet"
@@ -104,6 +109,7 @@ export function MovableItem(props: MovableItemProps) {
                 beginDrag()
             } else {
                 isHolding.value = true
+                holdScale.value = withSpring(HOLD_SCALE, {damping: 12, stiffness: 300})
                 runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
             }
         })
@@ -111,6 +117,7 @@ export function MovableItem(props: MovableItemProps) {
             if (!isDragActive.value) {
                 if (!isHolding.value || Math.hypot(event.translationX, event.translationY) < HOLD_MOVE_SLOP) return
                 isHolding.value = false
+                holdScale.value = withTiming(1, {duration: 120})
                 beginDrag()
             }
             const config: SpringConfig = {
@@ -139,6 +146,7 @@ export function MovableItem(props: MovableItemProps) {
         })
         .onFinalize(() => {
             isHolding.value = false
+            holdScale.value = withSpring(1, {damping: 14, stiffness: 300})
             isDragActive.value = false
         });
     const tapGesture = Gesture.Tap()
@@ -212,7 +220,7 @@ export function MovableItem(props: MovableItemProps) {
         }
     }, [props.isEditMode, isDragging])
     const wiggleStyle = useAnimatedStyle(() => ({
-        transform: [{rotate: `${wiggleRotation.value}deg`}] as any,
+        transform: [{rotate: `${wiggleRotation.value}deg`}, {scale: holdScale.value}] as any,
     }))
 
     const wrapperViewStyle = useAnimatedStyle(() => ({

@@ -119,6 +119,8 @@ export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[]
         <View style={{
             flex: 1,
             marginHorizontal: 6, marginTop: 3, marginBottom: 6,
+            //only the first rows fit; anything further down is cut off rather than poking out
+            overflow: 'hidden',
             pointerEvents: 'none'
         }}>
 
