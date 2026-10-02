@@ -215,7 +215,12 @@ export const Homescreen = ({folderId, onEnterFolder}: Props) => {
         //shared between Item and Folder — both are Omit<MovableItemProps, "children"|"layout">,
         //and only differ in the item/folder prop itself plus Folder's own `children` (sub-folders).
         const sharedProps: Omit<MovableItemProps, "children" | "layout"> = {
-            onDragStart: () => onDragStart(e),
+            onDragStart: () => {
+                //a drag started by holding an item outside edit mode switches into it (and
+                //stays there after the drop), like picking up an app icon on an iPhone
+                homescreenState.value = "edit"
+                onDragStart(e)
+            },
             //a worklet, called by the pan gesture on the UI thread (see useHomescreenDragAndDrop)
             onDragUpdate: (coordinate) => {
                 "worklet"

@@ -18,11 +18,18 @@ import {SpringConfig} from "react-native-reanimated/lib/typescript/reanimated2/a
 import {View} from "react-native";
 import {DragPoint, DragPointPosition} from "@components/homescreen/ui/components/drag-point";
 import {RemoveBadge} from "@homescreen/ui/components/remove-badge";
+import * as Haptics from "expo-haptics";
 
 /**
  * this scales the item down when it's dragging
  */
 export const n = 0.8
+
+//outside edit mode an item is picked up iPhone-style: hold it this long, then either move
+//(starts the drag, and the homescreen switches to edit mode) or let go (opens the popup)
+const HOLD_TO_DRAG_MS = 350
+//how far the finger has to move after the hold before it counts as a drag, not a long press
+const HOLD_MOVE_SLOP = 8
 
 export type MovableItemProps = {
     layout: HS3LayoutParams
@@ -75,15 +82,37 @@ export function MovableItem(props: MovableItemProps) {
         }
     }, [isDragging])
 
-    const panGesture = Gesture.Pan()
-        .onStart((e) => {
-            runOnJS(setDragging)(true);
+    //held but not moved yet (default mode only) / actually dragging
+    const isHolding = useSharedValue(false)
+    const isDragActive = useSharedValue(false)
+    const beginDrag = () => {
+        "worklet"
+        isDragActive.value = true
+        runOnJS(setDragging)(true);
+        runOnJS(onDragStart)()
+    }
 
+    //one pan for both modes, so the gesture tree keeps its shape when a hold-drag switches
+    //the homescreen into edit mode mid-gesture (a different tree would re-attach the
+    //handlers and cancel the drag that's running)
+    const panGesture = Gesture.Pan()
+        .activateAfterLongPress(props.isEditMode ? 0 : HOLD_TO_DRAG_MS)
+        .onStart((e) => {
             startX.value = -((itemWidth.value * n / 2) - e.x);
             startY.value = -((itemWidth.value * n / 2) - e.y);
-            runOnJS(onDragStart)()
+            if (props.isEditMode) {
+                beginDrag()
+            } else {
+                isHolding.value = true
+                runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+            }
         })
         .onUpdate((event) => {
+            if (!isDragActive.value) {
+                if (!isHolding.value || Math.hypot(event.translationX, event.translationY) < HOLD_MOVE_SLOP) return
+                isHolding.value = false
+                beginDrag()
+            }
             const config: SpringConfig = {
                 // duration: 20
             }
@@ -99,24 +128,23 @@ export function MovableItem(props: MovableItemProps) {
                 y: itemY.value + startY.value + event.translationY + itemWidth.value * n / 2,
             });
         })
-        .onEnd(() => {
-            // Moved to reaction of changed layout
-            // runOnJS(setDragging)(false);
-            runOnJS(onDragEnd)();
+        .onEnd((e) => {
+            if (isDragActive.value) {
+                // Moved to reaction of changed layout
+                // runOnJS(setDragging)(false);
+                runOnJS(onDragEnd)();
+            } else if (isHolding.value) {
+                runOnJS(onLongPress)({x: e.x, y: e.y})
+            }
+        })
+        .onFinalize(() => {
+            isHolding.value = false
+            isDragActive.value = false
         });
     const tapGesture = Gesture.Tap()
         .onStart((e) => {
             runOnJS(onTap)()
         })
-    const longPress = Gesture.LongPress()
-        .onStart((e) => {
-            const coordinate: PixelPoint = {
-                x: e.x,//e.absoluteX,
-                y: e.y,
-            }
-            runOnJS(onLongPress)(coordinate)
-        })
-
     const isResizing = useSharedValue(false);
     const onResizeUpdate = (pos: DragPointPosition, deltaX: number, deltaY: number) => {
         if (!isResizing.value) {
@@ -160,10 +188,8 @@ export function MovableItem(props: MovableItemProps) {
     const resizeTop = useSharedValue(0);
     const resizeBottom = useSharedValue(0);
 
-    const compoundGesture =
-        (props.isEditMode)
-            ? Gesture.Exclusive(panGesture, tapGesture)
-            : Gesture.Exclusive(tapGesture, longPress)
+    //the tap only fires once the pan has failed, i.e. the finger let go before the hold
+    const compoundGesture = Gesture.Exclusive(panGesture, tapGesture)
 
     //edit-mode wiggle — the "you can drag/resize this now" signal, replacing the old
     //screen-wide tint. Phase/duration jitter per item so a whole screen of tiles
