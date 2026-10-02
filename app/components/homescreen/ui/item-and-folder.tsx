@@ -3,7 +3,6 @@ import {Text} from "react-native-paper";
 import React from "react";
 import {MovableItem, MovableItemProps} from "@components/homescreen/ui/movable-item";
 import {View} from "react-native";
-import {Icon} from "@components/Icon";
 import {GRID_COLUMNS} from "@components/homescreen/move_algo";
 import {ConcreteItemSlot, ItemDisplaySlot} from "@homescreen/ui/components/item-display-slots";
 import {useHomescreenData} from "@components/homescreen/homescreen-data-context";
@@ -50,53 +49,30 @@ function FolderView(props: FolderProps) {
         onResizeEnd={onResizeEnd}
         onRemove={onRemove}
     >
+        {/*a tinted, rounded card in the folder's colour (iOS-folder-like) instead of the big
+        folder icon with a label stuck on top — matches the item tiles' shape*/}
         <View style={{
-            // backgroundColor: 'white',
-            width: '100%', height: '100%',
-            // borderRadius: 20,
-            // borderColor: 'red', borderWidth: 2,
-            alignItems: 'center', justifyContent: 'center',
-            elevation: 8,
-            pointerEvents: 'box-none'
+            width: '95%', height: '95%',
+            position: 'absolute', top: '1.25%', left: '1.25%',
+            //no elevation: Android draws the shadow through the translucent tint
+            borderRadius: 16, overflow: 'hidden',
+            pointerEvents: 'none'
         }}>
-            {/*Folder background*/}
             <View style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%', height: '100%',
-                backgroundColor: 'transparent',
-                margin: -2,
-                alignContent: 'center', justifyContent: 'center',
-                opacity: 0.7,
-                pointerEvents: 'none'
-            }}>
-                <Icon iconName={"folder"} iconSize={115 * Math.min(layout.width, layout.height)} color={folder.color}/>
-            </View>
-
-            {/*Name at top left*/}
+                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                backgroundColor: folder.color, opacity: 0.35,
+            }}/>
             <View style={{
-                position: 'absolute', top: 0, left: 0, margin: 2, marginTop: 5,
-                backgroundColor: '#ffffff99', paddingHorizontal: 2,
-                zIndex: 10, minWidth: '30%',
-                pointerEvents: 'none'
-            }}>
-                <Text style={{
-                    color: 'black', zIndex: 3, elevation: 3,
-                    alignSelf: 'center'
-                }}>{folder.routineId !== undefined ? "↻ " : ""}{folder.name}</Text>
-            </View>
+                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                borderRadius: 16, borderWidth: 1.5, borderColor: folder.color, opacity: 0.8,
+            }}/>
 
+            <Text numberOfLines={1} style={{
+                color: '#ffffff', fontSize: 12, fontWeight: '600',
+                paddingHorizontal: 8, paddingTop: 5,
+            }}>{folder.routineId !== undefined ? "↻ " : ""}{folder.name}</Text>
 
-            {/*<Text>{stringyfyLayout(layout)}</Text>*/}
-
-            {/*{props.folder.items.map((item, index) => {*/}
-            {/*    const {itemId, layout: {x, y}} = item*/}
-
-            {/*    return (<Text key={index}>{item.itemId}: x{x} y{y}</Text>)*/}
-            {/*})}*/}
             <ViewPort folderToView={props.folder} children={props.children}/>
-
         </View>
     </MovableItem>
 }
@@ -117,30 +93,32 @@ export const ViewPort = (props: { folderToView: HS3Folder, children: HS3Folder[]
 
     const getElementLayout = (item: HS3Element, index: number) => {
         const {layout: {x, y, width, height}} = item
-        const name = ("itemId" in item) ? tileById.get(item.tileId)?.name : item.name
 
+        const color = ("itemId" in item) ? tileById.get(item.tileId)?.color ?? '#888888' : item.color
+
+        //a mini tile in its real colour — names don't fit at this size anyway
         return (
             //@ts-expect-error
             <View key={index} style={{
                 position: 'absolute',
                 left: getPercentageString(x, maxWidth), top: getPercentageString(y, maxHeight),
                 width: getPercentageString(width, maxWidth), height: getPercentageString(height, maxHeight),
-                borderWidth: 2,
-                backgroundColor: ("itemId" in item) ? 'blue' : "red",
+                padding: 1.5,
                 pointerEvents: 'none'
             }}>
-                <Text style={{fontSize: 10, pointerEvents: 'none'}}>{name}</Text>
+                <View style={{
+                    flex: 1, borderRadius: 4, backgroundColor: color,
+                    //a sub-folder reads as a folder, not a tile: tinted with an outline
+                    ...(("itemId" in item) ? {} : {opacity: 0.6, borderWidth: 1, borderColor: '#ffffff88'}),
+                }}/>
             </View>
         )
     }
 
     return (
         <View style={{
-            width: '90%',
-            height: '65%',
-            marginTop: 15,
-            marginBottom: 2,
-            marginLeft: -2,
+            flex: 1,
+            marginHorizontal: 6, marginTop: 3, marginBottom: 6,
             pointerEvents: 'none'
         }}>
 

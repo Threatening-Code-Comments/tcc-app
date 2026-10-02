@@ -271,6 +271,7 @@ export function AppDrawer() {
                             ref={searchInputRef}
                             mode="outlined"
                             dense
+                            outlineStyle={{borderRadius: 24}}
                             placeholder="Apps suchen..."
                             value={query}
                             onChangeText={text => {
